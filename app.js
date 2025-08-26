@@ -9,6 +9,7 @@ document.addEventListener("DOMContentLoaded", function () {
 		if (console && console.log) console.log("Theme set to", dark ? "dark" : "light");
 		themeBtn.textContent = dark ? "🌖 Light Mode" : "🌒 Dark Mode";
 	}
+
 	// Initial state: respect browser preference; fallback to dark if no preference is available
 	let isDark = true;
 	try {
@@ -343,12 +344,24 @@ class ProcessedImageModal {
 		this.populateGallery();
 
 		if (this.modal) {
+			// Ensure modal is visible even if markup starts with a `hidden` helper class
+			this.modal.classList.remove("hidden");
 			this.modal.classList.add("show");
 			document.body.style.overflow = "hidden";
 
 			const countEl = document.getElementById("galleryCount");
 			if (countEl) {
 				countEl.textContent = `${processedImages.length} images processed`;
+			}
+
+			// focus the modal for accessibility
+			try {
+				const firstFocusable = this.modal.querySelector(
+					'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+				);
+				if (firstFocusable) firstFocusable.focus();
+			} catch (e) {
+				// ignore
 			}
 		}
 	}
@@ -357,14 +370,27 @@ class ProcessedImageModal {
 		const galleryGrid = document.getElementById("galleryGrid");
 		if (!galleryGrid) return;
 
+		// Clear previous content and any existing toolbar to avoid duplicates
+		const existingToolbar = galleryGrid.parentNode.querySelector(".gallery-toolbar");
+		if (existingToolbar) existingToolbar.remove();
 		galleryGrid.innerHTML = "";
+
+		if (!this.processedImages || this.processedImages.length === 0) {
+			// Show an empty state card
+			const empty = document.createElement("div");
+			empty.className = "empty-state";
+			empty.innerHTML = `<div style="padding:24px; text-align:center;"><h3>No processed images</h3><p>Click "Process All Images" to generate the gallery.</p></div>`;
+			galleryGrid.appendChild(empty);
+			return;
+		}
+
 		// Add a small toolbar with select-all checkbox and download selected
 		const toolbar = document.createElement("div");
 		toolbar.className = "gallery-toolbar";
 		toolbar.innerHTML = `
-			<label><input type="checkbox" id="selectAllImages" checked> Select All</label>
-			<button id="downloadSelectedBtn" class="btn btn--primary btn--sm">Download Selected</button>
-		`;
+				<label><input type="checkbox" id="selectAllImages" checked> Select All</label>
+				<button id="downloadSelectedBtn" class="btn btn--primary btn--sm">Download Selected</button>
+			`;
 		galleryGrid.parentNode.insertBefore(toolbar, galleryGrid);
 
 		this.processedImages.forEach((imageData, index) => {
@@ -446,6 +472,10 @@ class ProcessedImageModal {
 		if (this.modal) {
 			this.modal.classList.remove("show");
 			document.body.style.overflow = "";
+			// After hide transition, hide from layout so `hidden` class keeps it non-interactive
+			setTimeout(() => {
+				if (this.modal) this.modal.classList.add("hidden");
+			}, 300);
 		}
 	}
 
@@ -552,7 +582,21 @@ class BulkWatermarkApp {
 			patternSpacingY: 0,
 			patternAngle: -45,
 			watermarkRotation: 0,
+			// Legacy overlayEffect retained for backward compatibility but superseded by textEffects
 			overlayEffect: "none",
+			textEffects: {
+				shadow: false,
+				shadowColor: "#000000",
+				shadowBlur: 6,
+				shadowOffsetX: 2,
+				shadowOffsetY: 2,
+				outline: false,
+				outlineColor: "#000000",
+				outlineThickness: 2,
+				glow: false,
+				glowColor: "#ffffff",
+				glowBlur: 12,
+			},
 		};
 
 		// Use a Map for watermark caches keyed by a JSON key that includes quantized canvas size
@@ -819,13 +863,57 @@ class BulkWatermarkApp {
 		});
 
 		// Overlay effect
-		const overlayEffect = document.getElementById("overlayEffect");
-		if (overlayEffect) {
-			overlayEffect.addEventListener("change", () => {
-				this.watermarkSettings.overlayEffect = overlayEffect.value;
+		// Text-only effect controls (shadow, outline, glow)
+		const effectShadow = document.getElementById("effectShadow");
+		const effectShadowColor = document.getElementById("effectShadowColor");
+		const effectShadowBlur = document.getElementById("effectShadowBlur");
+		const effectShadowOffsetX = document.getElementById("effectShadowOffsetX");
+		const effectShadowOffsetY = document.getElementById("effectShadowOffsetY");
+
+		const effectOutline = document.getElementById("effectOutline");
+		const effectOutlineColor = document.getElementById("effectOutlineColor");
+		const effectOutlineThickness = document.getElementById("effectOutlineThickness");
+
+		const effectGlow = document.getElementById("effectGlow");
+		const effectGlowColor = document.getElementById("effectGlowColor");
+		const effectGlowBlur = document.getElementById("effectGlowBlur");
+
+		const bindEffect = (el, setter) => {
+			if (!el) return;
+			el.addEventListener("input", () => {
+				setter();
 				this.updatePreview();
 			});
-		}
+		};
+
+		bindEffect(effectShadow, () => (this.watermarkSettings.textEffects.shadow = !!effectShadow.checked));
+		bindEffect(effectShadowColor, () => (this.watermarkSettings.textEffects.shadowColor = effectShadowColor.value));
+		bindEffect(
+			effectShadowBlur,
+			() => (this.watermarkSettings.textEffects.shadowBlur = Number(effectShadowBlur.value))
+		);
+		bindEffect(
+			effectShadowOffsetX,
+			() => (this.watermarkSettings.textEffects.shadowOffsetX = Number(effectShadowOffsetX.value))
+		);
+		bindEffect(
+			effectShadowOffsetY,
+			() => (this.watermarkSettings.textEffects.shadowOffsetY = Number(effectShadowOffsetY.value))
+		);
+
+		bindEffect(effectOutline, () => (this.watermarkSettings.textEffects.outline = !!effectOutline.checked));
+		bindEffect(
+			effectOutlineColor,
+			() => (this.watermarkSettings.textEffects.outlineColor = effectOutlineColor.value)
+		);
+		bindEffect(
+			effectOutlineThickness,
+			() => (this.watermarkSettings.textEffects.outlineThickness = Number(effectOutlineThickness.value))
+		);
+
+		bindEffect(effectGlow, () => (this.watermarkSettings.textEffects.glow = !!effectGlow.checked));
+		bindEffect(effectGlowColor, () => (this.watermarkSettings.textEffects.glowColor = effectGlowColor.value));
+		bindEffect(effectGlowBlur, () => (this.watermarkSettings.textEffects.glowBlur = Number(effectGlowBlur.value)));
 
 		// New compact horizontal/vertical spacing controls
 		const spX = document.getElementById("patternSpacingX");
@@ -929,11 +1017,16 @@ class BulkWatermarkApp {
 		}
 
 		if (showGalleryBtn) {
+			// Always open the gallery modal when clicked; the modal will show an empty-state if no images
 			showGalleryBtn.addEventListener("click", () => {
-				if (this.processedImages.length > 0) {
-					this.modal.showModal(this.processedImages);
-				} else {
-					alert("No processed images to display. Please process images first.");
+				try {
+					if (this.modal && typeof this.modal.showModal === "function") {
+						this.modal.showModal(this.processedImages || []);
+					} else {
+						alert("Gallery is not available.");
+					}
+				} catch (e) {
+					console.error("Failed to open gallery:", e);
 				}
 			});
 		}
@@ -1024,9 +1117,13 @@ class BulkWatermarkApp {
 		if (type === "text") {
 			if (textOptions) textOptions.classList.remove("hidden");
 			if (imageOptions) imageOptions.classList.add("hidden");
+			const te = document.getElementById("textEffectsControls");
+			if (te) te.classList.remove("hidden");
 		} else {
 			if (textOptions) textOptions.classList.add("hidden");
 			if (imageOptions) imageOptions.classList.remove("hidden");
+			const te = document.getElementById("textEffectsControls");
+			if (te) te.classList.add("hidden");
 		}
 
 		this.updatePreview();
@@ -1167,17 +1264,8 @@ class BulkWatermarkApp {
 			if (this.watermarkSettings.watermarkImage && !this._watermarkCache) {
 				this.buildWatermarkCache(ctx, width, height);
 				// Debug: report cache info when user has imageScale ~20%
-				if (
-					this.getImageScaleFraction &&
-					this.getImageScaleFraction() === 0.2 &&
-					this.debugLogging &&
-					console &&
-					console.debug
-				) {
-					console.debug("renderPreview: post-build cache", {
-						_watermarkCache: this._watermarkCache,
-						canvas: { width, height },
-					});
+				if (this.getImageScaleFraction && Math.abs(this.getImageScaleFraction() - 0.2) < 0.001) {
+					this._dbg("renderPreview: built cache for preview", { canvas: { width, height } });
 				}
 			}
 		} catch (e) {
@@ -1463,8 +1551,8 @@ class BulkWatermarkApp {
 			// Prefer the visible content size (without padding) so spacing matches what is drawn
 			baseX = this._watermarkCache.contentW || this._watermarkCache.w;
 			baseY = this._watermarkCache.contentH || this._watermarkCache.h;
-			if (this.debugLogging && console && console.debug)
-				console.debug("computePatternSpacing: using cache footprint", {
+			if (this._watermarkCache)
+				this._dbg("computePatternSpacing: using cache footprint", {
 					cacheW: this._watermarkCache.w,
 					cacheH: this._watermarkCache.h,
 					baseX,
@@ -1520,8 +1608,7 @@ class BulkWatermarkApp {
 				sx.max = sliderMaxX;
 				sx.step = 1;
 				if (!sx.matches(":active")) sx.value = sliderValueX;
-				if (this.debugLogging && console && console.debug)
-					console.debug("patternSpacingX sync", { sliderMinX, sliderMaxX, sliderValueX });
+				this._dbg("patternSpacingX sync", { sliderMinX, sliderMaxX, sliderValueX });
 			}
 			if (sy) {
 				// For vertical slider, calculate min/max/value using canvas height so
@@ -1534,8 +1621,7 @@ class BulkWatermarkApp {
 				sy.max = sliderMaxY;
 				sy.step = 1;
 				if (!sy.matches(":active")) sy.value = sliderValueY;
-				if (this.debugLogging && console && console.debug)
-					console.debug("patternSpacingY sync", { sliderMinY, sliderMaxY, sliderValueY });
+				this._dbg("patternSpacingY sync", { sliderMinY, sliderMaxY, sliderValueY });
 			}
 		} catch (err) {
 			if (console && console.warn) console.warn("Failed to sync patternSpacing X/Y sliders:", err);
@@ -1555,22 +1641,21 @@ class BulkWatermarkApp {
 			// ignore
 		}
 
-		if (this.debugLogging && console && console.debug)
-			console.debug("computePatternSpacing", {
-				estWidth,
-				estHeight,
-				baseX,
-				baseY,
-				minX,
-				minY,
-				configuredRawX,
-				configuredRawY,
-				configuredPixelsX,
-				configuredPixelsY,
-				spacingX,
-				spacingY,
-				useCacheFootprint: !!this._watermarkCache,
-			});
+		this._dbg("computePatternSpacing", {
+			estWidth,
+			estHeight,
+			baseX,
+			baseY,
+			minX,
+			minY,
+			configuredRawX,
+			configuredRawY,
+			configuredPixelsX,
+			configuredPixelsY,
+			spacingX,
+			spacingY,
+			useCacheFootprint: !!this._watermarkCache,
+		});
 
 		return { x: spacingX, y: spacingY };
 	}
@@ -1629,11 +1714,24 @@ class BulkWatermarkApp {
 			ctx.translate(x, y);
 			ctx.rotate((this.watermarkSettings.watermarkRotation * Math.PI) / 180);
 			this.applyTextEffects(ctx);
+			// Outline (stroke) if enabled
+			const te = this.watermarkSettings.textEffects || {};
+			if (te.outline) {
+				ctx.lineWidth = Math.max(1, (te.outlineThickness || 2) * (fontSize / 24));
+				ctx.strokeStyle = te.outlineColor || "#000000";
+				ctx.strokeText(this.watermarkSettings.text, 0, 0);
+			}
 			ctx.fillStyle = this.getEffectFillStyle(ctx);
 			ctx.fillText(this.watermarkSettings.text, 0, 0);
 			ctx.restore();
 		} else {
 			this.applyTextEffects(ctx);
+			const te = this.watermarkSettings.textEffects || {};
+			if (te.outline) {
+				ctx.lineWidth = Math.max(1, (te.outlineThickness || 2) * (fontSize / 24));
+				ctx.strokeStyle = te.outlineColor || "#000000";
+				ctx.strokeText(this.watermarkSettings.text, x, y);
+			}
 			ctx.fillStyle = this.getEffectFillStyle(ctx);
 			ctx.fillText(this.watermarkSettings.text, x, y);
 		}
@@ -1658,20 +1756,18 @@ class BulkWatermarkApp {
 			const realSrcY = cache.pad ? cache.pad : Math.round((cache.h - srcH) / 2);
 			// If computed content area looks suspiciously small, fall back to drawing the full cache
 			if (srcW <= 2 || srcH <= 2) {
-				if (this.debugLogging && console && console.debug)
-					console.debug("drawRotatedWatermark: small contentW/H, falling back to full cache draw", {
-						srcW,
-						srcH,
-						cacheW: cache.w,
-						cacheH: cache.h,
-					});
+				this._dbg("drawRotatedWatermark: small contentW/H, falling back to full cache draw", {
+					srcW,
+					srcH,
+					cacheW: cache.w,
+					cacheH: cache.h,
+				});
 				ctx.drawImage(cache.canvas, -cache.w / 2, -cache.h / 2, cache.w, cache.h);
 				ctx.restore();
 				return;
 			}
 			ctx.drawImage(cache.canvas, realSrcX, realSrcY, srcW, srcH, -srcW / 2, -srcH / 2, srcW, srcH);
-			if (this.debugLogging && console && console.debug)
-				console.debug("drawRotatedWatermark: drew cache", { realSrcX, realSrcY, srcW, srcH });
+			this._dbg("drawRotatedWatermark: drew cache", { realSrcX, realSrcY, srcW, srcH });
 			ctx.restore();
 			return;
 		}
@@ -1730,13 +1826,33 @@ class BulkWatermarkApp {
 				canvasWidth,
 				canvasHeight,
 			};
+
+			// If current watermark is an image, include its intrinsic dimensions so caches
+			// built for one image are not mistakenly reused for a different image.
+			if (this.watermarkSettings.type === "image" && this.watermarkSettings.watermarkImage) {
+				try {
+					const wi = this.watermarkSettings.watermarkImage;
+					keyObj.imageW = wi.width || 0;
+					keyObj.imageH = wi.height || 0;
+				} catch (e) {
+					// ignore
+				}
+			}
 			const key = JSON.stringify(keyObj);
 
 			// Try Map lookup first
 			const existing = this._watermarkCacheMap.get(key);
 			if (existing) {
 				this._watermarkCache = existing; // keep a quick-ref to the chosen cache
-				if (this.debugLogging && console && console.debug) console.debug("Watermark cache reuse", { keyObj });
+				this._dbg("Watermark cache reuse", {
+					keyObj,
+					reusedFor: {
+						w: existing.w,
+						h: existing.h,
+						contentW: existing.contentW,
+						contentH: existing.contentH,
+					},
+				});
 				return;
 			}
 
@@ -1766,6 +1882,10 @@ class BulkWatermarkApp {
 				imgRatio = Math.max(imgRatio, 0.02);
 				estW = Math.ceil(img.width * imgRatio);
 				estH = Math.ceil(img.height * imgRatio);
+				// Ensure estimated cache footprint is at least a few pixels to avoid zero-sized caches
+				const MIN_VISIBLE_PX = 6;
+				if (estW < MIN_VISIBLE_PX) estW = MIN_VISIBLE_PX;
+				if (estH < MIN_VISIBLE_PX) estH = MIN_VISIBLE_PX;
 			}
 
 			// Add a small padding for shadow/glow effects
@@ -1820,18 +1940,11 @@ class BulkWatermarkApp {
 			this._watermarkCacheMap.set(key, cacheEntry);
 			this._watermarkCache = cacheEntry; // quick reference
 			// Debug: when user is at 20% scale and debugLogging, show computed cache footprint
-			if (
-				this.getImageScaleFraction &&
-				this.getImageScaleFraction() === 0.2 &&
-				this.debugLogging &&
-				console &&
-				console.debug
-			) {
-				console.debug("buildWatermarkCache: created cacheEntry", cacheEntry);
+			if (this.getImageScaleFraction && Math.abs(this.getImageScaleFraction() - 0.2) < 0.001) {
+				this._dbg("buildWatermarkCache: created cacheEntry", cacheEntry);
 			}
 
-			if (this.debugLogging && console && console.debug)
-				console.debug("Built watermark cache", { keyObj, w: c.width, h: c.height });
+			this._dbg("Built watermark cache", { keyObj, w: c.width, h: c.height });
 		} catch (err) {
 			console.warn("Failed to build watermark cache", err);
 		}
@@ -1845,23 +1958,24 @@ class BulkWatermarkApp {
 		return s / 100;
 	}
 
+	// Centralized guarded debug logger to avoid unguarded console.debug calls
+	_dbg(...args) {
+		if (this.debugLogging && typeof console !== "undefined" && console.debug) {
+			console.debug(...args);
+		}
+	}
+
 	drawImageWatermark(ctx, canvasWidth, canvasHeight, position) {
 		const img = this.watermarkSettings.watermarkImage;
 		const scale = this.getImageScaleFraction();
 		const maxSize = Math.min(canvasWidth, canvasHeight) * scale;
 		let ratio = Math.min(maxSize / img.width, maxSize / img.height);
 		// Ensure ratio is not zero; clamp to tiny epsilon to keep image visible
-		ratio = Math.max(ratio, 0.05); // require at least 5% scale to avoid near-invisible images
+		ratio = Math.max(ratio, 0.02); // allow smaller ratio for cache but we'll enforce visible px later
 		const width = img.width * ratio;
 		const height = img.height * ratio;
-		if (
-			this.getImageScaleFraction &&
-			this.getImageScaleFraction() === 0.2 &&
-			this.debugLogging &&
-			console &&
-			console.debug
-		) {
-			console.debug("drawImageWatermark: computed", {
+		if (this.getImageScaleFraction && Math.abs(this.getImageScaleFraction() - 0.2) < 0.001) {
+			this._dbg("drawImageWatermark: computed", {
 				canvasWidth,
 				canvasHeight,
 				imgWidth: img.width,
@@ -1872,6 +1986,23 @@ class BulkWatermarkApp {
 				width,
 				height,
 			});
+			// Also draw a translucent debug rectangle on the target ctx to show where the
+			// image is intended to be drawn. This helps diagnose off-canvas or zero-size
+			// rendering when users report disappearance at small scales.
+			try {
+				ctx.save();
+				ctx.strokeStyle = "rgba(255,0,0,0.9)";
+				ctx.lineWidth = 2;
+				ctx.fillStyle = "rgba(255,0,0,0.12)";
+				// compute center-based coords used later (before offsets/rotation applied)
+				const dbgX = (canvasWidth - width) / 2;
+				const dbgY = (canvasHeight - height) / 2;
+				ctx.fillRect(dbgX, dbgY, Math.max(width, 2), Math.max(height, 2));
+				ctx.strokeRect(dbgX, dbgY, Math.max(width, 2), Math.max(height, 2));
+				ctx.restore();
+			} catch (e) {
+				// ignore debug-draw failures
+			}
 		}
 
 		let x = canvasWidth * position.x;
@@ -1879,8 +2010,18 @@ class BulkWatermarkApp {
 
 		// Ensure image watermark stays inside canvas bounds with tighter padding
 		const maxImageSize = Math.min(canvasWidth, canvasHeight) * this.getImageScaleFraction();
-		const imgWidth = Math.min(width, maxImageSize);
-		const imgHeight = Math.min(height, maxImageSize);
+		let imgWidth = Math.min(width, maxImageSize);
+		let imgHeight = Math.min(height, maxImageSize);
+
+		// Enforce a sensible minimum visible size (in px) to avoid invisible preview
+		// due to rounding on small canvases or small source images. Keep clip-safe minimum.
+		const MIN_VISIBLE_PX = 6;
+		if (imgWidth < MIN_VISIBLE_PX || imgHeight < MIN_VISIBLE_PX) {
+			// Scale up proportionally to meet min visible threshold while preserving aspect
+			const scaleUp = MIN_VISIBLE_PX / Math.max(1, Math.max(imgWidth, imgHeight));
+			imgWidth = Math.max(MIN_VISIBLE_PX, Math.round(imgWidth * scaleUp));
+			imgHeight = Math.max(MIN_VISIBLE_PX, Math.round(imgHeight * scaleUp));
+		}
 
 		let padX = Math.min(12, Math.round(imgWidth * 0.05) + 4);
 		let padY = Math.min(12, Math.round(imgHeight * 0.05) + 4);
@@ -1914,23 +2055,27 @@ class BulkWatermarkApp {
 		// Apply rotation
 		if (this.watermarkSettings.watermarkRotation !== 0) {
 			ctx.save();
-			ctx.translate(x + width / 2, y + height / 2);
+			// Use clamped imgWidth/imgHeight for translation so rotation centers correctly
+			ctx.translate(x + imgWidth / 2, y + imgHeight / 2);
 			ctx.rotate((this.watermarkSettings.watermarkRotation * Math.PI) / 180);
 			ctx.drawImage(
 				img,
-				-Math.max(width, 4) / 2,
-				-Math.max(height, 4) / 2,
-				Math.max(width, 4),
-				Math.max(height, 4)
+				-Math.max(imgWidth, 4) / 2,
+				-Math.max(imgHeight, 4) / 2,
+				Math.max(imgWidth, 4),
+				Math.max(imgHeight, 4)
 			);
 			ctx.restore();
 		} else {
-			ctx.drawImage(img, x, y, Math.max(width, 4), Math.max(height, 4));
+			ctx.drawImage(img, x, y, Math.max(imgWidth, 4), Math.max(imgHeight, 4));
 		}
 	}
 
 	applyTextEffects(ctx) {
-		const effect = this.watermarkSettings.overlayEffect;
+		// Only apply these canvas-level effects for text watermarks
+		if (this.watermarkSettings.type !== "text") return;
+
+		const te = this.watermarkSettings.textEffects || {};
 
 		// Helper: convert #rrggbb or #rgb to rgba string with alpha
 		const hexToRgba = (hex, alpha = 1) => {
@@ -1955,71 +2100,28 @@ class BulkWatermarkApp {
 		ctx.shadowOffsetY = 0;
 		ctx.globalCompositeOperation = "source-over";
 
-		if (effect === "shadow") {
-			ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
-			ctx.shadowBlur = 4;
-			ctx.shadowOffsetX = 2;
-			ctx.shadowOffsetY = 2;
-			// keep fillStyle as-is (caller sets it)
-		} else if (effect === "glow") {
-			// Glow uses the same color as the watermark but with heavier blur
-			ctx.shadowColor = hexToRgba(this.watermarkSettings.textColor, 1);
-			ctx.shadowBlur = 14;
-		} else if (effect === "gradient") {
-			// Create a horizontal gradient across the canvas width.
-			try {
-				const g = ctx.createLinearGradient(0, 0, ctx.canvas.width || 200, 0);
-				const c1 = hexToRgba(this.watermarkSettings.textColor, 1);
-				const c2 = hexToRgba(this.watermarkSettings.textColor, 0.4);
-				g.addColorStop(0, c1);
-				g.addColorStop(1, c2);
-				ctx.fillStyle = g;
-			} catch (e) {
-				// fallback: leave fillStyle untouched
-			}
-		} else if (effect === "tint") {
-			// Apply a stronger, semi-transparent tint to the watermark fill
-			ctx.fillStyle = hexToRgba(this.watermarkSettings.textColor, 0.75);
-		} else {
-			// 'none' or unknown: ensure defaults
-			ctx.fillStyle = this.watermarkSettings.textColor;
+		// Shadow
+		if (te.shadow) {
+			ctx.shadowColor = te.shadowColor || "rgba(0,0,0,0.5)";
+			ctx.shadowBlur = Number(te.shadowBlur) || 4;
+			ctx.shadowOffsetX = Number(te.shadowOffsetX) || 2;
+			ctx.shadowOffsetY = Number(te.shadowOffsetY) || 2;
 		}
+
+		// Glow uses a semi-strong shadow with glow color
+		if (te.glow) {
+			ctx.shadowColor = te.glowColor || this.watermarkSettings.textColor;
+			ctx.shadowBlur = Number(te.glowBlur) || 12;
+		}
+
+		// Default fillStyle remains text color (gradient/tint removed as per requirement)
+		ctx.fillStyle = this.watermarkSettings.textColor;
 	}
 
 	getEffectFillStyle(ctx) {
-		const effect = this.watermarkSettings.overlayEffect;
-		// Helper to create same hexToRgba used above
-		const hexToRgba = (hex, alpha = 1) => {
-			let h = hex.replace("#", "");
-			if (h.length === 3) {
-				h = h
-					.split("")
-					.map((c) => c + c)
-					.join("");
-			}
-			const bigint = parseInt(h, 16);
-			const r = (bigint >> 16) & 255;
-			const g = (bigint >> 8) & 255;
-			const b = bigint & 255;
-			return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-		};
-
-		if (effect === "gradient") {
-			try {
-				const g = ctx.createLinearGradient(0, 0, ctx.canvas.width || 200, 0);
-				const c1 = hexToRgba(this.watermarkSettings.textColor, 1);
-				const c2 = hexToRgba(this.watermarkSettings.textColor, 0.4);
-				g.addColorStop(0, c1);
-				g.addColorStop(1, c2);
-				return g;
-			} catch (e) {
-				return this.watermarkSettings.textColor;
-			}
-		} else if (effect === "tint") {
-			return hexToRgba(this.watermarkSettings.textColor, 0.75);
-		} else {
-			return this.watermarkSettings.textColor;
-		}
+		// Always use the configured text color for fills. Effects that change appearance
+		// are applied via shadow/blur or stroke; gradient/tint overlays were removed.
+		return this.watermarkSettings.textColor;
 	}
 
 	async processAllImages() {
@@ -2072,7 +2174,33 @@ class BulkWatermarkApp {
 
 		// AUTO-SHOW MODAL
 		setTimeout(() => {
-			this.modal.showModal(this.processedImages);
+			this._dbg("processAllImages: attempting to show modal", { count: this.processedImages.length });
+			try {
+				if (this.modal && typeof this.modal.showModal === "function") {
+					this.modal.showModal(this.processedImages);
+				} else {
+					console.warn("Modal instance missing or showModal not a function - creating fallback overlay");
+					// create a simple fallback modal element
+					const fallback = document.createElement("div");
+					fallback.style.position = "fixed";
+					fallback.style.top = "0";
+					fallback.style.left = "0";
+					fallback.style.width = "100%";
+					fallback.style.height = "100%";
+					fallback.style.background = "rgba(0,0,0,0.8)";
+					fallback.style.display = "flex";
+					fallback.style.alignItems = "center";
+					fallback.style.justifyContent = "center";
+					fallback.style.zIndex = 9999;
+					fallback.innerHTML = `<div style='background:var(--color-surface); padding:24px; border-radius:8px; max-width:90vw; max-height:80vh; overflow:auto;'><h3>Processed Images</h3><p>${this.processedImages.length} images processed</p><button id='__fallbackClose'>Close</button></div>`;
+					document.body.appendChild(fallback);
+					document
+						.getElementById("__fallbackClose")
+						.addEventListener("click", () => document.body.removeChild(fallback));
+				}
+			} catch (e) {
+				console.error("Failed to show modal:", e);
+			}
 		}, 1000);
 	}
 

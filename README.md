@@ -4,8 +4,6 @@
 
 A small static web app that applies text or image watermarks to uploaded images. Supports click-to-open file chooser and drag-and-drop uploads. Watermarks can be placed singly (corners/center) or in a combined tiled pattern. Downloads are available as individual images or a ZIP.
 
-This README documents the current implementation, UI controls, algorithm decisions (notably spacing and corner alignment), theming behavior, and a changelog you should update whenever the code changes.
-
 ## Project files (important)
 
 - `index.html` — UI markup and DOM elements
@@ -84,6 +82,15 @@ Notes:
 
 ## Changelog
 
+- 2025-08-27 — Modal positioning and CSS structure fixes.
+
+  - Fixed modal appearing "below the page" instead of as a proper popup overlay.
+  - Corrected broken CSS nesting that was causing modal styles to not apply properly.
+  - Improved modal positioning with explicit viewport coverage (`100vw`, `100vh`) and robust z-index layering.
+  - Enhanced modal overlay positioning from `absolute` to `fixed` for better viewport coverage.
+  - Added proper `pointer-events` handling for modal states (none when hidden, auto when shown).
+  - Restored working modal structure to match the backup implementation.
+
 - 2025-08-26 — Initial documentation added.
 
   - Respect `prefers-color-scheme` with dark fallback.
@@ -91,7 +98,7 @@ Notes:
   - Tightened corner `positionMap` and reduced padding to bring watermarks closer to edges.
   - Added drag-and-drop robustness and click fallback logic.
 
-  - 2025-08-26 — Defaults and modal selection
+- 2025-08-25 — Defaults and modal selection
 
-    - `patternSpacingX` and `patternSpacingY` now default to 0. A value of 0 means "use the computed minimum spacing to avoid overlap"; increase the sliders to add extra spacing.
-    - The gallery modal now includes per-image checkboxes and a "Select All" toolbar; downloads can be done for selected images only.
+  - `patternSpacingX` and `patternSpacingY` now default to 0. A value of 0 means "use the computed minimum spacing to avoid overlap"; increase the sliders to add extra spacing.
+  - The gallery modal now includes per-image checkboxes and a "Select All" toolbar; downloads can be done for selected images only.
