@@ -1,19 +1,19 @@
 // --- Dark/Light Mode Switcher ---
-document.addEventListener('DOMContentLoaded', function () {
-	const themeBtn = document.getElementById('themeSwitcher');
+document.addEventListener("DOMContentLoaded", function () {
+	const themeBtn = document.getElementById("themeSwitcher");
 	if (!themeBtn) return;
 	function setTheme(dark) {
 		// Set both data attribute and body class so CSS that targets either will update correctly
-		document.documentElement.setAttribute('data-color-scheme', dark ? 'dark' : 'light');
-		document.body.classList.toggle('dark-mode', dark);
-		if (console && console.log) console.log('Theme set to', dark ? 'dark' : 'light');
-		themeBtn.textContent = dark ? '☀️ Light Mode' : '🌙 Dark Mode';
+		document.documentElement.setAttribute("data-color-scheme", dark ? "dark" : "light");
+		document.body.classList.toggle("dark-mode", dark);
+		if (console && console.log) console.log("Theme set to", dark ? "dark" : "light");
+		themeBtn.textContent = dark ? "🌖 Light Mode" : "🌒 Dark Mode";
 	}
 	// Initial state: respect browser preference; fallback to dark if no preference is available
 	let isDark = true;
 	try {
-		const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-		const prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+		const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+		const prefersLight = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches;
 		if (prefersDark) {
 			isDark = true;
 		} else if (prefersLight) {
@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		isDark = true;
 	}
 	setTheme(isDark);
-	themeBtn.addEventListener('click', function () {
+	themeBtn.addEventListener("click", function () {
 		isDark = !isDark;
 		setTheme(isDark);
 	});
@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', function () {
 // --- App Code starts here ---
 class FileUploadHandler {
 	constructor() {
-		this.supportedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+		this.supportedTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"];
 		this.maxFileSize = 10485760; // 10MB
 		this.uploadArea = null;
 		this.fileInput = null;
@@ -46,7 +46,7 @@ class FileUploadHandler {
 
 	setupFileInputClick() {
 		if (!this.uploadArea || !this.fileInput) {
-			console.error('Elements not found for file input click setup');
+			console.error("Elements not found for file input click setup");
 			return;
 		}
 		// If there's a native label associated with the file input, prefer that (native behavior)
@@ -54,67 +54,67 @@ class FileUploadHandler {
 		if (label) {
 			if (this.debugLogging)
 				console.log(
-					'Native label found for file input; binding label click to ensure immediate file chooser open'
+					"Native label found for file input; binding label click to ensure immediate file chooser open"
 				);
 			// Bind a direct click handler on the label to defensively trigger the file input.
 			// Some browsers or overlay layouts can cause the native label behavior to be inconsistent
 			// when inputs are visually hidden or overlaid; this guarantees the file chooser opens
 			// from the first user click.
-			label.addEventListener('click', (ev) => {
+			label.addEventListener("click", (ev) => {
 				// Do not prevent default here; allow native behavior when possible.
 				// Programmatically trigger as a defensive fallback.
-				this.fileInput.value = '';
+				this.fileInput.value = "";
 				try {
 					this.fileInput.click();
-					if (this.debugLogging) console.log('Label click: triggered file input');
+					if (this.debugLogging) console.log("Label click: triggered file input");
 				} catch (err) {
-					console.error('Label click failed to open file chooser', err);
+					console.error("Label click failed to open file chooser", err);
 				}
 			});
 		}
 		// Direct click handler (no cloneNode/replaceWith)
-		this.uploadArea.addEventListener('click', (e) => {
-			if (this.debugLogging) console.log('Upload area clicked - triggering file input');
-			if (this.uploadArea.classList.contains('processing')) {
-				if (this.debugLogging) console.log('Upload area is processing, ignoring click');
+		this.uploadArea.addEventListener("click", (e) => {
+			if (this.debugLogging) console.log("Upload area clicked - triggering file input");
+			if (this.uploadArea.classList.contains("processing")) {
+				if (this.debugLogging) console.log("Upload area is processing, ignoring click");
 				return;
 			}
-			this.fileInput.value = '';
+			this.fileInput.value = "";
 			try {
 				this.fileInput.click();
-				if (this.debugLogging) console.log('File input click triggered successfully');
+				if (this.debugLogging) console.log("File input click triggered successfully");
 			} catch (error) {
-				console.error('File input click failed:', error);
-				this.showError('Unable to open file chooser. Please try drag and drop instead.');
+				console.error("File input click failed:", error);
+				this.showError("Unable to open file chooser. Please try drag and drop instead.");
 			}
 		});
 		// Add visual feedback for clickability
-		this.uploadArea.style.cursor = 'pointer';
+		this.uploadArea.style.cursor = "pointer";
 		if (this.debugLogging) {
-			console.log('File input click handler bound successfully');
+			console.log("File input click handler bound successfully");
 		}
 	}
 
 	triggerFileInput() {
 		if (!this.fileInput) return;
-		this.fileInput.value = '';
+		this.fileInput.value = "";
 		this.fileInput.click();
 	}
 
 	handleFileSelect(e) {
 		const files = e.target.files;
 		if (!files || files.length === 0) return;
-		if (this.debugLogging) console.log('Processing selected files:', files.length);
+		if (this.debugLogging) console.log("Processing selected files:", files.length);
 		this.processFiles(Array.from(files));
 	}
 
 	processFiles(files) {
 		if (!files || files.length === 0) {
-			this.showError('No files to process');
+			this.showError("No files to process");
 			return;
 		}
 
-		console.log('Processing files:', files.length);
+		console.log("Processing files:", files.length);
 
 		const validFiles = [];
 		const errors = [];
@@ -129,7 +129,7 @@ class FileUploadHandler {
 		});
 
 		if (errors.length > 0) {
-			this.showError(`File validation errors:\n${errors.join('\n')}`);
+			this.showError(`File validation errors:\n${errors.join("\n")}`);
 		}
 
 		if (validFiles.length > 0) {
@@ -143,7 +143,7 @@ class FileUploadHandler {
 	}
 
 	validateFile(file) {
-		if (!file) return { isValid: false, error: 'Invalid file' };
+		if (!file) return { isValid: false, error: "Invalid file" };
 
 		if (!this.supportedTypes.includes(file.type.toLowerCase())) {
 			return { isValid: false, error: `Unsupported type: ${file.type}` };
@@ -155,76 +155,76 @@ class FileUploadHandler {
 		}
 
 		if (file.size < 100) {
-			return { isValid: false, error: 'File appears empty' };
+			return { isValid: false, error: "File appears empty" };
 		}
 
 		return { isValid: true };
 	}
 
 	showStatus(message) {
-		const statusEl = document.getElementById('uploadStatus');
+		const statusEl = document.getElementById("uploadStatus");
 		if (statusEl) {
 			statusEl.textContent = message;
-			statusEl.className = 'upload-status';
+			statusEl.className = "upload-status";
 		}
-		console.log('Status:', message);
+		console.log("Status:", message);
 	}
 
 	showError(message) {
-		const errorContainer = document.getElementById('errorContainer');
-		const errorMessage = document.getElementById('errorMessage');
+		const errorContainer = document.getElementById("errorContainer");
+		const errorMessage = document.getElementById("errorMessage");
 
 		if (errorContainer && errorMessage) {
 			errorMessage.textContent = message;
-			errorContainer.classList.remove('hidden');
+			errorContainer.classList.remove("hidden");
 
 			setTimeout(() => {
-				errorContainer.classList.add('hidden');
+				errorContainer.classList.add("hidden");
 			}, 5000);
 		}
 
-		console.error('Error:', message);
+		console.error("Error:", message);
 	}
 
 	clearStatus() {
-		const statusEl = document.getElementById('uploadStatus');
+		const statusEl = document.getElementById("uploadStatus");
 		if (statusEl) {
-			statusEl.textContent = '';
+			statusEl.textContent = "";
 		}
 	}
 	// Call drag and drop setup after DOM is ready
 	init() {
 		// Wait for DOM to be fully loaded
-		if (document.readyState === 'loading') {
-			document.addEventListener('DOMContentLoaded', () => this.setupElements());
+		if (document.readyState === "loading") {
+			document.addEventListener("DOMContentLoaded", () => this.setupElements());
 		} else {
 			this.setupElements();
 		}
 	}
 
 	setupElements() {
-		this.uploadArea = document.getElementById('uploadArea');
-		this.fileInput = document.getElementById('fileInput');
+		this.uploadArea = document.getElementById("uploadArea");
+		this.fileInput = document.getElementById("fileInput");
 		this.debugLogging = true;
 		if (!this.uploadArea || !this.fileInput) {
-			console.error('Required elements not found');
+			console.error("Required elements not found");
 			return;
 		}
 
 		if (this.debugLogging)
-			console.log('setupElements: found uploadArea and fileInput', this.uploadArea, this.fileInput);
+			console.log("setupElements: found uploadArea and fileInput", this.uploadArea, this.fileInput);
 
 		// Ensure uploadArea is positioned for absolute children (file input overlay)
-		if (getComputedStyle(this.uploadArea).position === 'static') {
-			this.uploadArea.style.position = 'relative';
+		if (getComputedStyle(this.uploadArea).position === "static") {
+			this.uploadArea.style.position = "relative";
 		}
 
 		// File input is positioned offscreen in markup; keep it available so native label clicks work.
 		this.setupFileInputClick();
 		this.setupDragAndDrop();
-		this.fileInput.addEventListener('change', (e) => this.handleFileSelect(e));
+		this.fileInput.addEventListener("change", (e) => this.handleFileSelect(e));
 		this.isInitialized = true;
-		this.showStatus('Ready to upload images - Click here or drag files');
+		this.showStatus("Ready to upload images - Click here or drag files");
 	}
 
 	/**
@@ -234,40 +234,40 @@ class FileUploadHandler {
 		if (!this.uploadArea) return;
 
 		// Prevent the browser from opening files when dropped outside the upload area
-		document.addEventListener('dragover', (e) => e.preventDefault());
-		document.addEventListener('drop', (e) => e.preventDefault());
+		document.addEventListener("dragover", (e) => e.preventDefault());
+		document.addEventListener("drop", (e) => e.preventDefault());
 
 		// Visual feedback on drag
-		this.uploadArea.addEventListener('dragenter', (e) => {
+		this.uploadArea.addEventListener("dragenter", (e) => {
 			e.preventDefault();
 			e.stopPropagation();
-			this.uploadArea.classList.add('drag-over');
+			this.uploadArea.classList.add("drag-over");
 		});
 
-		this.uploadArea.addEventListener('dragover', (e) => {
+		this.uploadArea.addEventListener("dragover", (e) => {
 			e.preventDefault();
 			e.stopPropagation();
 			// show visual state
-			this.uploadArea.classList.add('drag-over');
+			this.uploadArea.classList.add("drag-over");
 		});
 
-		this.uploadArea.addEventListener('dragleave', (e) => {
+		this.uploadArea.addEventListener("dragleave", (e) => {
 			e.preventDefault();
 			e.stopPropagation();
 			// Only remove when leaving the upload area. relatedTarget may be null in some browsers.
 			if (!e.relatedTarget || !this.uploadArea.contains(e.relatedTarget)) {
-				this.uploadArea.classList.remove('drag-over');
+				this.uploadArea.classList.remove("drag-over");
 			}
-			if (this.debugLogging) console.log('drag leave on uploadArea', e.relatedTarget);
+			if (this.debugLogging) console.log("drag leave on uploadArea", e.relatedTarget);
 		});
 
-		this.uploadArea.addEventListener('drop', (e) => {
+		this.uploadArea.addEventListener("drop", (e) => {
 			e.preventDefault();
 			e.stopPropagation();
-			this.uploadArea.classList.remove('drag-over');
+			this.uploadArea.classList.remove("drag-over");
 			if (this.debugLogging)
 				console.log(
-					'drop event on uploadArea',
+					"drop event on uploadArea",
 					e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length
 				);
 			const dt = e.dataTransfer;
@@ -289,49 +289,49 @@ class ProcessedImageModal {
 	}
 
 	init() {
-		this.modal = document.getElementById('galleryModal');
-		this.imageViewer = document.getElementById('imageViewer');
+		this.modal = document.getElementById("galleryModal");
+		this.imageViewer = document.getElementById("imageViewer");
 		this.bindEvents();
 	}
 
 	bindEvents() {
 		// Modal close events
 		const closeButtons = [
-			document.getElementById('modalCloseBtn'),
-			document.getElementById('modalCloseBtn2'),
-			document.getElementById('modalOverlay'),
+			document.getElementById("modalCloseBtn"),
+			document.getElementById("modalCloseBtn2"),
+			document.getElementById("modalOverlay"),
 		];
 
 		closeButtons.forEach((btn) => {
 			if (btn) {
-				btn.addEventListener('click', () => this.closeModal());
+				btn.addEventListener("click", () => this.closeModal());
 			}
 		});
 
 		// Download all button in modal
-		const modalDownloadBtn = document.getElementById('modalDownloadAllBtn');
+		const modalDownloadBtn = document.getElementById("modalDownloadAllBtn");
 		if (modalDownloadBtn) {
-			modalDownloadBtn.addEventListener('click', () => this.downloadAllAsZip());
+			modalDownloadBtn.addEventListener("click", () => this.downloadAllAsZip());
 		}
 
 		// Image viewer close
 		const viewerCloseButtons = [
-			document.getElementById('imageViewerClose'),
-			document.getElementById('imageViewerOverlay'),
+			document.getElementById("imageViewerClose"),
+			document.getElementById("imageViewerOverlay"),
 		];
 
 		viewerCloseButtons.forEach((btn) => {
 			if (btn) {
-				btn.addEventListener('click', () => this.closeImageViewer());
+				btn.addEventListener("click", () => this.closeImageViewer());
 			}
 		});
 
 		// Keyboard navigation
-		document.addEventListener('keydown', (e) => {
-			if (e.key === 'Escape') {
-				if (this.imageViewer && !this.imageViewer.classList.contains('hidden')) {
+		document.addEventListener("keydown", (e) => {
+			if (e.key === "Escape") {
+				if (this.imageViewer && !this.imageViewer.classList.contains("hidden")) {
 					this.closeImageViewer();
-				} else if (this.modal && this.modal.classList.contains('show')) {
+				} else if (this.modal && this.modal.classList.contains("show")) {
 					this.closeModal();
 				}
 			}
@@ -343,10 +343,10 @@ class ProcessedImageModal {
 		this.populateGallery();
 
 		if (this.modal) {
-			this.modal.classList.add('show');
-			document.body.style.overflow = 'hidden';
+			this.modal.classList.add("show");
+			document.body.style.overflow = "hidden";
 
-			const countEl = document.getElementById('galleryCount');
+			const countEl = document.getElementById("galleryCount");
 			if (countEl) {
 				countEl.textContent = `${processedImages.length} images processed`;
 			}
@@ -354,13 +354,13 @@ class ProcessedImageModal {
 	}
 
 	populateGallery() {
-		const galleryGrid = document.getElementById('galleryGrid');
+		const galleryGrid = document.getElementById("galleryGrid");
 		if (!galleryGrid) return;
 
-		galleryGrid.innerHTML = '';
+		galleryGrid.innerHTML = "";
 		// Add a small toolbar with select-all checkbox and download selected
-		const toolbar = document.createElement('div');
-		toolbar.className = 'gallery-toolbar';
+		const toolbar = document.createElement("div");
+		toolbar.className = "gallery-toolbar";
 		toolbar.innerHTML = `
 			<label><input type="checkbox" id="selectAllImages" checked> Select All</label>
 			<button id="downloadSelectedBtn" class="btn btn--primary btn--sm">Download Selected</button>
@@ -368,8 +368,8 @@ class ProcessedImageModal {
 		galleryGrid.parentNode.insertBefore(toolbar, galleryGrid);
 
 		this.processedImages.forEach((imageData, index) => {
-			const galleryItem = document.createElement('div');
-			galleryItem.className = 'gallery-item';
+			const galleryItem = document.createElement("div");
+			galleryItem.className = "gallery-item";
 
 			galleryItem.innerHTML = `
 				<label class="gallery-select"><input type="checkbox" class="image-select" data-idx="${index}" checked></label>
@@ -381,15 +381,15 @@ class ProcessedImageModal {
 			`;
 
 			// Click to view full size
-			const img = galleryItem.querySelector('img');
+			const img = galleryItem.querySelector("img");
 			if (img) {
-				img.addEventListener('click', () => this.showImageViewer(imageData));
+				img.addEventListener("click", () => this.showImageViewer(imageData));
 			}
 
 			// Download individual image
-			const downloadBtn = galleryItem.querySelector('.download-btn');
+			const downloadBtn = galleryItem.querySelector(".download-btn");
 			if (downloadBtn) {
-				downloadBtn.addEventListener('click', (e) => {
+				downloadBtn.addEventListener("click", (e) => {
 					e.stopPropagation();
 					this.downloadImage(imageData);
 				});
@@ -399,28 +399,28 @@ class ProcessedImageModal {
 		});
 
 		// Wire toolbar controls
-		const selectAll = document.getElementById('selectAllImages');
-		const downloadSelectedBtn = document.getElementById('downloadSelectedBtn');
+		const selectAll = document.getElementById("selectAllImages");
+		const downloadSelectedBtn = document.getElementById("downloadSelectedBtn");
 
 		if (selectAll) {
-			selectAll.addEventListener('change', (e) => {
-				document.querySelectorAll('.image-select').forEach((cb) => {
+			selectAll.addEventListener("change", (e) => {
+				document.querySelectorAll(".image-select").forEach((cb) => {
 					cb.checked = selectAll.checked;
 				});
 			});
 		}
 
 		if (downloadSelectedBtn) {
-			downloadSelectedBtn.addEventListener('click', () => this.downloadSelectedAsZip());
+			downloadSelectedBtn.addEventListener("click", () => this.downloadSelectedAsZip());
 		}
 	}
 
 	showImageViewer(imageData) {
 		if (!this.imageViewer) return;
 
-		const img = document.getElementById('imageViewerImg');
-		const name = document.getElementById('imageViewerName');
-		const downloadBtn = document.getElementById('imageViewerDownload');
+		const img = document.getElementById("imageViewerImg");
+		const name = document.getElementById("imageViewerName");
+		const downloadBtn = document.getElementById("imageViewerDownload");
 
 		if (img) img.src = imageData.url;
 		if (name) name.textContent = imageData.name;
@@ -429,28 +429,28 @@ class ProcessedImageModal {
 			downloadBtn.onclick = () => this.downloadImage(imageData);
 		}
 
-		this.imageViewer.classList.remove('hidden');
-		this.imageViewer.classList.add('show');
+		this.imageViewer.classList.remove("hidden");
+		this.imageViewer.classList.add("show");
 	}
 
 	closeImageViewer() {
 		if (this.imageViewer) {
-			this.imageViewer.classList.remove('show');
+			this.imageViewer.classList.remove("show");
 			setTimeout(() => {
-				this.imageViewer.classList.add('hidden');
+				this.imageViewer.classList.add("hidden");
 			}, 300);
 		}
 	}
 
 	closeModal() {
 		if (this.modal) {
-			this.modal.classList.remove('show');
-			document.body.style.overflow = '';
+			this.modal.classList.remove("show");
+			document.body.style.overflow = "";
 		}
 	}
 
 	downloadImage(imageData) {
-		const a = document.createElement('a');
+		const a = document.createElement("a");
 		a.href = imageData.url;
 		a.download = imageData.name;
 		document.body.appendChild(a);
@@ -460,7 +460,7 @@ class ProcessedImageModal {
 
 	async downloadAllAsZip() {
 		if (this.processedImages.length === 0) {
-			alert('No processed images to download.');
+			alert("No processed images to download.");
 			return;
 		}
 
@@ -471,26 +471,26 @@ class ProcessedImageModal {
 				zip.file(imageData.name, imageData.blob);
 			}
 
-			const zipBlob = await zip.generateAsync({ type: 'blob' });
+			const zipBlob = await zip.generateAsync({ type: "blob" });
 
 			const url = URL.createObjectURL(zipBlob);
-			const a = document.createElement('a');
+			const a = document.createElement("a");
 			a.href = url;
-			a.download = 'watermarked_images.zip';
+			a.download = "watermarked_images.zip";
 			document.body.appendChild(a);
 			a.click();
 			document.body.removeChild(a);
 			URL.revokeObjectURL(url);
 		} catch (error) {
-			console.error('Error creating ZIP file:', error);
-			alert('Error creating ZIP file.');
+			console.error("Error creating ZIP file:", error);
+			alert("Error creating ZIP file.");
 		}
 	}
 
 	async downloadSelectedAsZip() {
 		// collect selected indexes
 		const selected = [];
-		document.querySelectorAll('.image-select').forEach((cb) => {
+		document.querySelectorAll(".image-select").forEach((cb) => {
 			if (cb.checked) selected.push(Number(cb.dataset.idx));
 		});
 
@@ -500,7 +500,7 @@ class ProcessedImageModal {
 		}
 
 		if (!items || items.length === 0) {
-			alert('No images selected for download');
+			alert("No images selected for download");
 			return;
 		}
 
@@ -511,38 +511,38 @@ class ProcessedImageModal {
 				zip.file(imageData.name, imageData.blob);
 			}
 
-			const zipBlob = await zip.generateAsync({ type: 'blob' });
+			const zipBlob = await zip.generateAsync({ type: "blob" });
 
 			const url = URL.createObjectURL(zipBlob);
-			const a = document.createElement('a');
+			const a = document.createElement("a");
 			a.href = url;
-			a.download = 'watermarked_images_selected.zip';
+			a.download = "watermarked_images_selected.zip";
 			document.body.appendChild(a);
 			a.click();
 			document.body.removeChild(a);
 			URL.revokeObjectURL(url);
 		} catch (error) {
-			console.error('Error creating ZIP:', error);
-			alert('Error creating ZIP file.');
+			console.error("Error creating ZIP:", error);
+			alert("Error creating ZIP file.");
 		}
 	}
 }
 
-class EnhancedBulkWatermarkApp {
+class BulkWatermarkApp {
 	constructor() {
 		this.uploadedFiles = [];
 		this.processedImages = [];
 		// Enable verbose debug logging when true. Turn off in production to reduce console spam.
 		this.debugLogging = true;
 		this.watermarkSettings = {
-			type: 'text',
-			patternMode: 'single',
-			text: '© Your Watermark',
+			type: "text",
+			patternMode: "single",
+			text: "© Your Watermark",
 			fontSize: 24,
-			fontFamily: 'Arial',
-			textColor: '#ffffff',
+			fontFamily: "Arial",
+			textColor: "#ffffff",
 			opacity: 70,
-			position: 'bottom-right',
+			position: "bottom-right",
 			offsetX: 0,
 			offsetY: 0,
 			watermarkImage: null,
@@ -552,7 +552,7 @@ class EnhancedBulkWatermarkApp {
 			patternSpacingY: 0,
 			patternAngle: -45,
 			watermarkRotation: 0,
-			overlayEffect: 'none',
+			overlayEffect: "none",
 		};
 
 		// Use a Map for watermark caches keyed by a JSON key that includes quantized canvas size
@@ -561,22 +561,22 @@ class EnhancedBulkWatermarkApp {
 
 		// Tighter position coordinates for closer corner alignment
 		this.positionMap = {
-			'top-left': { x: 0.06, y: 0.06 },
-			'top-center': { x: 0.5, y: 0.06 },
-			'top-right': { x: 0.94, y: 0.06 },
-			'middle-left': { x: 0.06, y: 0.5 },
+			"top-left": { x: 0.06, y: 0.06 },
+			"top-center": { x: 0.5, y: 0.06 },
+			"top-right": { x: 0.94, y: 0.06 },
+			"middle-left": { x: 0.06, y: 0.5 },
 			center: { x: 0.5, y: 0.5 },
-			'middle-right': { x: 0.94, y: 0.5 },
-			'bottom-left': { x: 0.06, y: 0.94 },
-			'bottom-center': { x: 0.5, y: 0.94 },
-			'bottom-right': { x: 0.94, y: 0.94 },
+			"middle-right": { x: 0.94, y: 0.5 },
+			"bottom-left": { x: 0.06, y: 0.94 },
+			"bottom-center": { x: 0.5, y: 0.94 },
+			"bottom-right": { x: 0.94, y: 0.94 },
 		};
 
 		this.init();
 	}
 
 	init() {
-		console.log('Initializing Enhanced Watermark App');
+		console.log("Initializing Watermark App");
 
 		// Make globally available
 		window.watermarkApp = this;
@@ -586,47 +586,47 @@ class EnhancedBulkWatermarkApp {
 		this.modal = new ProcessedImageModal();
 
 		// Wait for DOM then bind events
-		if (document.readyState === 'loading') {
-			document.addEventListener('DOMContentLoaded', () => {
+		if (document.readyState === "loading") {
+			document.addEventListener("DOMContentLoaded", () => {
 				this.bindEvents();
 				this.initializeControls();
 				// Ensure 'single' pattern is selected on load regardless of markup or prior edits
 				try {
-					this.watermarkSettings.patternMode = 'single';
+					this.watermarkSettings.patternMode = "single";
 					const radios = document.querySelectorAll('input[name="patternMode"]');
 					radios.forEach((r) => {
-						r.checked = r.value === 'single';
+						r.checked = r.value === "single";
 					});
 					this.updatePatternModeUI();
 					this.updatePreview();
 				} catch (err) {
-					console.warn('Failed to enforce single pattern mode on init', err);
+					console.warn("Failed to enforce single pattern mode on init", err);
 				}
 				this.updateUI();
-				console.log('App fully initialized');
+				console.log("App fully initialized");
 			});
 		} else {
 			this.bindEvents();
 			this.initializeControls();
 			// Ensure 'single' pattern is selected on load regardless of markup or prior edits
 			try {
-				this.watermarkSettings.patternMode = 'single';
+				this.watermarkSettings.patternMode = "single";
 				const radios = document.querySelectorAll('input[name="patternMode"]');
 				radios.forEach((r) => {
-					r.checked = r.value === 'single';
+					r.checked = r.value === "single";
 				});
 				this.updatePatternModeUI();
 				this.updatePreview();
 			} catch (err) {
-				console.warn('Failed to enforce single pattern mode on init', err);
+				console.warn("Failed to enforce single pattern mode on init", err);
 			}
 			this.updateUI();
-			console.log('App fully initialized');
+			console.log("App fully initialized");
 		}
 	}
 
 	addFiles(files) {
-		console.log('Adding files to app:', files.length);
+		console.log("Adding files to app:", files.length);
 
 		files.forEach((file) => {
 			const fileData = {
@@ -661,7 +661,7 @@ class EnhancedBulkWatermarkApp {
 		};
 
 		reader.onerror = () => {
-			fileData.error = 'Failed to load image';
+			fileData.error = "Failed to load image";
 			this.renderImageGrid();
 		};
 
@@ -669,23 +669,23 @@ class EnhancedBulkWatermarkApp {
 	}
 
 	bindEvents() {
-		console.log('Binding app events');
+		console.log("Binding app events");
 
 		// Clear files
-		const clearBtn = document.getElementById('clearFiles');
+		const clearBtn = document.getElementById("clearFiles");
 		if (clearBtn) {
-			clearBtn.addEventListener('click', () => this.clearAllFiles());
+			clearBtn.addEventListener("click", () => this.clearAllFiles());
 		}
 
 		// Watermark type toggles
-		const textToggle = document.getElementById('textToggle');
-		const imageToggle = document.getElementById('imageToggle');
-		if (textToggle) textToggle.addEventListener('click', () => this.setWatermarkType('text'));
-		if (imageToggle) imageToggle.addEventListener('click', () => this.setWatermarkType('image'));
+		const textToggle = document.getElementById("textToggle");
+		const imageToggle = document.getElementById("imageToggle");
+		if (textToggle) textToggle.addEventListener("click", () => this.setWatermarkType("text"));
+		if (imageToggle) imageToggle.addEventListener("click", () => this.setWatermarkType("image"));
 
 		// Pattern mode
 		document.querySelectorAll('input[name="patternMode"]').forEach((radio) => {
-			radio.addEventListener('change', (e) => {
+			radio.addEventListener("change", (e) => {
 				this.watermarkSettings.patternMode = e.target.value;
 				this.updatePatternModeUI();
 				this.updatePreview();
@@ -709,26 +709,26 @@ class EnhancedBulkWatermarkApp {
 	}
 
 	bindTextControls() {
-		const textContent = document.getElementById('textContent');
-		const fontFamily = document.getElementById('fontFamily');
-		const textColor = document.getElementById('textColor');
+		const textContent = document.getElementById("textContent");
+		const fontFamily = document.getElementById("fontFamily");
+		const textColor = document.getElementById("textColor");
 
 		if (textContent) {
-			textContent.addEventListener('input', () => {
+			textContent.addEventListener("input", () => {
 				this.watermarkSettings.text = textContent.value;
 				this.updatePreview();
 			});
 		}
 
 		if (fontFamily) {
-			fontFamily.addEventListener('change', () => {
+			fontFamily.addEventListener("change", () => {
 				this.watermarkSettings.fontFamily = fontFamily.value;
 				this.updatePreview();
 			});
 		}
 
 		if (textColor) {
-			textColor.addEventListener('change', () => {
+			textColor.addEventListener("change", () => {
 				this.watermarkSettings.textColor = textColor.value;
 				this.updatePreview();
 			});
@@ -736,9 +736,9 @@ class EnhancedBulkWatermarkApp {
 	}
 
 	bindImageControls() {
-		const watermarkImage = document.getElementById('watermarkImage');
+		const watermarkImage = document.getElementById("watermarkImage");
 		if (watermarkImage) {
-			watermarkImage.addEventListener('change', (e) => {
+			watermarkImage.addEventListener("change", (e) => {
 				const file = e.target.files[0];
 				if (file) {
 					const reader = new FileReader();
@@ -746,13 +746,40 @@ class EnhancedBulkWatermarkApp {
 						const img = new Image();
 						img.onload = () => {
 							this.watermarkSettings.watermarkImage = img;
+							// Switch to image watermark mode so the UI and rendering reflect the newly selected image
+							try {
+								this.setWatermarkType("image");
+							} catch (err) {
+								this.watermarkSettings.type = "image";
+							}
 
-							const previewImg = document.getElementById('watermarkPreviewImg');
-							const watermarkPreview = document.getElementById('watermarkPreview');
+							const previewImg = document.getElementById("watermarkPreviewImg");
+							const watermarkPreview = document.getElementById("watermarkPreview");
 
 							if (previewImg && watermarkPreview) {
 								previewImg.src = e.target.result;
-								watermarkPreview.classList.remove('hidden');
+								watermarkPreview.classList.remove("hidden");
+							}
+
+							// Ensure imageScale setting is synced from controls so watermark appears immediately
+							const imgScaleEl = document.getElementById("imageScale");
+							const imgScaleNum = document.getElementById("imageScaleNumber");
+							if (imgScaleEl)
+								this.watermarkSettings.imageScale =
+									Number(imgScaleEl.value) || this.watermarkSettings.imageScale;
+							if (imgScaleNum)
+								this.watermarkSettings.imageScale =
+									Number(imgScaleNum.value) || this.watermarkSettings.imageScale;
+
+							// Prebuild watermark cache for immediate rendering (use a small temp canvas)
+							try {
+								const tempCanvas = document.createElement("canvas");
+								tempCanvas.width = Math.max(200, img.width);
+								tempCanvas.height = Math.max(200, img.height);
+								const tctx = tempCanvas.getContext("2d");
+								this.buildWatermarkCache(tctx, tempCanvas.width, tempCanvas.height);
+							} catch (err) {
+								// fail silently
 							}
 
 							this.updatePreview();
@@ -766,14 +793,14 @@ class EnhancedBulkWatermarkApp {
 	}
 
 	bindRangeControls() {
-		const controls = ['fontSize', 'imageScale', 'opacity', 'patternAngle', 'watermarkRotation'];
+		const controls = ["fontSize", "imageScale", "opacity", "patternAngle", "watermarkRotation"];
 
 		controls.forEach((controlId) => {
 			const rangeEl = document.getElementById(controlId);
-			const numberEl = document.getElementById(controlId + 'Number');
+			const numberEl = document.getElementById(controlId + "Number");
 
 			if (rangeEl) {
-				rangeEl.addEventListener('input', (e) => {
+				rangeEl.addEventListener("input", (e) => {
 					const value = parseInt(e.target.value);
 					this.watermarkSettings[controlId] = value;
 					this.syncControls(controlId, value);
@@ -782,7 +809,7 @@ class EnhancedBulkWatermarkApp {
 			}
 
 			if (numberEl) {
-				numberEl.addEventListener('input', (e) => {
+				numberEl.addEventListener("input", (e) => {
 					const value = parseInt(e.target.value);
 					this.watermarkSettings[controlId] = value;
 					this.syncControls(controlId, value);
@@ -792,59 +819,66 @@ class EnhancedBulkWatermarkApp {
 		});
 
 		// Overlay effect
-		const overlayEffect = document.getElementById('overlayEffect');
+		const overlayEffect = document.getElementById("overlayEffect");
 		if (overlayEffect) {
-			overlayEffect.addEventListener('change', () => {
+			overlayEffect.addEventListener("change", () => {
 				this.watermarkSettings.overlayEffect = overlayEffect.value;
 				this.updatePreview();
 			});
 		}
 
 		// New compact horizontal/vertical spacing controls
-		const spX = document.getElementById('patternSpacingX');
-		const spY = document.getElementById('patternSpacingY');
-		const spXNum = document.getElementById('patternSpacingXNumber');
-		const spYNum = document.getElementById('patternSpacingYNumber');
+		const spX = document.getElementById("patternSpacingX");
+		const spY = document.getElementById("patternSpacingY");
+		const spXNum = document.getElementById("patternSpacingXNumber");
+		const spYNum = document.getElementById("patternSpacingYNumber");
 
 		if (spX) {
-			spX.addEventListener('input', (e) => {
+			spX.addEventListener("input", (e) => {
 				const v = parseInt(e.target.value);
 				this.watermarkSettings.patternSpacingX = v;
-				const el = document.getElementById('patternSpacingXValue');
-				if (el) el.textContent = v;
+				const el = document.getElementById("patternSpacingXValue");
+				// Convert to pixel estimate for display using preview width if available
+				const previewCanvas = document.getElementById("previewCanvas");
+				let px = v;
+				if (previewCanvas) px = Math.round(v * (previewCanvas.width / 800));
+				if (el) el.textContent = px;
 				if (spXNum) spXNum.value = v;
 				this.updatePreview();
 			});
 		}
 
 		if (spY) {
-			spY.addEventListener('input', (e) => {
+			spY.addEventListener("input", (e) => {
 				const v = parseInt(e.target.value);
 				this.watermarkSettings.patternSpacingY = v;
-				const el = document.getElementById('patternSpacingYValue');
-				if (el) el.textContent = v;
+				const el = document.getElementById("patternSpacingYValue");
+				const previewCanvas = document.getElementById("previewCanvas");
+				let px = v;
+				if (previewCanvas) px = Math.round(v * (previewCanvas.height / 800));
+				if (el) el.textContent = px;
 				if (spYNum) spYNum.value = v;
 				this.updatePreview();
 			});
 		}
 
 		if (spXNum) {
-			spXNum.addEventListener('input', (e) => {
+			spXNum.addEventListener("input", (e) => {
 				const v = parseInt(e.target.value);
 				this.watermarkSettings.patternSpacingX = v;
 				if (spX) spX.value = v;
-				const el = document.getElementById('patternSpacingXValue');
+				const el = document.getElementById("patternSpacingXValue");
 				if (el) el.textContent = v;
 				this.updatePreview();
 			});
 		}
 
 		if (spYNum) {
-			spYNum.addEventListener('input', (e) => {
+			spYNum.addEventListener("input", (e) => {
 				const v = parseInt(e.target.value);
 				this.watermarkSettings.patternSpacingY = v;
 				if (spY) spY.value = v;
-				const el = document.getElementById('patternSpacingYValue');
+				const el = document.getElementById("patternSpacingYValue");
 				if (el) el.textContent = v;
 				this.updatePreview();
 			});
@@ -852,29 +886,29 @@ class EnhancedBulkWatermarkApp {
 	}
 
 	bindPositionControls() {
-		document.querySelectorAll('.position-btn').forEach((btn) => {
-			btn.addEventListener('click', () => {
+		document.querySelectorAll(".position-btn").forEach((btn) => {
+			btn.addEventListener("click", () => {
 				this.setPosition(btn.dataset.position);
 				this.updatePreview();
 			});
 		});
 
-		const offsetX = document.getElementById('offsetX');
-		const offsetY = document.getElementById('offsetY');
+		const offsetX = document.getElementById("offsetX");
+		const offsetY = document.getElementById("offsetY");
 
 		if (offsetX) {
-			offsetX.addEventListener('input', (e) => {
+			offsetX.addEventListener("input", (e) => {
 				this.watermarkSettings.offsetX = parseInt(e.target.value);
-				const valueEl = document.getElementById('offsetXValue');
+				const valueEl = document.getElementById("offsetXValue");
 				if (valueEl) valueEl.textContent = e.target.value;
 				this.updatePreview();
 			});
 		}
 
 		if (offsetY) {
-			offsetY.addEventListener('input', (e) => {
+			offsetY.addEventListener("input", (e) => {
 				this.watermarkSettings.offsetY = parseInt(e.target.value);
-				const valueEl = document.getElementById('offsetYValue');
+				const valueEl = document.getElementById("offsetYValue");
 				if (valueEl) valueEl.textContent = e.target.value;
 				this.updatePreview();
 			});
@@ -882,24 +916,24 @@ class EnhancedBulkWatermarkApp {
 	}
 
 	bindProcessingControls() {
-		const processBtn = document.getElementById('processBtn');
-		const downloadZipBtn = document.getElementById('downloadZip');
-		const showGalleryBtn = document.getElementById('showGalleryBtn');
+		const processBtn = document.getElementById("processBtn");
+		const downloadZipBtn = document.getElementById("downloadZip");
+		const showGalleryBtn = document.getElementById("showGalleryBtn");
 
 		if (processBtn) {
-			processBtn.addEventListener('click', () => this.processAllImages());
+			processBtn.addEventListener("click", () => this.processAllImages());
 		}
 
 		if (downloadZipBtn) {
-			downloadZipBtn.addEventListener('click', () => this.downloadZip());
+			downloadZipBtn.addEventListener("click", () => this.downloadZip());
 		}
 
 		if (showGalleryBtn) {
-			showGalleryBtn.addEventListener('click', () => {
+			showGalleryBtn.addEventListener("click", () => {
 				if (this.processedImages.length > 0) {
 					this.modal.showModal(this.processedImages);
 				} else {
-					alert('No processed images to display. Please process images first.');
+					alert("No processed images to display. Please process images first.");
 				}
 			});
 		}
@@ -907,8 +941,8 @@ class EnhancedBulkWatermarkApp {
 
 	syncControls(controlId, value) {
 		const rangeEl = document.getElementById(controlId);
-		const numberEl = document.getElementById(controlId + 'Number');
-		const valueEl = document.getElementById(controlId + 'Value');
+		const numberEl = document.getElementById(controlId + "Number");
+		const valueEl = document.getElementById(controlId + "Value");
 
 		if (rangeEl) rangeEl.value = value;
 		if (numberEl) numberEl.value = value;
@@ -918,48 +952,60 @@ class EnhancedBulkWatermarkApp {
 	initializeControls() {
 		// Sync all initial values
 		Object.keys(this.watermarkSettings).forEach((key) => {
-			if (typeof this.watermarkSettings[key] === 'number') {
+			if (typeof this.watermarkSettings[key] === "number") {
 				this.syncControls(key, this.watermarkSettings[key]);
 			}
 		});
 
 		// Ensure the new spacing controls show 0 when defaulted to 0
-		const spx = document.getElementById('patternSpacingX');
-		const spy = document.getElementById('patternSpacingY');
-		const spxVal = document.getElementById('patternSpacingXValue');
-		const spyVal = document.getElementById('patternSpacingYValue');
+		const spx = document.getElementById("patternSpacingX");
+		const spy = document.getElementById("patternSpacingY");
+		const spxVal = document.getElementById("patternSpacingXValue");
+		const spyVal = document.getElementById("patternSpacingYValue");
 		if (spx) spx.value = Number(this.watermarkSettings.patternSpacingX || 0);
 		if (spy) spy.value = Number(this.watermarkSettings.patternSpacingY || 0);
 		if (spxVal) spxVal.textContent = this.watermarkSettings.patternSpacingX || 0;
 		if (spyVal) spyVal.textContent = this.watermarkSettings.patternSpacingY || 0;
+		// If preview canvas exists, show an estimated pixel value instead of raw slider unit
+		const previewCanvas = document.getElementById("previewCanvas");
+		if (previewCanvas) {
+			if (spxVal)
+				spxVal.textContent = Math.round(
+					(this.watermarkSettings.patternSpacingX || 0) * (previewCanvas.width / 800)
+				);
+			if (spyVal)
+				spyVal.textContent = Math.round(
+					(this.watermarkSettings.patternSpacingY || 0) * (previewCanvas.height / 800)
+				);
+		}
 
 		// Set initial pattern mode UI
 		this.updatePatternModeUI();
 	}
 
 	updatePatternModeUI() {
-		const patternControls = document.getElementById('patternControls');
-		const positionControls = document.getElementById('positionControls');
-		const offsetControls = document.getElementById('offsetControls');
-		const patternAngleGroup = document.getElementById('patternAngleGroup');
+		const patternControls = document.getElementById("patternControls");
+		const positionControls = document.getElementById("positionControls");
+		const offsetControls = document.getElementById("offsetControls");
+		const patternAngleGroup = document.getElementById("patternAngleGroup");
 
 		const mode = this.watermarkSettings.patternMode;
 
-		if (mode === 'single') {
-			if (patternControls) patternControls.classList.add('hidden');
-			if (positionControls) positionControls.classList.remove('hidden');
-			if (offsetControls) offsetControls.classList.remove('hidden');
+		if (mode === "single") {
+			if (patternControls) patternControls.classList.add("hidden");
+			if (positionControls) positionControls.classList.remove("hidden");
+			if (offsetControls) offsetControls.classList.remove("hidden");
 		} else {
-			if (patternControls) patternControls.classList.remove('hidden');
-			if (positionControls) positionControls.classList.add('hidden');
-			if (offsetControls) offsetControls.classList.add('hidden');
+			if (patternControls) patternControls.classList.remove("hidden");
+			if (positionControls) positionControls.classList.add("hidden");
+			if (offsetControls) offsetControls.classList.add("hidden");
 
 			if (patternAngleGroup) {
 				// Show angle control only for tiled mode (angle controls diagonal orientation)
-				if (mode === 'tiled') {
-					patternAngleGroup.classList.remove('hidden');
+				if (mode === "tiled") {
+					patternAngleGroup.classList.remove("hidden");
 				} else {
-					patternAngleGroup.classList.add('hidden');
+					patternAngleGroup.classList.add("hidden");
 				}
 			}
 		}
@@ -968,19 +1014,19 @@ class EnhancedBulkWatermarkApp {
 	setWatermarkType(type) {
 		this.watermarkSettings.type = type;
 
-		document.querySelectorAll('.toggle-btn').forEach((btn) => btn.classList.remove('active'));
-		const toggleBtn = document.getElementById(type + 'Toggle');
-		if (toggleBtn) toggleBtn.classList.add('active');
+		document.querySelectorAll(".toggle-btn").forEach((btn) => btn.classList.remove("active"));
+		const toggleBtn = document.getElementById(type + "Toggle");
+		if (toggleBtn) toggleBtn.classList.add("active");
 
-		const textOptions = document.getElementById('textOptions');
-		const imageOptions = document.getElementById('imageOptions');
+		const textOptions = document.getElementById("textOptions");
+		const imageOptions = document.getElementById("imageOptions");
 
-		if (type === 'text') {
-			if (textOptions) textOptions.classList.remove('hidden');
-			if (imageOptions) imageOptions.classList.add('hidden');
+		if (type === "text") {
+			if (textOptions) textOptions.classList.remove("hidden");
+			if (imageOptions) imageOptions.classList.add("hidden");
 		} else {
-			if (textOptions) textOptions.classList.add('hidden');
-			if (imageOptions) imageOptions.classList.remove('hidden');
+			if (textOptions) textOptions.classList.add("hidden");
+			if (imageOptions) imageOptions.classList.remove("hidden");
 		}
 
 		this.updatePreview();
@@ -989,10 +1035,10 @@ class EnhancedBulkWatermarkApp {
 	setPosition(position) {
 		this.watermarkSettings.position = position;
 
-		document.querySelectorAll('.position-btn').forEach((btn) => btn.classList.remove('active'));
+		document.querySelectorAll(".position-btn").forEach((btn) => btn.classList.remove("active"));
 		const targetBtn = document.querySelector(`[data-position="${position}"]`);
 		if (targetBtn) {
-			targetBtn.classList.add('active');
+			targetBtn.classList.add("active");
 		}
 	}
 
@@ -1001,14 +1047,14 @@ class EnhancedBulkWatermarkApp {
 	}
 
 	renderImageGrid() {
-		const imageGrid = document.getElementById('imageGrid');
+		const imageGrid = document.getElementById("imageGrid");
 		if (!imageGrid) return;
 
-		imageGrid.innerHTML = '';
+		imageGrid.innerHTML = "";
 
 		this.uploadedFiles.forEach((fileData) => {
-			const imageItem = document.createElement('div');
-			imageItem.className = 'image-item';
+			const imageItem = document.createElement("div");
+			imageItem.className = "image-item";
 
 			if (fileData.preview) {
 				imageItem.innerHTML = `
@@ -1033,9 +1079,9 @@ class EnhancedBulkWatermarkApp {
                 `;
 			}
 
-			const removeBtn = imageItem.querySelector('.remove-btn');
+			const removeBtn = imageItem.querySelector(".remove-btn");
 			if (removeBtn) {
-				removeBtn.addEventListener('click', (e) => {
+				removeBtn.addEventListener("click", (e) => {
 					e.stopPropagation();
 					this.removeFile(fileData.id);
 				});
@@ -1061,26 +1107,26 @@ class EnhancedBulkWatermarkApp {
 	}
 
 	clearPreview() {
-		const canvas = document.getElementById('previewCanvas');
+		const canvas = document.getElementById("previewCanvas");
 		if (canvas) {
-			const ctx = canvas.getContext('2d');
+			const ctx = canvas.getContext("2d");
 			ctx.clearRect(0, 0, canvas.width, canvas.height);
 		}
 	}
 
 	updateUI() {
-		const fileList = document.getElementById('fileList');
-		const configSection = document.getElementById('configSection');
-		const previewSection = document.getElementById('previewSection');
-		const processingSection = document.getElementById('processingSection');
-		const fileCount = document.getElementById('fileCount');
+		const fileList = document.getElementById("fileList");
+		const configSection = document.getElementById("configSection");
+		const previewSection = document.getElementById("previewSection");
+		const processingSection = document.getElementById("processingSection");
+		const fileCount = document.getElementById("fileCount");
 
 		const hasFiles = this.uploadedFiles.length > 0;
 
-		if (fileList) fileList.classList.toggle('hidden', !hasFiles);
-		if (configSection) configSection.style.display = hasFiles ? 'block' : 'none';
-		if (previewSection) previewSection.style.display = hasFiles ? 'block' : 'none';
-		if (processingSection) processingSection.style.display = hasFiles ? 'block' : 'none';
+		if (fileList) fileList.classList.toggle("hidden", !hasFiles);
+		if (configSection) configSection.style.display = hasFiles ? "block" : "none";
+		if (previewSection) previewSection.style.display = hasFiles ? "block" : "none";
+		if (processingSection) processingSection.style.display = hasFiles ? "block" : "none";
 		if (fileCount) fileCount.textContent = this.uploadedFiles.length;
 	}
 
@@ -1097,10 +1143,10 @@ class EnhancedBulkWatermarkApp {
 	}
 
 	renderPreview(img) {
-		const canvas = document.getElementById('previewCanvas');
+		const canvas = document.getElementById("previewCanvas");
 		if (!canvas) return;
 
-		const ctx = canvas.getContext('2d');
+		const ctx = canvas.getContext("2d");
 
 		// Calculate canvas size
 		const maxWidth = 800;
@@ -1116,6 +1162,28 @@ class EnhancedBulkWatermarkApp {
 		ctx.clearRect(0, 0, width, height);
 		ctx.drawImage(img, 0, 0, width, height);
 
+		// If we have an image watermark but no cache yet, build one sized to this preview so placement/spacing is accurate immediately
+		try {
+			if (this.watermarkSettings.watermarkImage && !this._watermarkCache) {
+				this.buildWatermarkCache(ctx, width, height);
+				// Debug: report cache info when user has imageScale ~20%
+				if (
+					this.getImageScaleFraction &&
+					this.getImageScaleFraction() === 0.2 &&
+					this.debugLogging &&
+					console &&
+					console.debug
+				) {
+					console.debug("renderPreview: post-build cache", {
+						_watermarkCache: this._watermarkCache,
+						canvas: { width, height },
+					});
+				}
+			}
+		} catch (e) {
+			// ignore
+		}
+
 		// Apply watermark
 		this.applyWatermark(ctx, width, height);
 	}
@@ -1126,7 +1194,7 @@ class EnhancedBulkWatermarkApp {
 		ctx.save();
 		ctx.globalAlpha = this.watermarkSettings.opacity / 100;
 
-		if (mode === 'single') {
+		if (mode === "single") {
 			this.applySingleWatermark(ctx, canvasWidth, canvasHeight);
 		} else {
 			// Treat diagonal and grid as a single tiled pattern implementation
@@ -1142,7 +1210,7 @@ class EnhancedBulkWatermarkApp {
 		const angle = this.watermarkSettings.watermarkRotation || 0;
 
 		// If corner placement requested in single mode, place watermark center so it is flush to the edge.
-		const singleMode = this.watermarkSettings.patternMode === 'single';
+		const singleMode = this.watermarkSettings.patternMode === "single";
 		const isCorner = position.x <= 0.2 || position.x >= 0.8 || position.y <= 0.2 || position.y >= 0.8;
 
 		if (singleMode && isCorner) {
@@ -1151,17 +1219,17 @@ class EnhancedBulkWatermarkApp {
 			let h = this._watermarkCache?.h || 0;
 			if (!w || !h) {
 				// Try a light estimate based on current settings
-				if (this.watermarkSettings.type === 'text') {
+				if (this.watermarkSettings.type === "text") {
 					const tmpFontSize = Math.max(8, (this.watermarkSettings.fontSize * canvasWidth) / 800);
 					ctx.font = `${tmpFontSize}px ${this.watermarkSettings.fontFamily}`;
-					const metrics = ctx.measureText(this.watermarkSettings.text || 'Watermark');
+					const metrics = ctx.measureText(this.watermarkSettings.text || "Watermark");
 					w =
 						metrics.width ||
 						tmpFontSize * (this.watermarkSettings.text ? this.watermarkSettings.text.length * 0.6 : 4);
 					h = Math.ceil(tmpFontSize * 1.1);
-				} else if (this.watermarkSettings.type === 'image' && this.watermarkSettings.watermarkImage) {
+				} else if (this.watermarkSettings.type === "image" && this.watermarkSettings.watermarkImage) {
 					const img = this.watermarkSettings.watermarkImage;
-					const scale = this.watermarkSettings.imageScale / 100;
+					const scale = this.getImageScaleFraction();
 					w = img.width * scale;
 					h = img.height * scale;
 				}
@@ -1186,9 +1254,9 @@ class EnhancedBulkWatermarkApp {
 		}
 
 		// Non-corner single placements use the regular drawing paths
-		if (this.watermarkSettings.type === 'text') {
+		if (this.watermarkSettings.type === "text") {
 			this.drawTextWatermark(ctx, canvasWidth, canvasHeight, position);
-		} else if (this.watermarkSettings.type === 'image' && this.watermarkSettings.watermarkImage) {
+		} else if (this.watermarkSettings.type === "image" && this.watermarkSettings.watermarkImage) {
 			this.drawImageWatermark(ctx, canvasWidth, canvasHeight, position);
 		}
 	}
@@ -1218,19 +1286,48 @@ class EnhancedBulkWatermarkApp {
 		// which coupled the two sliders; using dx/dy preserves independent control.
 		let dx = safeSpacingX;
 		let dy = safeSpacingY;
+		// Safety: ensure dx/dy are not absurdly small which can cause tight loops or projection errors
+		try {
+			if (this._watermarkCache) {
+				const cw = this._watermarkCache.contentW || this._watermarkCache.w || 1;
+				const ch = this._watermarkCache.contentH || this._watermarkCache.h || 1;
+				if (dx < 1) dx = Math.max(1, cw);
+				if (dy < 1) dy = Math.max(1, ch);
+			}
+		} catch (e) {
+			// ignore
+		}
 		// If we have a cache with content size, and the user has chosen the minimum spacing
 		// (configured value 0), force dx/dy to the visible content size so tiles sit
 		// back-to-back with no gap.
 		try {
+			// Use same slider minimum computation as computePatternSpacing so 'touching'
+			// behavior is consistent when users set spacing to the minimum slider value.
 			const configuredRawX =
 				Number(this.watermarkSettings.patternSpacingX || this.watermarkSettings.patternSpacing) || 0;
 			const configuredRawY =
 				Number(this.watermarkSettings.patternSpacingY || this.watermarkSettings.patternSpacing) || 0;
-			if (this._watermarkCache && (configuredRawX === 0 || configuredRawY === 0)) {
-				const contentW = this._watermarkCache.contentW || this._watermarkCache.w;
-				const contentH = this._watermarkCache.contentH || this._watermarkCache.h;
-				if (configuredRawX === 0 && contentW) dx = contentW;
-				if (configuredRawY === 0 && contentH) dy = contentH;
+			if (this._watermarkCache) {
+				const cw = this._watermarkCache.contentW || this._watermarkCache.w || 1;
+				const ch = this._watermarkCache.contentH || this._watermarkCache.h || 1;
+				// compute slider minima in raw units using canvas size so we know when the
+				// user requested the 'touching' mode (<= sliderMin)
+				try {
+					const sliderMinX = Math.round((cw * 800) / Math.max(1, canvasWidth));
+					const sliderMinY = Math.round((ch * 800) / Math.max(1, canvasHeight));
+					const configuredPixelsX = configuredRawX * (canvasWidth / 800);
+					const configuredPixelsY = configuredRawY * (canvasHeight / 800);
+					const thresholdX = Math.ceil(cw * 1.05);
+					const thresholdY = Math.ceil(ch * 1.05);
+					if (configuredRawX === 0 || configuredRawX <= sliderMinX || configuredPixelsX <= thresholdX)
+						dx = cw;
+					if (configuredRawY === 0 || configuredRawY <= sliderMinY || configuredPixelsY <= thresholdY)
+						dy = ch;
+				} catch (e) {
+					// fallback: if we fail to compute minima, default to content sizes when raw=0
+					if (configuredRawX === 0) dx = cw;
+					if (configuredRawY === 0) dy = ch;
+				}
 				// keep safeSpacing vars in sync for downstream checks
 				safeSpacingX = dx;
 				safeSpacingY = dy;
@@ -1283,7 +1380,7 @@ class EnhancedBulkWatermarkApp {
 			}
 
 			if (this.debugLogging && console && console.log) {
-				console.log('applyTiledPattern(diagonal-leaning):', {
+				console.log("applyTiledPattern(diagonal-leaning):", {
 					spacing: { x: safeSpacingX, y: safeSpacingY, avg: safeSpacingAvg },
 					angle,
 					tiledExtent,
@@ -1319,7 +1416,7 @@ class EnhancedBulkWatermarkApp {
 			}
 
 			if (this.debugLogging && console && console.log)
-				console.log('applyTiledPattern(grid-like):', {
+				console.log("applyTiledPattern(grid-like):", {
 					spacing: { x: safeSpacingX, y: safeSpacingY },
 					angle,
 					startX,
@@ -1339,18 +1436,18 @@ class EnhancedBulkWatermarkApp {
 		let estWidth = 100;
 		let estHeight = 40;
 
-		if (this.watermarkSettings.type === 'text') {
+		if (this.watermarkSettings.type === "text") {
 			// Scale font size relative to canvas to keep preview consistent
 			const fontSize = Math.max(12, (this.watermarkSettings.fontSize * canvasWidth) / 800);
 			ctx.font = `${fontSize}px ${this.watermarkSettings.fontFamily}`;
-			const metrics = ctx.measureText(this.watermarkSettings.text || 'Watermark');
+			const metrics = ctx.measureText(this.watermarkSettings.text || "Watermark");
 			estWidth =
 				metrics.width ||
 				fontSize * (this.watermarkSettings.text ? this.watermarkSettings.text.length * 0.6 : 4);
 			estHeight = fontSize * 1.1;
-		} else if (this.watermarkSettings.type === 'image' && this.watermarkSettings.watermarkImage) {
+		} else if (this.watermarkSettings.type === "image" && this.watermarkSettings.watermarkImage) {
 			const img = this.watermarkSettings.watermarkImage;
-			const scale = this.watermarkSettings.imageScale / 100;
+			const scale = this.getImageScaleFraction();
 			estWidth = img.width * scale;
 			estHeight = img.height * scale;
 		}
@@ -1367,7 +1464,7 @@ class EnhancedBulkWatermarkApp {
 			baseX = this._watermarkCache.contentW || this._watermarkCache.w;
 			baseY = this._watermarkCache.contentH || this._watermarkCache.h;
 			if (this.debugLogging && console && console.debug)
-				console.debug('computePatternSpacing: using cache footprint', {
+				console.debug("computePatternSpacing: using cache footprint", {
 					cacheW: this._watermarkCache.w,
 					cacheH: this._watermarkCache.h,
 					baseX,
@@ -1401,46 +1498,65 @@ class EnhancedBulkWatermarkApp {
 		const minX = Math.max(1, Math.round(baseX));
 		const minY = Math.max(1, Math.round(baseY));
 
-		const spacingX = configuredRawX === 0 ? minX : Math.max(minX, configuredPixelsX);
-		const spacingY = configuredRawY === 0 ? minY : Math.max(minY, configuredPixelsY);
+		// Determine slider minimum thresholds (in raw units). Default to 0 if not computed.
+		let sliderMinX = 0;
+		let sliderMinY = 0;
+
+		// Temporarily compute spacing as pixels; we'll override below if touching is requested.
+		let spacingX = Math.max(minX, configuredPixelsX);
+		let spacingY = Math.max(minY, configuredPixelsY);
 
 		// Sync new X/Y sliders (if present) so ranges reflect safe min/start values.
 		try {
-			const sx = document.getElementById('patternSpacingX');
-			const sy = document.getElementById('patternSpacingY');
+			const sx = document.getElementById("patternSpacingX");
+			const sy = document.getElementById("patternSpacingY");
 			if (sx) {
 				// Slider min/value for X should reflect the projected touching width when 0 is chosen
-				const sliderMinX = Math.round((minX * 800) / Math.max(1, canvasWidth));
+				sliderMinX = Math.round((minX * 800) / Math.max(1, canvasWidth));
 				const sliderMaxX = Math.round((Math.max(canvasWidth, canvasHeight) * 800) / Math.max(1, canvasWidth));
 				let sliderValueX = configuredRawX;
-				if (sliderValueX < sliderMinX || configuredRawX === 0) sliderValueX = sliderMinX;
+				if (sliderValueX < sliderMinX) sliderValueX = sliderMinX;
 				sx.min = sliderMinX;
 				sx.max = sliderMaxX;
 				sx.step = 1;
-				if (!sx.matches(':active')) sx.value = sliderValueX;
+				if (!sx.matches(":active")) sx.value = sliderValueX;
 				if (this.debugLogging && console && console.debug)
-					console.debug('patternSpacingX sync', { sliderMinX, sliderMaxX, sliderValueX });
+					console.debug("patternSpacingX sync", { sliderMinX, sliderMaxX, sliderValueX });
 			}
 			if (sy) {
 				// For vertical slider, calculate min/max/value using canvas height so
 				// the slider maps intuitively to pixels in the Y axis.
-				const sliderMinY = Math.round((minY * 800) / Math.max(1, canvasHeight));
+				sliderMinY = Math.round((minY * 800) / Math.max(1, canvasHeight));
 				const sliderMaxY = Math.round((Math.max(canvasWidth, canvasHeight) * 800) / Math.max(1, canvasHeight));
 				let sliderValueY = configuredRawY;
-				if (sliderValueY < sliderMinY || configuredRawY === 0) sliderValueY = sliderMinY;
+				if (sliderValueY < sliderMinY) sliderValueY = sliderMinY;
 				sy.min = sliderMinY;
 				sy.max = sliderMaxY;
 				sy.step = 1;
-				if (!sy.matches(':active')) sy.value = sliderValueY;
+				if (!sy.matches(":active")) sy.value = sliderValueY;
 				if (this.debugLogging && console && console.debug)
-					console.debug('patternSpacingY sync', { sliderMinY, sliderMaxY, sliderValueY });
+					console.debug("patternSpacingY sync", { sliderMinY, sliderMaxY, sliderValueY });
 			}
 		} catch (err) {
-			if (console && console.warn) console.warn('Failed to sync patternSpacing X/Y sliders:', err);
+			if (console && console.warn) console.warn("Failed to sync patternSpacing X/Y sliders:", err);
+		}
+
+		// Decide touching mode: treat explicit 0 or any configured pixel spacing very close
+		// to the content size (within 5%) as touching. This avoids situations where
+		// slider-to-pixel mapping variations leave a small gap at the visual minimum.
+		try {
+			const thresholdX = Math.ceil(minX * 1.05);
+			const thresholdY = Math.ceil(minY * 1.05);
+			if (configuredRawX === 0 || configuredRawX <= sliderMinX || configuredPixelsX <= thresholdX)
+				spacingX = minX;
+			if (configuredRawY === 0 || configuredRawY <= sliderMinY || configuredPixelsY <= thresholdY)
+				spacingY = minY;
+		} catch (e) {
+			// ignore
 		}
 
 		if (this.debugLogging && console && console.debug)
-			console.debug('computePatternSpacing', {
+			console.debug("computePatternSpacing", {
 				estWidth,
 				estHeight,
 				baseX,
@@ -1463,8 +1579,7 @@ class EnhancedBulkWatermarkApp {
 	drawTextWatermark(ctx, canvasWidth, canvasHeight, position) {
 		const fontSize = Math.max(12, (this.watermarkSettings.fontSize * canvasWidth) / 800);
 		ctx.font = `${fontSize}px ${this.watermarkSettings.fontFamily}`;
-		ctx.fillStyle = this.watermarkSettings.textColor;
-		ctx.textBaseline = 'middle';
+		ctx.textBaseline = "middle";
 
 		// base coordinates
 		let x = canvasWidth * position.x;
@@ -1479,7 +1594,7 @@ class EnhancedBulkWatermarkApp {
 		// Padding: keep small by default. If in single mode and a corner position, reduce padding to bring watermark flush to edge.
 		let padX = Math.min(12, Math.round(textWidth * 0.05) + 4);
 		let padY = Math.min(12, Math.round(textHeight * 0.1) + 2);
-		const singleMode = this.watermarkSettings.patternMode === 'single';
+		const singleMode = this.watermarkSettings.patternMode === "single";
 		const isCorner = position.x <= 0.2 || position.x >= 0.8 || position.y <= 0.2 || position.y >= 0.8;
 		if (singleMode && isCorner) {
 			// allow exact flush: zero pad will place watermark at the edge.
@@ -1490,12 +1605,12 @@ class EnhancedBulkWatermarkApp {
 		// Clamp X/Y depending on alignment
 		if (position.x <= 0.2) {
 			x = Math.max(textWidth / 2 + padX, x);
-			ctx.textAlign = 'start';
+			ctx.textAlign = "start";
 		} else if (position.x >= 0.8) {
 			x = Math.min(canvasWidth - textWidth / 2 - padX, x);
-			ctx.textAlign = 'end';
+			ctx.textAlign = "end";
 		} else {
-			ctx.textAlign = 'center';
+			ctx.textAlign = "center";
 		}
 
 		if (position.y <= 0.2) {
@@ -1514,10 +1629,12 @@ class EnhancedBulkWatermarkApp {
 			ctx.translate(x, y);
 			ctx.rotate((this.watermarkSettings.watermarkRotation * Math.PI) / 180);
 			this.applyTextEffects(ctx);
+			ctx.fillStyle = this.getEffectFillStyle(ctx);
 			ctx.fillText(this.watermarkSettings.text, 0, 0);
 			ctx.restore();
 		} else {
 			this.applyTextEffects(ctx);
+			ctx.fillStyle = this.getEffectFillStyle(ctx);
 			ctx.fillText(this.watermarkSettings.text, x, y);
 		}
 	}
@@ -1532,34 +1649,49 @@ class EnhancedBulkWatermarkApp {
 			ctx.rotate((angle * Math.PI) / 180);
 			// draw only the visible content area (exclude cache padding) so tiles align edge-to-edge.
 			const srcPad = cache.pad ? cache.pad : 0;
-			const srcW = cache.contentW || cache.w;
-			const srcH = cache.contentH || cache.h;
-			const srcX = Math.round((cache.w - srcW) / 2) - srcPad + srcPad; // center, but respect pad
-			const srcY = Math.round((cache.h - srcH) / 2) - srcPad + srcPad;
-			// If pad is present, the content is centered at pad..pad+contentW. Simpler: compute src based on pad
+			let srcW = cache.contentW || cache.w;
+			let srcH = cache.contentH || cache.h;
+			// Ensure non-zero dimensions
+			srcW = Math.max(1, Math.round(srcW));
+			srcH = Math.max(1, Math.round(srcH));
 			const realSrcX = cache.pad ? cache.pad : Math.round((cache.w - srcW) / 2);
 			const realSrcY = cache.pad ? cache.pad : Math.round((cache.h - srcH) / 2);
+			// If computed content area looks suspiciously small, fall back to drawing the full cache
+			if (srcW <= 2 || srcH <= 2) {
+				if (this.debugLogging && console && console.debug)
+					console.debug("drawRotatedWatermark: small contentW/H, falling back to full cache draw", {
+						srcW,
+						srcH,
+						cacheW: cache.w,
+						cacheH: cache.h,
+					});
+				ctx.drawImage(cache.canvas, -cache.w / 2, -cache.h / 2, cache.w, cache.h);
+				ctx.restore();
+				return;
+			}
 			ctx.drawImage(cache.canvas, realSrcX, realSrcY, srcW, srcH, -srcW / 2, -srcH / 2, srcW, srcH);
+			if (this.debugLogging && console && console.debug)
+				console.debug("drawRotatedWatermark: drew cache", { realSrcX, realSrcY, srcW, srcH });
 			ctx.restore();
 			return;
 		}
 
 		// Fallback (should be rare because cache is built during applyTiledPattern)
-		if (this.watermarkSettings.type === 'text') {
+		if (this.watermarkSettings.type === "text") {
 			const fontSize = Math.max(8, (this.watermarkSettings.fontSize * 600) / 800);
 			ctx.font = `${fontSize}px ${this.watermarkSettings.fontFamily}`;
-			ctx.fillStyle = this.watermarkSettings.textColor;
-			ctx.textBaseline = 'middle';
-			ctx.textAlign = 'center';
+			ctx.textBaseline = "middle";
+			ctx.textAlign = "center";
 			ctx.save();
 			ctx.translate(x, y);
 			ctx.rotate((angle * Math.PI) / 180);
 			this.applyTextEffects(ctx);
+			ctx.fillStyle = this.getEffectFillStyle(ctx);
 			ctx.fillText(this.watermarkSettings.text, 0, 0);
 			ctx.restore();
-		} else if (this.watermarkSettings.type === 'image' && this.watermarkSettings.watermarkImage) {
+		} else if (this.watermarkSettings.type === "image" && this.watermarkSettings.watermarkImage) {
 			const img = this.watermarkSettings.watermarkImage;
-			const scale = this.watermarkSettings.imageScale / 100;
+			const scale = this.getImageScaleFraction();
 			const size = Math.min(600, 600) * scale * 0.3;
 			const ratio = Math.min(size / img.width, size / img.height);
 			const width = img.width * ratio;
@@ -1594,6 +1726,9 @@ class EnhancedBulkWatermarkApp {
 				overlayEffect: this.watermarkSettings.overlayEffect,
 				qW,
 				qH,
+				// include actual canvas dimensions to avoid reusing a cache built for a very different size
+				canvasWidth,
+				canvasHeight,
 			};
 			const key = JSON.stringify(keyObj);
 
@@ -1601,7 +1736,7 @@ class EnhancedBulkWatermarkApp {
 			const existing = this._watermarkCacheMap.get(key);
 			if (existing) {
 				this._watermarkCache = existing; // keep a quick-ref to the chosen cache
-				if (this.debugLogging && console && console.debug) console.debug('Watermark cache reuse', { keyObj });
+				if (this.debugLogging && console && console.debug) console.debug("Watermark cache reuse", { keyObj });
 				return;
 			}
 
@@ -1612,47 +1747,63 @@ class EnhancedBulkWatermarkApp {
 			*/
 			let estW = 100;
 			let estH = 40;
-			if (this.watermarkSettings.type === 'text') {
+			if (this.watermarkSettings.type === "text") {
 				const fontSize = Math.max(12, (this.watermarkSettings.fontSize * canvasWidth) / 800);
 				const tmpFont = `${fontSize}px ${this.watermarkSettings.fontFamily}`;
 				ctx.font = tmpFont;
-				const metrics = ctx.measureText(this.watermarkSettings.text || 'Watermark');
+				const metrics = ctx.measureText(this.watermarkSettings.text || "Watermark");
 				estW =
 					metrics.width ||
 					fontSize * (this.watermarkSettings.text ? this.watermarkSettings.text.length * 0.6 : 4);
 				estH = Math.ceil(fontSize * 1.1);
-			} else if (this.watermarkSettings.type === 'image' && this.watermarkSettings.watermarkImage) {
+			} else if (this.watermarkSettings.type === "image" && this.watermarkSettings.watermarkImage) {
 				const img = this.watermarkSettings.watermarkImage;
-				const scale = this.watermarkSettings.imageScale / 100;
-				estW = img.width * scale;
-				estH = img.height * scale;
+				const scale = this.getImageScaleFraction();
+				// Compute the effective drawn size on the given canvas so the cache footprint
+				// matches how drawImageWatermark will render the image for this canvas.
+				const maxSize = Math.min(canvasWidth, canvasHeight) * scale;
+				let imgRatio = Math.min(maxSize / Math.max(1, img.width), maxSize / Math.max(1, img.height));
+				imgRatio = Math.max(imgRatio, 0.02);
+				estW = Math.ceil(img.width * imgRatio);
+				estH = Math.ceil(img.height * imgRatio);
 			}
 
 			// Add a small padding for shadow/glow effects
 			const pad = Math.ceil(Math.max(estW, estH) * 0.15) + 4;
-			const c = document.createElement('canvas');
+			const c = document.createElement("canvas");
 			c.width = Math.ceil(estW + pad * 2);
 			c.height = Math.ceil(estH + pad * 2);
-			const cctx = c.getContext('2d');
+			const cctx = c.getContext("2d");
 			cctx.clearRect(0, 0, c.width, c.height);
 
-			if (this.watermarkSettings.type === 'text') {
+			if (this.watermarkSettings.type === "text") {
 				const fontSize = Math.max(12, (this.watermarkSettings.fontSize * canvasWidth) / 800);
 				cctx.font = `${fontSize}px ${this.watermarkSettings.fontFamily}`;
-				cctx.fillStyle = this.watermarkSettings.textColor;
-				cctx.textBaseline = 'middle';
-				cctx.textAlign = 'center';
+				cctx.textBaseline = "middle";
+				cctx.textAlign = "center";
 				this.applyTextEffects(cctx);
+				cctx.fillStyle = this.getEffectFillStyle(cctx);
 				cctx.fillText(this.watermarkSettings.text, c.width / 2, c.height / 2);
-			} else if (this.watermarkSettings.type === 'image' && this.watermarkSettings.watermarkImage) {
+			} else if (this.watermarkSettings.type === "image" && this.watermarkSettings.watermarkImage) {
 				const img = this.watermarkSettings.watermarkImage;
-				const scale = this.watermarkSettings.imageScale / 100;
+				const scale = this.getImageScaleFraction();
 				const maxSize = Math.min(canvasWidth, canvasHeight) * scale;
-				const ratio = Math.min(maxSize / img.width, maxSize / img.height);
+				let ratio = Math.min(maxSize / img.width, maxSize / img.height);
+				ratio = Math.max(ratio, 0.05);
 				const w = img.width * ratio;
 				const h = img.height * ratio;
 				this.applyTextEffects(cctx);
-				cctx.drawImage(img, (c.width - w) / 2, (c.height - h) / 2, w, h);
+				// For image watermarks, tint/gradient effects are handled by composite operations if chosen.
+				if (this.watermarkSettings.overlayEffect === "tint") {
+					cctx.globalCompositeOperation = "source-atop";
+					cctx.fillStyle = this.getEffectFillStyle(cctx);
+					cctx.drawImage(img, (c.width - w) / 2, (c.height - h) / 2, w, h);
+					cctx.fillRect((c.width - w) / 2, (c.height - h) / 2, w, h);
+					// reset composite
+					cctx.globalCompositeOperation = "source-over";
+				} else {
+					cctx.drawImage(img, (c.width - w) / 2, (c.height - h) / 2, w, h);
+				}
 			}
 
 			const cacheEntry = {
@@ -1668,33 +1819,72 @@ class EnhancedBulkWatermarkApp {
 
 			this._watermarkCacheMap.set(key, cacheEntry);
 			this._watermarkCache = cacheEntry; // quick reference
+			// Debug: when user is at 20% scale and debugLogging, show computed cache footprint
+			if (
+				this.getImageScaleFraction &&
+				this.getImageScaleFraction() === 0.2 &&
+				this.debugLogging &&
+				console &&
+				console.debug
+			) {
+				console.debug("buildWatermarkCache: created cacheEntry", cacheEntry);
+			}
 
 			if (this.debugLogging && console && console.debug)
-				console.debug('Built watermark cache', { keyObj, w: c.width, h: c.height });
+				console.debug("Built watermark cache", { keyObj, w: c.width, h: c.height });
 		} catch (err) {
-			console.warn('Failed to build watermark cache', err);
+			console.warn("Failed to build watermark cache", err);
 		}
+	}
+
+	getImageScaleFraction() {
+		let s = Number(this.watermarkSettings.imageScale);
+		if (!isFinite(s) || s <= 0) s = 20; // default to 20% when invalid
+		// clamp to reasonable range
+		s = Math.max(1, Math.min(500, s));
+		return s / 100;
 	}
 
 	drawImageWatermark(ctx, canvasWidth, canvasHeight, position) {
 		const img = this.watermarkSettings.watermarkImage;
-		const scale = this.watermarkSettings.imageScale / 100;
+		const scale = this.getImageScaleFraction();
 		const maxSize = Math.min(canvasWidth, canvasHeight) * scale;
-		const ratio = Math.min(maxSize / img.width, maxSize / img.height);
+		let ratio = Math.min(maxSize / img.width, maxSize / img.height);
+		// Ensure ratio is not zero; clamp to tiny epsilon to keep image visible
+		ratio = Math.max(ratio, 0.05); // require at least 5% scale to avoid near-invisible images
 		const width = img.width * ratio;
 		const height = img.height * ratio;
+		if (
+			this.getImageScaleFraction &&
+			this.getImageScaleFraction() === 0.2 &&
+			this.debugLogging &&
+			console &&
+			console.debug
+		) {
+			console.debug("drawImageWatermark: computed", {
+				canvasWidth,
+				canvasHeight,
+				imgWidth: img.width,
+				imgHeight: img.height,
+				scale,
+				maxSize,
+				ratio,
+				width,
+				height,
+			});
+		}
 
 		let x = canvasWidth * position.x;
 		let y = canvasHeight * position.y;
 
 		// Ensure image watermark stays inside canvas bounds with tighter padding
-		const maxImageSize = Math.min(canvasWidth, canvasHeight) * (this.watermarkSettings.imageScale / 100);
+		const maxImageSize = Math.min(canvasWidth, canvasHeight) * this.getImageScaleFraction();
 		const imgWidth = Math.min(width, maxImageSize);
 		const imgHeight = Math.min(height, maxImageSize);
 
 		let padX = Math.min(12, Math.round(imgWidth * 0.05) + 4);
 		let padY = Math.min(12, Math.round(imgHeight * 0.05) + 4);
-		const singleMode = this.watermarkSettings.patternMode === 'single';
+		const singleMode = this.watermarkSettings.patternMode === "single";
 		const isCorner = position.x <= 0.2 || position.x >= 0.8 || position.y <= 0.2 || position.y >= 0.8;
 		if (singleMode && isCorner) {
 			padX = 0;
@@ -1726,50 +1916,130 @@ class EnhancedBulkWatermarkApp {
 			ctx.save();
 			ctx.translate(x + width / 2, y + height / 2);
 			ctx.rotate((this.watermarkSettings.watermarkRotation * Math.PI) / 180);
-			ctx.drawImage(img, -width / 2, -height / 2, width, height);
+			ctx.drawImage(
+				img,
+				-Math.max(width, 4) / 2,
+				-Math.max(height, 4) / 2,
+				Math.max(width, 4),
+				Math.max(height, 4)
+			);
 			ctx.restore();
 		} else {
-			ctx.drawImage(img, x, y, width, height);
+			ctx.drawImage(img, x, y, Math.max(width, 4), Math.max(height, 4));
 		}
 	}
 
 	applyTextEffects(ctx) {
 		const effect = this.watermarkSettings.overlayEffect;
 
-		if (effect === 'shadow') {
-			ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+		// Helper: convert #rrggbb or #rgb to rgba string with alpha
+		const hexToRgba = (hex, alpha = 1) => {
+			let h = hex.replace("#", "");
+			if (h.length === 3) {
+				h = h
+					.split("")
+					.map((c) => c + c)
+					.join("");
+			}
+			const bigint = parseInt(h, 16);
+			const r = (bigint >> 16) & 255;
+			const g = (bigint >> 8) & 255;
+			const b = bigint & 255;
+			return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+		};
+
+		// Reset common shadow/composite values first to known defaults
+		ctx.shadowColor = "transparent";
+		ctx.shadowBlur = 0;
+		ctx.shadowOffsetX = 0;
+		ctx.shadowOffsetY = 0;
+		ctx.globalCompositeOperation = "source-over";
+
+		if (effect === "shadow") {
+			ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
 			ctx.shadowBlur = 4;
 			ctx.shadowOffsetX = 2;
 			ctx.shadowOffsetY = 2;
-		} else if (effect === 'glow') {
-			ctx.shadowColor = this.watermarkSettings.textColor;
-			ctx.shadowBlur = 10;
+			// keep fillStyle as-is (caller sets it)
+		} else if (effect === "glow") {
+			// Glow uses the same color as the watermark but with heavier blur
+			ctx.shadowColor = hexToRgba(this.watermarkSettings.textColor, 1);
+			ctx.shadowBlur = 14;
+		} else if (effect === "gradient") {
+			// Create a horizontal gradient across the canvas width.
+			try {
+				const g = ctx.createLinearGradient(0, 0, ctx.canvas.width || 200, 0);
+				const c1 = hexToRgba(this.watermarkSettings.textColor, 1);
+				const c2 = hexToRgba(this.watermarkSettings.textColor, 0.4);
+				g.addColorStop(0, c1);
+				g.addColorStop(1, c2);
+				ctx.fillStyle = g;
+			} catch (e) {
+				// fallback: leave fillStyle untouched
+			}
+		} else if (effect === "tint") {
+			// Apply a stronger, semi-transparent tint to the watermark fill
+			ctx.fillStyle = hexToRgba(this.watermarkSettings.textColor, 0.75);
 		} else {
-			ctx.shadowColor = 'transparent';
-			ctx.shadowBlur = 0;
-			ctx.shadowOffsetX = 0;
-			ctx.shadowOffsetY = 0;
+			// 'none' or unknown: ensure defaults
+			ctx.fillStyle = this.watermarkSettings.textColor;
+		}
+	}
+
+	getEffectFillStyle(ctx) {
+		const effect = this.watermarkSettings.overlayEffect;
+		// Helper to create same hexToRgba used above
+		const hexToRgba = (hex, alpha = 1) => {
+			let h = hex.replace("#", "");
+			if (h.length === 3) {
+				h = h
+					.split("")
+					.map((c) => c + c)
+					.join("");
+			}
+			const bigint = parseInt(h, 16);
+			const r = (bigint >> 16) & 255;
+			const g = (bigint >> 8) & 255;
+			const b = bigint & 255;
+			return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+		};
+
+		if (effect === "gradient") {
+			try {
+				const g = ctx.createLinearGradient(0, 0, ctx.canvas.width || 200, 0);
+				const c1 = hexToRgba(this.watermarkSettings.textColor, 1);
+				const c2 = hexToRgba(this.watermarkSettings.textColor, 0.4);
+				g.addColorStop(0, c1);
+				g.addColorStop(1, c2);
+				return g;
+			} catch (e) {
+				return this.watermarkSettings.textColor;
+			}
+		} else if (effect === "tint") {
+			return hexToRgba(this.watermarkSettings.textColor, 0.75);
+		} else {
+			return this.watermarkSettings.textColor;
 		}
 	}
 
 	async processAllImages() {
 		const loadedFiles = this.getLoadedFiles();
 		if (loadedFiles.length === 0) {
-			alert('No images loaded to process.');
+			alert("No images loaded to process.");
 			return;
 		}
 
-		const processBtn = document.getElementById('processBtn');
-		const progressSection = document.getElementById('processingProgress');
-		const progressFill = document.getElementById('progressFill');
-		const progressText = document.getElementById('progressText');
+		const processBtn = document.getElementById("processBtn");
+		const progressSection = document.getElementById("processingProgress");
+		const progressFill = document.getElementById("progressFill");
+		const progressText = document.getElementById("progressText");
 
 		if (processBtn) {
 			processBtn.disabled = true;
-			processBtn.textContent = 'Processing...';
+			processBtn.textContent = "Processing...";
 		}
 
-		if (progressSection) progressSection.classList.remove('hidden');
+		if (progressSection) progressSection.classList.remove("hidden");
 
 		this.processedImages = [];
 
@@ -1777,7 +2047,7 @@ class EnhancedBulkWatermarkApp {
 			const fileData = loadedFiles[i];
 
 			const progress = ((i + 1) / loadedFiles.length) * 100;
-			if (progressFill) progressFill.style.width = progress + '%';
+			if (progressFill) progressFill.style.width = progress + "%";
 			if (progressText) progressText.textContent = `Processing ${i + 1} of ${loadedFiles.length} images...`;
 
 			try {
@@ -1790,14 +2060,14 @@ class EnhancedBulkWatermarkApp {
 			await new Promise((resolve) => setTimeout(resolve, 100));
 		}
 
-		if (progressText) progressText.textContent = 'Processing complete!';
+		if (progressText) progressText.textContent = "Processing complete!";
 
-		const downloadSection = document.getElementById('downloadSection');
-		if (downloadSection) downloadSection.classList.remove('hidden');
+		const downloadSection = document.getElementById("downloadSection");
+		if (downloadSection) downloadSection.classList.remove("hidden");
 
 		if (processBtn) {
 			processBtn.disabled = false;
-			processBtn.textContent = 'Process All Images';
+			processBtn.textContent = "Process All Images";
 		}
 
 		// AUTO-SHOW MODAL
@@ -1810,8 +2080,8 @@ class EnhancedBulkWatermarkApp {
 		return new Promise((resolve) => {
 			const img = new Image();
 			img.onload = () => {
-				const canvas = document.createElement('canvas');
-				const ctx = canvas.getContext('2d');
+				const canvas = document.createElement("canvas");
+				const ctx = canvas.getContext("2d");
 
 				canvas.width = img.width;
 				canvas.height = img.height;
@@ -1821,7 +2091,7 @@ class EnhancedBulkWatermarkApp {
 				this.buildWatermarkCache(ctx, canvas.width, canvas.height);
 				const spacing = this.computePatternSpacing(ctx, canvas.width, canvas.height);
 				if (this.debugLogging && console && console.info) {
-					console.info('processImage: image canvas', {
+					console.info("processImage: image canvas", {
 						name: fileData.name,
 						canvasWidth: canvas.width,
 						canvasHeight: canvas.height,
@@ -1843,7 +2113,7 @@ class EnhancedBulkWatermarkApp {
 							url: URL.createObjectURL(blob),
 						});
 					},
-					'image/jpeg',
+					"image/jpeg",
 					0.9
 				);
 			};
@@ -1853,7 +2123,7 @@ class EnhancedBulkWatermarkApp {
 
 	async downloadZip() {
 		if (this.processedImages.length === 0) {
-			alert('No processed images to download.');
+			alert("No processed images to download.");
 			return;
 		}
 
@@ -1864,33 +2134,32 @@ class EnhancedBulkWatermarkApp {
 				zip.file(imageData.name, imageData.blob);
 			}
 
-			const zipBlob = await zip.generateAsync({ type: 'blob' });
+			const zipBlob = await zip.generateAsync({ type: "blob" });
 
 			const url = URL.createObjectURL(zipBlob);
-			const a = document.createElement('a');
+			const a = document.createElement("a");
 			a.href = url;
-			a.download = 'watermarked_images.zip';
+			a.download = "watermarked_images.zip";
 			document.body.appendChild(a);
 			a.click();
 			document.body.removeChild(a);
 			URL.revokeObjectURL(url);
 		} catch (error) {
-			console.error('Error creating ZIP:', error);
-			alert('Error creating ZIP file.');
+			console.error("Error creating ZIP:", error);
+			alert("Error creating ZIP file.");
 		}
 	}
 }
 
 // Initialize when DOM is ready
-console.log('Enhanced Watermark App Script Loading...');
+console.log("Watermark App Script Loading...");
 
-if (document.readyState === 'loading') {
-	document.addEventListener('DOMContentLoaded', () => {
-		console.log('DOM loaded - initializing app');
-		new EnhancedBulkWatermarkApp();
+if (document.readyState === "loading") {
+	document.addEventListener("DOMContentLoaded", () => {
+		console.log("DOM loaded - initializing app");
+		new BulkWatermarkApp();
 	});
 } else {
-	console.log('DOM ready - initializing app immediately');
-	new EnhancedBulkWatermarkApp();
+	console.log("DOM ready - initializing app immediately");
+	new BulkWatermarkApp();
 }
-
