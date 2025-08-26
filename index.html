@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Watermarker by sban2009</title>
+        <link rel="stylesheet" href="style.css" />
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    </head>
+
+    <body>
+        <div class="container">
+            <!-- Header -->
+            <header class="app-header" style="position: relative">
+                <h1>Bulk Image Watermarking Tool</h1>
+                <p>Upload multiple images and add custom watermarks with advanced pattern controls and effects</p>
+                <button id="themeSwitcher" class="btn btn--sm"
+                    style="position: absolute; top: 16px; right: 16px; z-index: 10">
+                    🌙 Dark Mode
+                </button>
+            </header>
+
+            <!-- Error Messages -->
+            <div id="errorContainer" class="error-container hidden">
+                <div class="status status--error" id="errorMessage"></div>
+            </div>
+
+            <!-- Upload Section -->
+            <section class="upload-section card">
+                <div class="card__body">
+                    <div class="upload-area" id="uploadArea">
+                        <label class="upload-content" for="fileInput">
+                            <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                            </svg>
+                            <h3>Drop images here or click to browse</h3>
+                            <p>Support for JPEG, PNG, GIF, WebP (max 10MB per file)</p>
+                            <div class="upload-status" id="uploadStatus"></div>
+                        </label>
+                        <input type="file" id="fileInput" multiple accept="image/*" class="file-input-clickable" />
+                    </div>
+
+                    <div id="fileList" class="file-list hidden">
+                        <div class="flex justify-between items-center mb-8">
+                            <h4>Uploaded Images (<span id="fileCount">0</span>)</h4>
+                            <button class="btn btn--secondary btn--sm" id="clearFiles">Clear All</button>
+                        </div>
+                        <div id="imageGrid" class="image-grid"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Configuration Section -->
+            <section class="config-section card" id="configSection" style="display: none">
+                <div class="card__body">
+                    <h2>Watermark Configuration</h2>
+
+                    <!-- Watermark Type Toggle -->
+                    <div class="form-group">
+                        <label class="form-label">Watermark Type</label>
+                        <div class="toggle-group">
+                            <button class="btn btn--outline toggle-btn active" data-type="text" id="textToggle">
+                                Text Watermark
+                            </button>
+                            <button class="btn btn--outline toggle-btn" data-type="image" id="imageToggle">
+                                Image Watermark
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Pattern Mode Selection -->
+                    <div class="form-group">
+                        <label class="form-label">Pattern Mode</label>
+                        <div class="pattern-mode-group">
+                            <label class="pattern-mode-option">
+                                <input type="radio" name="patternMode" value="single" checked />
+                                <span class="pattern-mode-label">
+                                    <strong>Single Watermark</strong>
+                                    <small>One watermark per image with proper positioning</small>
+                                </span>
+                            </label>
+                            <label class="pattern-mode-option">
+                                <input type="radio" name="patternMode" value="tiled" />
+                                <span class="pattern-mode-label">
+                                    <strong>Tiled Pattern</strong>
+                                    <small>Multiple watermarks with position control</small>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Text Watermark Options -->
+                    <div id="textOptions" class="watermark-options">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="textContent" class="form-label">Text Content</label>
+                                <input type="text" id="textContent" class="form-control" value="© Your Watermark" />
+                            </div>
+                            <div class="form-group">
+                                <label for="fontSize" class="form-label">Font Size (<span
+                                        id="fontSizeValue">24</span>px)</label>
+                                <div class="range-input-group">
+                                    <input type="range" id="fontSize" class="form-range" min="10" max="500"
+                                        value="24" />
+                                    <input type="number" id="fontSizeNumber" class="form-control number-input" min="10"
+                                        max="500" value="24" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="fontFamily" class="form-label">Font Family</label>
+                                <select id="fontFamily" class="form-control">
+                                    <option value="Arial">Arial</option>
+                                    <option value="Times New Roman">Times New Roman</option>
+                                    <option value="Verdana">Verdana</option>
+                                    <option value="Georgia">Georgia</option>
+                                    <option value="Impact">Impact</option>
+                                    <option value="Comic Sans MS">Comic Sans MS</option>
+                                    <option value="Courier New">Courier New</option>
+                                    <option value="Helvetica">Helvetica</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="textColor" class="form-label">Text Color</label>
+                                <input type="color" id="textColor" class="form-control color-input" value="#ffffff" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Image Watermark Options -->
+                    <div id="imageOptions" class="watermark-options hidden">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="watermarkImage" class="form-label">Watermark Image</label>
+                                <input type="file" id="watermarkImage" class="form-control" accept="image/*" />
+                            </div>
+                            <div class="form-group">
+                                <label for="imageScale" class="form-label">Scale (<span
+                                        id="imageScaleValue">20</span>%)</label>
+                                <div class="range-input-group">
+                                    <input type="range" id="imageScale" class="form-range" min="5" max="200"
+                                        value="20" />
+                                    <input type="number" id="imageScaleNumber" class="form-control number-input" min="5"
+                                        max="200" value="20" />
+                                </div>
+                            </div>
+                        </div>
+                        <div id="watermarkPreview" class="watermark-preview hidden">
+                            <img id="watermarkPreviewImg" alt="Watermark preview" />
+                        </div>
+                    </div>
+
+                    <!-- Rotation Control -->
+                    <div class="form-group">
+                        <label for="watermarkRotation" class="form-label">Watermark Rotation (<span
+                                id="watermarkRotationValue">0</span>°)</label>
+                        <div class="range-input-group">
+                            <input type="range" id="watermarkRotation" class="form-range" min="-180" max="180"
+                                value="0" />
+                            <input type="number" id="watermarkRotationNumber" class="form-control number-input"
+                                min="-180" max="180" value="0" />
+                        </div>
+                    </div>
+
+                    <!-- Overlay Effects -->
+                    <div class="form-group">
+                        <label for="overlayEffect" class="form-label">Overlay Effect</label>
+                        <select id="overlayEffect" class="form-control">
+                            <option value="none">None</option>
+                            <option value="shadow">Drop Shadow</option>
+                            <option value="glow">Glow Effect</option>
+                            <option value="gradient">Gradient Overlay</option>
+                            <option value="tint">Color Tint</option>
+                        </select>
+                    </div>
+
+                    <!-- Pattern Controls -->
+                    <div id="patternControls" class="pattern-controls hidden">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Pattern Spacing</label>
+                                <div class="compact-spacing-grid">
+                                    <div>
+                                        <label for="patternSpacingX" class="form-label small">Horizontal (<span
+                                                id="patternSpacingXValue">0</span>px)</label>
+                                        <div class="range-input-group compact">
+                                            <input type="range" id="patternSpacingX" class="form-range" min="0"
+                                                max="400" value="0" step="1">
+                                            <input type="number" id="patternSpacingXNumber"
+                                                class="form-control number-input small" min="0" max="400" value="0"
+                                                step="1" />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label for="patternSpacingY" class="form-label small">Vertical (<span
+                                                id="patternSpacingYValue">0</span>px)</label>
+                                        <div class="range-input-group compact">
+                                            <input type="range" id="patternSpacingY" class="form-range" min="0"
+                                                max="400" value="0" step="1">
+                                            <input type="number" id="patternSpacingYNumber"
+                                                class="form-control number-input small" min="0" max="400" value="0"
+                                                step="1" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group" id="patternAngleGroup">
+                                <label for="patternAngle" class="form-label">Pattern Angle (<span
+                                        id="patternAngleValue">-45</span>°)</label>
+                                <div class="range-input-group">
+                                    <input type="range" id="patternAngle" class="form-range" min="-180" max="180"
+                                        value="-45" />
+                                    <input type="number" id="patternAngleNumber" class="form-control number-input"
+                                        min="-180" max="180" value="-45" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Common Options -->
+                    <div class="form-group">
+                        <label for="opacity" class="form-label">Opacity (<span id="opacityValue">70</span>%)</label>
+                        <div class="range-input-group">
+                            <input type="range" id="opacity" class="form-range" min="0" max="100" value="70" />
+                            <input type="number" id="opacityNumber" class="form-control number-input" min="0" max="100"
+                                value="70" />
+                        </div>
+                    </div>
+
+                    <!-- Position Controls (only for single mode) -->
+                    <div class="form-group" id="positionControls">
+                        <label class="form-label">Position</label>
+                        <div class="position-grid" id="positionGrid">
+                            <button class="position-btn" data-position="top-left" title="Top Left">TL</button>
+                            <button class="position-btn" data-position="top-center" title="Top Center">TC</button>
+                            <button class="position-btn" data-position="top-right" title="Top Right">TR</button>
+                            <button class="position-btn" data-position="middle-left" title="Middle Left">ML</button>
+                            <button class="position-btn" data-position="center" title="Center">C</button>
+                            <button class="position-btn" data-position="middle-right" title="Middle Right">MR</button>
+                            <button class="position-btn" data-position="bottom-left" title="Bottom Left">BL</button>
+                            <button class="position-btn" data-position="bottom-center" title="Bottom Center">BC</button>
+                            <button class="position-btn active" data-position="bottom-right" title="Bottom Right">
+                                BR
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Offset Controls (only for single mode) -->
+                    <div id="offsetControls">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="offsetX" class="form-label">X Offset (<span
+                                        id="offsetXValue">0</span>px)</label>
+                                <input type="range" id="offsetX" class="form-range" min="-200" max="200" value="0" />
+                            </div>
+                            <div class="form-group">
+                                <label for="offsetY" class="form-label">Y Offset (<span
+                                        id="offsetYValue">0</span>px)</label>
+                                <input type="range" id="offsetY" class="form-range" min="-200" max="200" value="0" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Preview Section -->
+            <section class="preview-section card" id="previewSection" style="display: none">
+                <div class="card__body">
+                    <div class="flex justify-between items-center mb-16">
+                        <h2>Live Preview</h2>
+                        <div class="preview-loading hidden" id="previewLoading">
+                            <div class="spinner"></div>
+                            <span>Updating preview...</span>
+                        </div>
+                    </div>
+                    <div class="preview-container">
+                        <canvas id="previewCanvas"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Processing Section -->
+            <section class="processing-section card" id="processingSection" style="display: none">
+                <div class="card__body">
+                    <div class="flex justify-between items-center mb-16">
+                        <h2>Process Images</h2>
+                        <button class="btn btn--primary" id="processBtn">Process All Images</button>
+                    </div>
+
+                    <div id="processingProgress" class="processing-progress hidden">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill"></div>
+                        </div>
+                        <p id="progressText">Processing images...</p>
+                    </div>
+
+                    <div id="downloadSection" class="download-section hidden">
+                        <div class="download-actions">
+                            <button class="btn btn--primary btn--lg" id="showGalleryBtn">
+                                <span class="btn-icon">🖼️</span>
+                                View Gallery & Download
+                            </button>
+                            <button class="btn btn--outline" id="downloadZip">Download All as ZIP</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Modal Gallery -->
+        <div class="modal hidden" id="galleryModal">
+            <div class="modal-overlay" id="modalOverlay"></div>
+            <div class="modal-container">
+                <div class="modal-header">
+                    <h2>Processed Images Gallery</h2>
+                    <button class="modal-close-btn" id="modalCloseBtn">
+                        <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="modal-body">
+                    <div id="galleryGrid" class="gallery-grid"></div>
+                </div>
+
+                <div class="modal-footer">
+                    <div class="modal-stats" id="modalStats">
+                        <span id="galleryCount">0 images processed</span>
+                    </div>
+                    <div class="modal-actions">
+                        <button class="btn btn--secondary" id="modalCloseBtn2">Close</button>
+                        <button class="btn btn--primary btn--lg" id="modalDownloadAllBtn">
+                            <span class="btn-icon">📦</span>
+                            Download All as ZIP
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Full Size Image Viewer -->
+        <div class="image-viewer hidden" id="imageViewer">
+            <div class="image-viewer-overlay" id="imageViewerOverlay"></div>
+            <div class="image-viewer-container">
+                <button class="image-viewer-close" id="imageViewerClose">
+                    <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+                <img id="imageViewerImg" alt="Full size preview" />
+                <div class="image-viewer-info">
+                    <span id="imageViewerName"></span>
+                    <button class="btn btn--primary btn--sm" id="imageViewerDownload">Download</button>
+                </div>
+            </div>
+        </div>
+
+        <script src="app.js"></script>
+    </body>
+
+</html>
