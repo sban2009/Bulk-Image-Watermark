@@ -1,8 +1,14 @@
 # Bulk Image Watermark Tool
 
-Deployment Status: [![Netlify Status](https://api.netlify.com/api/v1/badges/7f815f19-9df9-4e43-a08c-3823e4c17ff7/deploy-status)](https://app.netlify.com/projects/bulk-watermark-tool/deploys)
-
 A simple web tool for adding watermarks (text or image) to multiple images at once. No software installation required - works directly in your browser.
+
+![Initialised With Perplexity Labs](https://img.shields.io/badge/Perplexity-1FB8CD?style=for-the-badge&logo=perplexity&logoColor=white)
+![Vibe coded with Copilot](https://img.shields.io/badge/github%20copilot-000000?style=for-the-badge&logo=githubcopilot&logoColor=white)
+![JavaScript](https://img.shields.io/badge/JavaScript-323330?style=for-the-badge&logo=javascript&logoColor=F7DF1E)
+![HTML](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)
+![CSS](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)
+![Released with Github Actions](https://img.shields.io/badge/Github%20Actions-282a2e?style=for-the-badge&logo=githubactions&logoColor=367cfe)
+[![Netlify Status](https://api.netlify.com/api/v1/badges/7f815f19-9df9-4e43-a08c-3823e4c17ff7/deploy-status)](https://app.netlify.com/projects/bulk-watermark-tool/deploys)
 
 ## ✨ Features
 
@@ -40,6 +46,14 @@ A simple web tool for adding watermarks (text or image) to multiple images at on
 
 - **[Changelog](CHANGELOG.md)**: Version history and updates
 - **[License](LICENSE)**: MIT License details
+
+## App Screenshots
+
+<img width="1856" height="2625" alt="Screen Shot 2025-08-28 at 02 30 30-fullpage" src="https://github.com/user-attachments/assets/1a02156e-0613-45ea-9f3e-5df6be36fe79" />
+<img width="1533" height="554" alt="Screen Shot 2025-08-28 at 02 31 38-fullpage" src="https://github.com/user-attachments/assets/cb6ae824-8825-4969-b1f0-b1f661994c3c" />
+
+
+Updated on: 28-8-2025
 
 ## 💡 Perfect For
 
