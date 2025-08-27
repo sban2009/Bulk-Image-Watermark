@@ -958,6 +958,9 @@ select.form-control {
 	opacity: 0;
 	cursor: pointer;
 	z-index: 10;
+	/* Improve mobile compatibility */
+	-webkit-appearance: none;
+	appearance: none;
 }
 
 /* Application-specific styles */
@@ -1029,6 +1032,9 @@ select.form-control {
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	/* Improve touch targets on mobile */
+	-webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+	touch-action: manipulation;
 }
 
 .upload-area:hover {
@@ -1036,6 +1042,19 @@ select.form-control {
 	background: linear-gradient(135deg, var(--color-bg-2), var(--color-bg-5));
 	transform: translateY(-2px);
 	box-shadow: var(--shadow-lg);
+}
+
+/* Touch-specific styles for mobile devices */
+@media (hover: none) and (pointer: coarse) {
+	.upload-area:hover {
+		transform: none;
+	}
+
+	.upload-area:active {
+		border-color: var(--color-primary);
+		background: linear-gradient(135deg, var(--color-bg-2), var(--color-bg-5));
+		transform: scale(0.98);
+	}
 }
 
 .upload-area.drag-over {
@@ -1129,6 +1148,18 @@ select.form-control {
 	border-color: var(--color-primary);
 }
 
+.image-item.selected {
+	border-color: var(--color-primary);
+	border-width: 2px;
+	box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb, 33, 128, 141), 0.2);
+	transform: translateY(-2px);
+}
+
+.image-item.selected:hover {
+	transform: translateY(-4px);
+	box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb, 33, 128, 141), 0.3), var(--shadow-lg);
+}
+
 .image-item.loading {
 	opacity: 0.5;
 }
@@ -1173,6 +1204,44 @@ select.form-control {
 .image-item:hover .remove-btn {
 	opacity: 1;
 	transform: scale(1.1);
+}
+
+/* Image container and overlay for preview selection */
+.image-item .image-container {
+	position: relative;
+	display: block;
+}
+
+.image-item .image-overlay {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-color: rgba(0, 0, 0, 0.6);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	opacity: 0;
+	transition: opacity var(--duration-normal) var(--ease-standard);
+	z-index: 5;
+}
+
+.image-item .overlay-text {
+	color: white;
+	font-size: var(--font-size-sm);
+	font-weight: 600;
+	text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+	pointer-events: none;
+}
+
+.image-item:hover .image-overlay {
+	opacity: 1;
+}
+
+/* Hide overlay on selected image */
+.image-item.selected .image-overlay {
+	display: none;
 }
 
 .image-item .loading-indicator {
