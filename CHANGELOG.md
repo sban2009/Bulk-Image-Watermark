@@ -10,6 +10,7 @@ All notable changes to the Bulk Image Watermark Tool will be documented in this 
 - **Cleaner Interface**: Controls only appear when relevant to your current mode
 - **Less Confusion**: No more wondering which controls affect which watermark type
 - **Better Experience**: More intuitive workflow for both text and logo watermarks
+- **Fixed Spacing Calculation**: Resolved overlap issues in pattern spacing for better watermark positioning
 
 ### Modal System Fixes
 
