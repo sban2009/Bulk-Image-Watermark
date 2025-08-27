@@ -729,34 +729,30 @@ class BulkWatermarkApp {
 
 		if (uiValue <= 0) {
 			// Value 0 = "touching" behavior: watermarks placed edge-to-edge with no gap
-			// Return just the watermark size so center-to-center equals edge-to-edge
-			return actualWatermarkSize;
-		}
+			// Add a small buffer (2-5% of size) to prevent actual overlap due to rendering variations
+			const touchingBuffer = Math.max(2, actualWatermarkSize * 0.02);
+			const result = actualWatermarkSize + touchingBuffer;
 
+			return result;
+		}
 		/*
-		 * For values 1-20, create progressive spacing with guaranteed minimum gap.
-		 * The algorithm ensures value 1 never causes overlap by providing substantial minimum gap.
+		 * For values 1-20, create smooth progressive spacing.
+		 * Start with a small gap for value 1 and scale up smoothly.
 		 */
 
-		// Minimum gap for value 1 - aggressive sizing prevents any overlap issues
-		// Uses larger of: 30 scaled pixels OR 50% of watermark size
-		const minGap = Math.max(30 * canvasScale, actualWatermarkSize * 0.5);
+		// Small minimum gap for value 1 - just enough to see separation
+		// Use a much smaller gap to reduce the jump between 0 and 1
+		const minGap = Math.max(5 * canvasScale, actualWatermarkSize * 0.08);
 
 		// Maximum gap for value 20 - scales with watermark size for proportional spacing
-		const maxGap = Math.max(actualWatermarkSize * 3, 500 * canvasScale);
+		const maxGap = Math.max(actualWatermarkSize * 2.5, 400 * canvasScale);
 
-		// Linear interpolation between min and max gaps for smooth progression
+		// Smooth interpolation between min and max gaps
 		const gapRange = maxGap - minGap;
 		const gapSize = minGap + ((uiValue - 1) / 19) * gapRange;
 
 		// Final result: watermark size + calculated gap = center-to-center distance
 		const result = Math.round(actualWatermarkSize + gapSize);
-
-		console.log(
-			`Spacing calc (${
-				isVertical ? "Y" : "X"
-			}): UI=${uiValue}, base=${baseSize}, scale=${canvasScale}, actualSize=${actualWatermarkSize}, minGap=${minGap}, gapSize=${gapSize}, result=${result}`
-		);
 
 		return result;
 	}
@@ -2238,26 +2234,6 @@ class BulkWatermarkApp {
 			// Prefer visible content size (excludes padding) for accurate edge-to-edge positioning
 			baseX = this._watermarkCache.contentW || this._watermarkCache.w;
 			baseY = this._watermarkCache.contentH || this._watermarkCache.h;
-
-			// Debug logging for troubleshooting spacing issues
-			console.log("Using cache dimensions:", {
-				cacheContentW: this._watermarkCache.contentW,
-				cacheContentH: this._watermarkCache.contentH,
-				cacheW: this._watermarkCache.w,
-				cacheH: this._watermarkCache.h,
-				baseX: baseX,
-				baseY: baseY,
-				estWidth: estWidth,
-				estHeight: estHeight,
-			});
-		} else {
-			// Debug logging when cache not available
-			console.log("No cache available, using estimated dimensions:", {
-				estWidth: estWidth,
-				estHeight: estHeight,
-				baseX: baseX,
-				baseY: baseY,
-			});
 		}
 
 		// Store computed base values for UI synchronization (slider range calculations)
@@ -2275,9 +2251,20 @@ class BulkWatermarkApp {
 		const canvasScaleX = canvasWidth / 800; // X-axis scale factor
 		const canvasScaleY = canvasHeight / 800; // Y-axis scale factor
 
+		// When using cache dimensions, they might already be canvas-scaled
+		// Adjust scaling factors to prevent double-scaling
+		let useScaleX = canvasScaleX;
+		let useScaleY = canvasScaleY;
+
+		if (this._watermarkCache && this._watermarkCache.w && this._watermarkCache.h) {
+			// Cache dimensions are already scaled to the canvas, so use minimal scaling
+			useScaleX = 1;
+			useScaleY = 1;
+		}
+
 		// Convert UI values to actual pixel spacing using core conversion function
-		const configuredPixelsX = this.convertSpacingToPixels(uiSpacingX, baseX, canvasScaleX, false);
-		const configuredPixelsY = this.convertSpacingToPixels(uiSpacingY, baseY, canvasScaleY, true);
+		const configuredPixelsX = this.convertSpacingToPixels(uiSpacingX, baseX, useScaleX, false);
+		const configuredPixelsY = this.convertSpacingToPixels(uiSpacingY, baseY, useScaleY, true);
 
 		/*
 		 * Calculate minimal spacing bounds for UI validation.
@@ -2454,18 +2441,6 @@ class BulkWatermarkApp {
 
 			// Draw precise content area centered at origin
 			ctx.drawImage(cache.canvas, realSrcX, realSrcY, srcW, srcH, -srcW / 2, -srcH / 2, srcW, srcH);
-
-			// Debug logging for spacing issues
-			console.log("Drawing watermark from cache:", {
-				srcW: srcW,
-				srcH: srcH,
-				cacheContentW: cache.contentW,
-				cacheContentH: cache.contentH,
-				realSrcX: realSrcX,
-				realSrcY: realSrcY,
-				x: x,
-				y: y,
-			});
 
 			ctx.restore();
 			return;
