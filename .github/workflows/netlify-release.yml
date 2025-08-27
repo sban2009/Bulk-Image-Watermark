@@ -1,0 +1,36 @@
+name: Create Release on Netlify Deploy
+
+on:
+  repository_dispatch:
+    types: [webhook_trigger]
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Get current date
+      id: date
+      run: echo "date=$(date +'%Y-%m-%d-%H%M%S')" >> $GITHUB_OUTPUT
+      
+    - name: Create Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v${{ steps.date.outputs.date }}
+        release_name: Release v${{ steps.date.outputs.date }}
+        body: |
+          Automated release triggered by Netlify deployment
+          
+          ## Changes
+          - Latest changes deployed to production
+          
+          ## Deployment
+          - Successfully deployed to Netlify
+          - Triggered at: ${{ steps.date.outputs.date }}
+        draft: false
+        prerelease: false
