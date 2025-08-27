@@ -825,6 +825,18 @@ class BulkWatermarkApp {
 		this.updateUI();
 	}
 
+	/**
+	 * Load image preview for a file and update UI when complete.
+	 *
+	 * ASYNC LOADING:
+	 * - Uses FileReader to load image data asynchronously
+	 * - Updates file metadata when loading completes
+	 * - Re-renders image grid to show loading progress
+	 * - Updates UI elements to reflect current loaded file count
+	 * - Triggers preview update for first loaded file
+	 *
+	 * @param {Object} fileData - File data object with metadata
+	 */
 	loadImagePreview(fileData) {
 		const reader = new FileReader();
 
@@ -832,6 +844,9 @@ class BulkWatermarkApp {
 			fileData.preview = e.target.result;
 			fileData.loaded = true;
 			this.renderImageGrid();
+
+			// Update UI to reflect new loaded file count and status
+			this.updateUI();
 
 			// Update preview if this is the first loaded file
 			if (this.getLoadedFiles().length === 1) {
@@ -842,6 +857,9 @@ class BulkWatermarkApp {
 		reader.onerror = () => {
 			fileData.error = "Failed to load image";
 			this.renderImageGrid();
+
+			// Update UI even on error to show current status
+			this.updateUI();
 		};
 
 		reader.readAsDataURL(fileData.file);
@@ -1785,19 +1803,60 @@ class BulkWatermarkApp {
 		});
 	}
 
+	/**
+	 * Remove a specific file from the uploaded files list.
+	 *
+	 * UI UPDATES:
+	 * - Removes file from uploadedFiles array
+	 * - Re-renders image grid to reflect changes
+	 * - Updates all UI elements (counts, button states, etc.)
+	 * - Updates preview if no files remain
+	 *
+	 * @param {string|number} id - Unique identifier of file to remove
+	 */
 	removeFile(id) {
 		this.uploadedFiles = this.uploadedFiles.filter((file) => file.id !== id);
 		this.renderImageGrid();
 		this.updateUI();
-		this.updatePreview();
+
+		// Update preview - if no files remain, clear it
+		if (this.uploadedFiles.length === 0) {
+			this.clearPreview();
+		} else {
+			this.updatePreview();
+		}
 	}
 
+	/**
+	 * Clear all uploaded and processed images, reset UI to initial state.
+	 *
+	 * COMPLETE RESET:
+	 * - Clears uploaded files array
+	 * - Clears processed images array
+	 * - Resets image grid display
+	 * - Updates all UI elements (file counts, button states, status messages)
+	 * - Clears preview canvas
+	 * - Hides download section since no processed images remain
+	 */
 	clearAllFiles() {
 		this.uploadedFiles = [];
 		this.processedImages = [];
 		this.renderImageGrid();
 		this.updateUI();
 		this.clearPreview();
+
+		// Hide download section since no processed images exist
+		const downloadSection = document.getElementById("downloadSection");
+		if (downloadSection) downloadSection.classList.add("hidden");
+
+		// Hide processing progress section
+		const progressSection = document.getElementById("processingProgress");
+		if (progressSection) progressSection.classList.add("hidden");
+
+		// Reset file upload handler status
+		if (this.fileUploadHandler) {
+			this.fileUploadHandler.clearStatus();
+		}
 	}
 
 	clearPreview() {
@@ -1808,20 +1867,91 @@ class BulkWatermarkApp {
 		}
 	}
 
+	/**
+	 * Update UI elements to reflect current application state.
+	 *
+	 * DYNAMIC UPDATES:
+	 * - Show/hide sections based on file availability
+	 * - Update file count displays
+	 * - Update process button text with actual file count
+	 * - Update download button states based on processed images
+	 * - Update upload status message appropriately
+	 */
 	updateUI() {
 		const fileList = document.getElementById("fileList");
 		const configSection = document.getElementById("configSection");
 		const previewSection = document.getElementById("previewSection");
 		const processingSection = document.getElementById("processingSection");
 		const fileCount = document.getElementById("fileCount");
+		const processBtn = document.getElementById("processBtn");
+		const downloadZipBtn = document.getElementById("downloadZip");
+		const showGalleryBtn = document.getElementById("showGalleryBtn");
+		const uploadStatusEl = document.getElementById("uploadStatus");
 
 		const hasFiles = this.uploadedFiles.length > 0;
+		const loadedFiles = this.getLoadedFiles();
+		const hasLoadedFiles = loadedFiles.length > 0;
+		const hasProcessedImages = this.processedImages && this.processedImages.length > 0;
 
+		// Show/hide main sections
 		if (fileList) fileList.classList.toggle("hidden", !hasFiles);
 		if (configSection) configSection.style.display = hasFiles ? "block" : "none";
 		if (previewSection) previewSection.style.display = hasFiles ? "block" : "none";
 		if (processingSection) processingSection.style.display = hasFiles ? "block" : "none";
+
+		// Update file count display
 		if (fileCount) fileCount.textContent = this.uploadedFiles.length;
+
+		// Update process button text to reflect actual file count
+		if (processBtn && !processBtn.disabled) {
+			if (hasLoadedFiles) {
+				const count = loadedFiles.length;
+				processBtn.textContent = count === 1 ? "Process 1 Image" : `Process ${count} Images`;
+			} else {
+				processBtn.textContent = "Process All Images";
+			}
+		}
+
+		// Update download button states based on processed images
+		if (downloadZipBtn) {
+			downloadZipBtn.disabled = !hasProcessedImages;
+			if (hasProcessedImages) {
+				const count = this.processedImages.length;
+				downloadZipBtn.textContent =
+					count === 1 ? "Download 1 Image as ZIP" : `Download ${count} Images as ZIP`;
+			} else {
+				downloadZipBtn.textContent = "Download All as ZIP";
+			}
+		}
+
+		if (showGalleryBtn) {
+			// Gallery button should always be available to show empty state or processed images
+			if (hasProcessedImages) {
+				const count = this.processedImages.length;
+				const icon = showGalleryBtn.querySelector(".btn-icon");
+				const iconText = icon ? icon.outerHTML : "🖼️";
+				showGalleryBtn.innerHTML = `${iconText} View Gallery (${count} ${count === 1 ? "image" : "images"})`;
+			} else {
+				const icon = showGalleryBtn.querySelector(".btn-icon");
+				const iconText = icon ? icon.outerHTML : "🖼️";
+				showGalleryBtn.innerHTML = `${iconText} View Gallery & Download`;
+			}
+		}
+
+		// Update upload status message
+		if (uploadStatusEl) {
+			if (hasFiles) {
+				const count = this.uploadedFiles.length;
+				const loadedCount = loadedFiles.length;
+				if (loadedCount < count) {
+					uploadStatusEl.textContent = `Loading ${count} images... (${loadedCount} ready)`;
+				} else {
+					uploadStatusEl.textContent = `${count} ${count === 1 ? "image" : "images"} ready for processing`;
+				}
+			} else {
+				uploadStatusEl.textContent = "Ready to upload images - Click here or drag files";
+			}
+		}
 	}
 
 	updatePreview() {
@@ -2787,8 +2917,11 @@ class BulkWatermarkApp {
 
 		if (processBtn) {
 			processBtn.disabled = false;
-			processBtn.textContent = "Process All Images";
+			// Don't set static text here - let updateUI() handle the dynamic text
 		}
+
+		// Update UI to reflect new processed images count and button states
+		this.updateUI();
 
 		// AUTO-SHOW MODAL
 		setTimeout(() => {
