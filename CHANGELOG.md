@@ -2,7 +2,33 @@
 
 All notable changes to the Bulk Image Watermark Tool will be documented in this file.
 
-## [Latest] - 2025-08-27
+## [Latest] - 2025-08-28
+
+### Interactive Preview Selection
+
+- **Click to Preview**: Click any image in the file list to make it the live preview
+- **Smart Preview Management**: First image is automatically selected as default preview
+- **Visual Selection Indicator**: Selected image shows clear visual distinction with border and elevation
+- **Hover Overlay**: "Set as Preview" text appears on hover over non-selected images
+- **Real-time Watermark Updates**: All watermark calculations update instantly when switching preview images
+
+### Text Effects System
+
+- **Advanced Text Effects**: Comprehensive shadow, outline, and glow effects for text watermarks
+- **Shadow Controls**: Blur, offset X/Y, and color customization with 0-value support
+- **Outline Effects**: Thickness, opacity, and color controls for text outlines
+- **Glow Effects**: Spread, intensity, and color controls for text glow
+- **Effect Combinations**: Multiple effects can be applied simultaneously
+- **Side-by-Side Controls**: OffsetX and OffsetY inputs now appear on the same row for better UX
+
+### Mobile Upload Enhancement
+
+- **Mobile Compatibility**: Improved file upload functionality for iPhone and Android devices
+- **Touch Optimization**: Enhanced touch event handling for better mobile interaction
+- **Camera Integration**: Direct camera access on mobile devices with capture attribute
+- **Fallback Support**: Multiple upload methods ensure compatibility across all mobile browsers
+
+## [Previous Updates] - 2025-08-27
 
 ### Major UI Reorganization
 
