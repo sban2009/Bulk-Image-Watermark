@@ -145,18 +145,19 @@
                                     <div class="effect-row">
                                         <div class="effect-item">
                                             <label class="checkbox-label"><input type="checkbox" id="effectShadow" />
-                                                Drop
                                                 Shadow</label>
                                             <input type="color" id="effectShadowColor" class="form-control color-input"
                                                 value="#000000" />
                                             <label class="small">Blur <input type="range" id="effectShadowBlur"
                                                     class="form-range" min="0" max="80" value="6" /></label>
-                                            <label class="small">OffsetX <input type="number" id="effectShadowOffsetX"
-                                                    class="form-control number-input" min="-80" max="80"
-                                                    value="2" /></label>
-                                            <label class="small">OffsetY <input type="number" id="effectShadowOffsetY"
-                                                    class="form-control number-input" min="-80" max="80"
-                                                    value="2" /></label>
+                                            <div class="offset-row">
+                                                <label class="small">OffsetX <input type="number"
+                                                        id="effectShadowOffsetX" class="form-control number-input"
+                                                        min="-80" max="80" value="2" /></label>
+                                                <label class="small">OffsetY <input type="number"
+                                                        id="effectShadowOffsetY" class="form-control number-input"
+                                                        min="-80" max="80" value="2" /></label>
+                                            </div>
                                         </div>
                                         <div class="effect-item">
                                             <label class="checkbox-label"><input type="checkbox" id="effectOutline" />
@@ -166,14 +167,18 @@
                                             <label class="small">Thickness <input type="range"
                                                     id="effectOutlineThickness" class="form-range" min="1" max="40"
                                                     value="2" /></label>
+                                            <label class="small">Opacity <input type="range" id="effectOutlineOpacity"
+                                                    class="form-range" min="0" max="100" value="100" /></label>
                                         </div>
                                         <div class="effect-item">
                                             <label class="checkbox-label"><input type="checkbox" id="effectGlow" />
                                                 Glow</label>
                                             <input type="color" id="effectGlowColor" class="form-control color-input"
                                                 value="#ffffff" />
-                                            <label class="small">Intensity <input type="range" id="effectGlowBlur"
+                                            <label class="small">Spread <input type="range" id="effectGlowSpread"
                                                     class="form-range" min="0" max="80" value="12" /></label>
+                                            <label class="small">Intensity <input type="range" id="effectGlowIntensity"
+                                                    class="form-range" min="0" max="100" value="100" /></label>
                                         </div>
                                     </div>
                                 </div>

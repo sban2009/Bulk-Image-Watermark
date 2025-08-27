@@ -899,6 +899,17 @@ select.form-control {
 	gap: var(--space-8);
 }
 
+.offset-row {
+	display: flex;
+	gap: var(--space-8);
+	margin-top: 8px;
+}
+
+.offset-row .small {
+	flex: 1;
+	margin-top: 0;
+}
+
 @media (max-width: 768px) {
 	.effect-row {
 		flex-direction: column;

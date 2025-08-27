@@ -661,7 +661,7 @@ class BulkWatermarkApp {
 			 * Each effect can be independently enabled/configured.
 			 */
 			textEffects: {
-				// Drop shadow effect
+				// Shadow effect
 				shadow: false, // Enable/disable shadow
 				shadowColor: "#000000", // Shadow color
 				shadowBlur: 6, // Shadow blur radius
@@ -672,11 +672,13 @@ class BulkWatermarkApp {
 				outline: false, // Enable/disable outline
 				outlineColor: "#000000", // Outline stroke color
 				outlineThickness: 2, // Outline stroke width
+				outlineOpacity: 100, // Outline opacity (0-100)
 
 				// Glow effect
 				glow: false, // Enable/disable glow
 				glowColor: "#ffffff", // Glow color (usually matches text)
-				glowBlur: 12, // Glow blur radius
+				glowSpread: 12, // Glow spread/blur radius (renamed from glowBlur)
+				glowIntensity: 100, // Glow intensity/transparency (0-100)
 			},
 
 			// Logo overlay effects
@@ -1069,10 +1071,12 @@ class BulkWatermarkApp {
 		const effectOutline = document.getElementById("effectOutline");
 		const effectOutlineColor = document.getElementById("effectOutlineColor");
 		const effectOutlineThickness = document.getElementById("effectOutlineThickness");
+		const effectOutlineOpacity = document.getElementById("effectOutlineOpacity");
 
 		const effectGlow = document.getElementById("effectGlow");
 		const effectGlowColor = document.getElementById("effectGlowColor");
-		const effectGlowBlur = document.getElementById("effectGlowBlur");
+		const effectGlowSpread = document.getElementById("effectGlowSpread");
+		const effectGlowIntensity = document.getElementById("effectGlowIntensity");
 
 		const bindEffect = (el, setter) => {
 			if (!el) return;
@@ -1082,7 +1086,15 @@ class BulkWatermarkApp {
 			});
 		};
 
-		bindEffect(effectShadow, () => (this.watermarkSettings.textEffects.shadow = !!effectShadow.checked));
+		bindEffect(effectShadow, () => {
+			this.watermarkSettings.textEffects.shadow = !!effectShadow.checked;
+			// Initialize default values when enabled
+			if (effectShadow.checked) {
+				if (effectShadowBlur) effectShadowBlur.value = this.watermarkSettings.textEffects.shadowBlur;
+				if (effectShadowOffsetX) effectShadowOffsetX.value = this.watermarkSettings.textEffects.shadowOffsetX;
+				if (effectShadowOffsetY) effectShadowOffsetY.value = this.watermarkSettings.textEffects.shadowOffsetY;
+			}
+		});
 		bindEffect(effectShadowColor, () => (this.watermarkSettings.textEffects.shadowColor = effectShadowColor.value));
 		bindEffect(
 			effectShadowBlur,
@@ -1097,7 +1109,16 @@ class BulkWatermarkApp {
 			() => (this.watermarkSettings.textEffects.shadowOffsetY = Number(effectShadowOffsetY.value))
 		);
 
-		bindEffect(effectOutline, () => (this.watermarkSettings.textEffects.outline = !!effectOutline.checked));
+		bindEffect(effectOutline, () => {
+			this.watermarkSettings.textEffects.outline = !!effectOutline.checked;
+			// Initialize default values when enabled
+			if (effectOutline.checked) {
+				if (effectOutlineThickness)
+					effectOutlineThickness.value = this.watermarkSettings.textEffects.outlineThickness;
+				if (effectOutlineOpacity)
+					effectOutlineOpacity.value = this.watermarkSettings.textEffects.outlineOpacity;
+			}
+		});
 		bindEffect(
 			effectOutlineColor,
 			() => (this.watermarkSettings.textEffects.outlineColor = effectOutlineColor.value)
@@ -1106,10 +1127,28 @@ class BulkWatermarkApp {
 			effectOutlineThickness,
 			() => (this.watermarkSettings.textEffects.outlineThickness = Number(effectOutlineThickness.value))
 		);
+		bindEffect(
+			effectOutlineOpacity,
+			() => (this.watermarkSettings.textEffects.outlineOpacity = Number(effectOutlineOpacity.value))
+		);
 
-		bindEffect(effectGlow, () => (this.watermarkSettings.textEffects.glow = !!effectGlow.checked));
+		bindEffect(effectGlow, () => {
+			this.watermarkSettings.textEffects.glow = !!effectGlow.checked;
+			// Initialize default values when enabled
+			if (effectGlow.checked) {
+				if (effectGlowSpread) effectGlowSpread.value = this.watermarkSettings.textEffects.glowSpread;
+				if (effectGlowIntensity) effectGlowIntensity.value = this.watermarkSettings.textEffects.glowIntensity;
+			}
+		});
 		bindEffect(effectGlowColor, () => (this.watermarkSettings.textEffects.glowColor = effectGlowColor.value));
-		bindEffect(effectGlowBlur, () => (this.watermarkSettings.textEffects.glowBlur = Number(effectGlowBlur.value)));
+		bindEffect(
+			effectGlowSpread,
+			() => (this.watermarkSettings.textEffects.glowSpread = Number(effectGlowSpread.value))
+		);
+		bindEffect(
+			effectGlowIntensity,
+			() => (this.watermarkSettings.textEffects.glowIntensity = Number(effectGlowIntensity.value))
+		);
 
 		// New compact horizontal/vertical spacing controls
 		const spX = document.getElementById("patternSpacingX");
@@ -1509,9 +1548,11 @@ class BulkWatermarkApp {
 				outline: false,
 				outlineColor: "#000000",
 				outlineThickness: 2,
+				outlineOpacity: 100,
 				glow: false,
 				glowColor: "#ffffff",
-				glowBlur: 12,
+				glowSpread: 12,
+				glowIntensity: 100,
 			},
 		};
 
@@ -1670,14 +1711,20 @@ class BulkWatermarkApp {
 		const effectOutlineThickness = document.getElementById("effectOutlineThickness");
 		if (effectOutlineThickness) effectOutlineThickness.value = this.watermarkSettings.textEffects.outlineThickness;
 
+		const effectOutlineOpacity = document.getElementById("effectOutlineOpacity");
+		if (effectOutlineOpacity) effectOutlineOpacity.value = this.watermarkSettings.textEffects.outlineOpacity;
+
 		const effectGlow = document.getElementById("effectGlow");
 		if (effectGlow) effectGlow.checked = this.watermarkSettings.textEffects.glow;
 
 		const effectGlowColor = document.getElementById("effectGlowColor");
 		if (effectGlowColor) effectGlowColor.value = this.watermarkSettings.textEffects.glowColor;
 
-		const effectGlowBlur = document.getElementById("effectGlowBlur");
-		if (effectGlowBlur) effectGlowBlur.value = this.watermarkSettings.textEffects.glowBlur;
+		const effectGlowSpread = document.getElementById("effectGlowSpread");
+		if (effectGlowSpread) effectGlowSpread.value = this.watermarkSettings.textEffects.glowSpread;
+
+		const effectGlowIntensity = document.getElementById("effectGlowIntensity");
+		if (effectGlowIntensity) effectGlowIntensity.value = this.watermarkSettings.textEffects.glowIntensity;
 
 		/* Only clear watermark logo input if there's no watermark logo in settings */
 		/* This preserves the uploaded logo when doing a mode-dependent reset */
@@ -2361,27 +2408,10 @@ class BulkWatermarkApp {
 			ctx.save();
 			ctx.translate(x, y);
 			ctx.rotate((this.watermarkSettings.watermarkRotation * Math.PI) / 180);
-			this.applyTextEffects(ctx);
-			// Outline (stroke) if enabled
-			const te = this.watermarkSettings.textEffects || {};
-			if (te.outline) {
-				ctx.lineWidth = Math.max(1, (te.outlineThickness || 2) * (fontSize / 24));
-				ctx.strokeStyle = te.outlineColor || "#000000";
-				ctx.strokeText(this.watermarkSettings.text, 0, 0);
-			}
-			ctx.fillStyle = this.getEffectFillStyle(ctx);
-			ctx.fillText(this.watermarkSettings.text, 0, 0);
+			this.renderTextWithEffects(ctx, this.watermarkSettings.text, 0, 0);
 			ctx.restore();
 		} else {
-			this.applyTextEffects(ctx);
-			const te = this.watermarkSettings.textEffects || {};
-			if (te.outline) {
-				ctx.lineWidth = Math.max(1, (te.outlineThickness || 2) * (fontSize / 24));
-				ctx.strokeStyle = te.outlineColor || "#000000";
-				ctx.strokeText(this.watermarkSettings.text, x, y);
-			}
-			ctx.fillStyle = this.getEffectFillStyle(ctx);
-			ctx.fillText(this.watermarkSettings.text, x, y);
+			this.renderTextWithEffects(ctx, this.watermarkSettings.text, x, y);
 		}
 	}
 
@@ -2462,10 +2492,8 @@ class BulkWatermarkApp {
 			ctx.translate(x, y);
 			ctx.rotate((angle * Math.PI) / 180);
 
-			// Apply all text effects (shadows, glows, etc.)
-			this.applyTextEffects(ctx);
-			ctx.fillStyle = this.getEffectFillStyle(ctx);
-			ctx.fillText(this.watermarkSettings.text, 0, 0);
+			// Use new text rendering function that includes outline support
+			this.renderTextWithEffects(ctx, this.watermarkSettings.text, 0, 0);
 			ctx.restore();
 		} else if (this.watermarkSettings.type === "logo" && this.watermarkSettings.watermarkLogo) {
 			// Direct logo rendering with simplified scaling
@@ -2527,6 +2555,24 @@ class BulkWatermarkApp {
 				logoScale: this.watermarkSettings.logoScale, // Logo scale percentage
 				textColor: this.watermarkSettings.textColor, // Text color
 				overlayEffect: this.watermarkSettings.overlayEffect, // Shadow/outline effects
+				// Text effects settings for cache invalidation
+				textEffects: this.watermarkSettings.textEffects
+					? {
+							shadow: this.watermarkSettings.textEffects.shadow,
+							shadowColor: this.watermarkSettings.textEffects.shadowColor,
+							shadowBlur: this.watermarkSettings.textEffects.shadowBlur,
+							shadowOffsetX: this.watermarkSettings.textEffects.shadowOffsetX,
+							shadowOffsetY: this.watermarkSettings.textEffects.shadowOffsetY,
+							outline: this.watermarkSettings.textEffects.outline,
+							outlineColor: this.watermarkSettings.textEffects.outlineColor,
+							outlineThickness: this.watermarkSettings.textEffects.outlineThickness,
+							outlineOpacity: this.watermarkSettings.textEffects.outlineOpacity,
+							glow: this.watermarkSettings.textEffects.glow,
+							glowColor: this.watermarkSettings.textEffects.glowColor,
+							glowSpread: this.watermarkSettings.textEffects.glowSpread,
+							glowIntensity: this.watermarkSettings.textEffects.glowIntensity,
+					  }
+					: null,
 				qW, // Quantized width
 				qH, // Quantized height
 				canvasWidth, // Actual canvas width
@@ -2615,9 +2661,7 @@ class BulkWatermarkApp {
 				cctx.font = `${fontSize}px ${this.watermarkSettings.fontFamily}`;
 				cctx.textBaseline = "middle";
 				cctx.textAlign = "center";
-				this.applyTextEffects(cctx);
-				cctx.fillStyle = this.getEffectFillStyle(cctx);
-				cctx.fillText(this.watermarkSettings.text, c.width / 2, c.height / 2);
+				this.renderTextWithEffects(cctx, this.watermarkSettings.text, c.width / 2, c.height / 2);
 			} else if (this.watermarkSettings.type === "logo" && this.watermarkSettings.watermarkLogo) {
 				const img = this.watermarkSettings.watermarkLogo;
 				const scale = this.getLogoScaleFraction();
@@ -2790,22 +2834,64 @@ class BulkWatermarkApp {
 		ctx.shadowOffsetY = 0;
 		ctx.globalCompositeOperation = "source-over";
 
-		// Shadow
+		// Shadow - fix 0-value issue by checking explicitly and using actual values
 		if (te.shadow) {
 			ctx.shadowColor = te.shadowColor || "rgba(0,0,0,0.5)";
-			ctx.shadowBlur = Number(te.shadowBlur) || 4;
-			ctx.shadowOffsetX = Number(te.shadowOffsetX) || 2;
-			ctx.shadowOffsetY = Number(te.shadowOffsetY) || 2;
+			// Use explicit check for 0 instead of fallback to prevent spacing-like issues
+			ctx.shadowBlur = te.shadowBlur !== undefined ? Number(te.shadowBlur) : 6;
+			ctx.shadowOffsetX = te.shadowOffsetX !== undefined ? Number(te.shadowOffsetX) : 2;
+			ctx.shadowOffsetY = te.shadowOffsetY !== undefined ? Number(te.shadowOffsetY) : 2;
 		}
 
-		// Glow uses a semi-strong shadow with glow color
+		// Glow - use new spread and intensity controls
 		if (te.glow) {
-			ctx.shadowColor = te.glowColor || this.watermarkSettings.textColor;
-			ctx.shadowBlur = Number(te.glowBlur) || 12;
+			const intensity = te.glowIntensity !== undefined ? Number(te.glowIntensity) / 100 : 1;
+			const spread = te.glowSpread !== undefined ? Number(te.glowSpread) : 12;
+
+			// Convert glow color to rgba with intensity-based alpha
+			const glowColor = te.glowColor || this.watermarkSettings.textColor;
+			ctx.shadowColor = hexToRgba(glowColor, intensity);
+			ctx.shadowBlur = spread;
 		}
 
 		// Default fillStyle remains text color (gradient/tint removed as per requirement)
 		ctx.fillStyle = this.watermarkSettings.textColor;
+	}
+
+	/**
+	 * Render text with effects including outline support
+	 * @param {CanvasRenderingContext2D} ctx - Canvas context
+	 * @param {string} text - Text to render
+	 * @param {number} x - X position
+	 * @param {number} y - Y position
+	 */
+	renderTextWithEffects(ctx, text, x, y) {
+		const te = this.watermarkSettings.textEffects;
+
+		// First, render outline if enabled
+		if (te.outline) {
+			const opacity = te.outlineOpacity !== undefined ? Number(te.outlineOpacity) / 100 : 1;
+			const thickness = te.outlineThickness !== undefined ? Number(te.outlineThickness) : 2;
+
+			ctx.save();
+			// Clear shadow effects for outline
+			ctx.shadowColor = "transparent";
+			ctx.shadowBlur = 0;
+			ctx.shadowOffsetX = 0;
+			ctx.shadowOffsetY = 0;
+
+			// Set outline properties
+			ctx.strokeStyle = te.outlineColor || "#000000";
+			ctx.lineWidth = thickness;
+			ctx.globalAlpha = opacity;
+			ctx.strokeText(text, x, y);
+			ctx.restore();
+		}
+
+		// Then render the main text with effects
+		this.applyTextEffects(ctx);
+		ctx.fillStyle = this.getEffectFillStyle(ctx);
+		ctx.fillText(text, x, y);
 	}
 
 	getEffectFillStyle(ctx) {
