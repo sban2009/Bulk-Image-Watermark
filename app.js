@@ -1,47 +1,37 @@
-// --- Dark/Light Mode Switcher ---
+/* Dark/Light Mode Switcher */
 document.addEventListener("DOMContentLoaded", function () {
 	const themeBtn = document.getElementById("themeSwitcher");
 	if (!themeBtn) return;
+
 	function setTheme(dark) {
-		// Set both data attribute and body class so CSS that targets either will update correctly
 		document.documentElement.setAttribute("data-color-scheme", dark ? "dark" : "light");
 		document.body.classList.toggle("dark-mode", dark);
-		if (console && console.log) console.log("Theme set to", dark ? "dark" : "light");
 		themeBtn.textContent = dark ? "🌖 Light Mode" : "🌒 Dark Mode";
 	}
 
-	// Initial state: respect browser preference; fallback to dark if no preference is available
+	/* Initialize theme based on browser preference */
 	let isDark = true;
 	try {
 		const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
 		const prefersLight = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches;
-		if (prefersDark) {
-			isDark = true;
-		} else if (prefersLight) {
-			isDark = false;
-		} else {
-			// No explicit preference, default to dark
-			isDark = true;
-		}
+		isDark = prefersDark || !prefersLight;
 	} catch (err) {
-		// If matchMedia is unavailable or throws, default to dark
 		isDark = true;
 	}
+
 	setTheme(isDark);
 	themeBtn.addEventListener("click", function () {
 		isDark = !isDark;
 		setTheme(isDark);
 	});
 });
-// --- App Code starts here ---
 class FileUploadHandler {
 	constructor() {
 		this.supportedTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"];
-		this.maxFileSize = 10485760; // 10MB
+		this.maxFileSize = 10485760; /* 10MB */
 		this.uploadArea = null;
 		this.fileInput = null;
 		this.isInitialized = false;
-
 		this.init();
 	}
 
@@ -50,50 +40,34 @@ class FileUploadHandler {
 			console.error("Elements not found for file input click setup");
 			return;
 		}
-		// If there's a native label associated with the file input, prefer that (native behavior)
+
+		/* Handle label clicks for better accessibility */
 		const label = document.querySelector(`label[for="${this.fileInput.id}"]`);
 		if (label) {
-			if (this.debugLogging)
-				console.log(
-					"Native label found for file input; binding label click to ensure immediate file chooser open"
-				);
-			// Bind a direct click handler on the label to defensively trigger the file input.
-			// Some browsers or overlay layouts can cause the native label behavior to be inconsistent
-			// when inputs are visually hidden or overlaid; this guarantees the file chooser opens
-			// from the first user click.
-			label.addEventListener("click", (ev) => {
-				// Do not prevent default here; allow native behavior when possible.
-				// Programmatically trigger as a defensive fallback.
+			label.addEventListener("click", () => {
 				this.fileInput.value = "";
 				try {
 					this.fileInput.click();
-					if (this.debugLogging) console.log("Label click: triggered file input");
 				} catch (err) {
 					console.error("Label click failed to open file chooser", err);
 				}
 			});
 		}
-		// Direct click handler (no cloneNode/replaceWith)
+
+		/* Direct upload area click handler */
 		this.uploadArea.addEventListener("click", (e) => {
-			if (this.debugLogging) console.log("Upload area clicked - triggering file input");
-			if (this.uploadArea.classList.contains("processing")) {
-				if (this.debugLogging) console.log("Upload area is processing, ignoring click");
-				return;
-			}
+			if (this.uploadArea.classList.contains("processing")) return;
+
 			this.fileInput.value = "";
 			try {
 				this.fileInput.click();
-				if (this.debugLogging) console.log("File input click triggered successfully");
 			} catch (error) {
 				console.error("File input click failed:", error);
 				this.showError("Unable to open file chooser. Please try drag and drop instead.");
 			}
 		});
-		// Add visual feedback for clickability
+
 		this.uploadArea.style.cursor = "pointer";
-		if (this.debugLogging) {
-			console.log("File input click handler bound successfully");
-		}
 	}
 
 	triggerFileInput() {
@@ -105,7 +79,6 @@ class FileUploadHandler {
 	handleFileSelect(e) {
 		const files = e.target.files;
 		if (!files || files.length === 0) return;
-		if (this.debugLogging) console.log("Processing selected files:", files.length);
 		this.processFiles(Array.from(files));
 	}
 
@@ -114,8 +87,6 @@ class FileUploadHandler {
 			this.showError("No files to process");
 			return;
 		}
-
-		console.log("Processing files:", files.length);
 
 		const validFiles = [];
 		const errors = [];
@@ -135,8 +106,6 @@ class FileUploadHandler {
 
 		if (validFiles.length > 0) {
 			this.showStatus(`Processing ${validFiles.length} valid files...`);
-
-			// Pass to main app
 			if (window.watermarkApp) {
 				window.watermarkApp.addFiles(validFiles);
 			}
@@ -168,7 +137,6 @@ class FileUploadHandler {
 			statusEl.textContent = message;
 			statusEl.className = "upload-status";
 		}
-		console.log("Status:", message);
 	}
 
 	showError(message) {
@@ -206,21 +174,16 @@ class FileUploadHandler {
 	setupElements() {
 		this.uploadArea = document.getElementById("uploadArea");
 		this.fileInput = document.getElementById("fileInput");
-		this.debugLogging = true;
 		if (!this.uploadArea || !this.fileInput) {
 			console.error("Required elements not found");
 			return;
 		}
 
-		if (this.debugLogging)
-			console.log("setupElements: found uploadArea and fileInput", this.uploadArea, this.fileInput);
-
-		// Ensure uploadArea is positioned for absolute children (file input overlay)
+		/* Ensure uploadArea is positioned for absolute children */
 		if (getComputedStyle(this.uploadArea).position === "static") {
 			this.uploadArea.style.position = "relative";
 		}
 
-		// File input is positioned offscreen in markup; keep it available so native label clicks work.
 		this.setupFileInputClick();
 		this.setupDragAndDrop();
 		this.fileInput.addEventListener("change", (e) => this.handleFileSelect(e));
@@ -255,22 +218,16 @@ class FileUploadHandler {
 		this.uploadArea.addEventListener("dragleave", (e) => {
 			e.preventDefault();
 			e.stopPropagation();
-			// Only remove when leaving the upload area. relatedTarget may be null in some browsers.
+			/* Only remove when leaving the upload area */
 			if (!e.relatedTarget || !this.uploadArea.contains(e.relatedTarget)) {
 				this.uploadArea.classList.remove("drag-over");
 			}
-			if (this.debugLogging) console.log("drag leave on uploadArea", e.relatedTarget);
 		});
 
 		this.uploadArea.addEventListener("drop", (e) => {
 			e.preventDefault();
 			e.stopPropagation();
 			this.uploadArea.classList.remove("drag-over");
-			if (this.debugLogging)
-				console.log(
-					"drop event on uploadArea",
-					e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length
-				);
 			const dt = e.dataTransfer;
 			if (!dt) return;
 			const files = dt.files;
@@ -562,8 +519,6 @@ class BulkWatermarkApp {
 	constructor() {
 		this.uploadedFiles = [];
 		this.processedImages = [];
-		// Enable verbose debug logging when true. Turn off in production to reduce console spam.
-		this.debugLogging = true;
 		this.watermarkSettings = {
 			type: "text",
 			patternMode: "single",
@@ -575,15 +530,13 @@ class BulkWatermarkApp {
 			position: "bottom-right",
 			offsetX: 0,
 			offsetY: 0,
-			watermarkImage: null,
-			imageScale: 20,
-			patternSpacing: 6, // Good default spacing for visual separation (UI scale)
-			patternSpacingX: 6, // Good default horizontal spacing to prevent overlap (UI scale)
-			patternSpacingY: 7, // Higher default vertical spacing to prevent overlap (UI scale)
+			watermarkLogo: null,
+			logoScale: 20,
+			patternSpacing: 6,
+			patternSpacingX: 6,
+			patternSpacingY: 7,
 			patternAngle: -45,
 			watermarkRotation: 0,
-			// Legacy overlayEffect retained for backward compatibility but superseded by textEffects
-			overlayEffect: "none",
 			textEffects: {
 				shadow: false,
 				shadowColor: "#000000",
@@ -626,10 +579,6 @@ class BulkWatermarkApp {
 		const actualWatermarkSize = baseSize * canvasScale;
 
 		if (uiValue <= 0) {
-			// 0 = touching - return exact watermark size
-			console.log(
-				`convertSpacingToPixels: UI=${uiValue} → ${actualWatermarkSize}px (touching) - isVertical=${isVertical}`
-			);
 			return actualWatermarkSize;
 		}
 
@@ -649,28 +598,23 @@ class BulkWatermarkApp {
 		const normalizedFactor = (factor - 1) / (Math.pow(2, 19 / 4) - 1); // Normalize to 0-1 range
 
 		const result = Math.round(minSpacing + spacingRange * normalizedFactor);
-		console.log(
-			`convertSpacingToPixels: UI=${uiValue} → ${result}px (actualSize=${actualWatermarkSize}, buffer=${minBuffer}) - isVertical=${isVertical}`
-		);
 		return result;
 	}
 
 	init() {
-		console.log("Initializing Watermark App");
-
-		// Make globally available
+		/* Make globally available */
 		window.watermarkApp = this;
 
-		// Initialize components
+		/* Initialize components */
 		this.fileUploadHandler = new FileUploadHandler();
 		this.modal = new ProcessedImageModal();
 
-		// Wait for DOM then bind events
+		/* Wait for DOM then bind events */
 		if (document.readyState === "loading") {
 			document.addEventListener("DOMContentLoaded", () => {
 				this.bindEvents();
 				this.initializeControls();
-				// Ensure 'single' pattern is selected on load regardless of markup or prior edits
+				/* Ensure 'single' pattern is selected on load */
 				try {
 					this.watermarkSettings.patternMode = "single";
 					const radios = document.querySelectorAll('input[name="patternMode"]');
@@ -683,12 +627,11 @@ class BulkWatermarkApp {
 					console.warn("Failed to enforce single pattern mode on init", err);
 				}
 				this.updateUI();
-				console.log("App fully initialized");
 			});
 		} else {
 			this.bindEvents();
 			this.initializeControls();
-			// Ensure 'single' pattern is selected on load regardless of markup or prior edits
+			/* Ensure 'single' pattern is selected on load */
 			try {
 				this.watermarkSettings.patternMode = "single";
 				const radios = document.querySelectorAll('input[name="patternMode"]');
@@ -701,13 +644,10 @@ class BulkWatermarkApp {
 				console.warn("Failed to enforce single pattern mode on init", err);
 			}
 			this.updateUI();
-			console.log("App fully initialized");
 		}
 	}
 
 	addFiles(files) {
-		console.log("Adding files to app:", files.length);
-
 		files.forEach((file) => {
 			const fileData = {
 				file: file,
@@ -749,15 +689,13 @@ class BulkWatermarkApp {
 	}
 
 	bindEvents() {
-		console.log("Binding app events");
-
-		// Clear files
+		/* Clear files */
 		const clearBtn = document.getElementById("clearFiles");
 		if (clearBtn) {
 			clearBtn.addEventListener("click", () => this.clearAllFiles());
 		}
 
-		// Reset to defaults button
+		/* Reset to defaults button */
 		const resetBtn = document.getElementById("resetDefaults");
 		if (resetBtn) {
 			resetBtn.addEventListener("click", () => this.resetToDefaults());
@@ -765,9 +703,9 @@ class BulkWatermarkApp {
 
 		// Watermark type toggles
 		const textToggle = document.getElementById("textToggle");
-		const imageToggle = document.getElementById("imageToggle");
+		const logoToggle = document.getElementById("logoToggle");
 		if (textToggle) textToggle.addEventListener("click", () => this.setWatermarkType("text"));
-		if (imageToggle) imageToggle.addEventListener("click", () => this.setWatermarkType("image"));
+		if (logoToggle) logoToggle.addEventListener("click", () => this.setWatermarkType("logo"));
 
 		// Pattern mode
 		document.querySelectorAll('input[name="patternMode"]').forEach((radio) => {
@@ -782,7 +720,7 @@ class BulkWatermarkApp {
 		this.bindTextControls();
 
 		// Image controls
-		this.bindImageControls();
+		this.bindLogoControls();
 
 		// Range controls
 		this.bindRangeControls();
@@ -821,23 +759,26 @@ class BulkWatermarkApp {
 		}
 	}
 
-	bindImageControls() {
-		const watermarkImage = document.getElementById("watermarkImage");
-		if (watermarkImage) {
-			watermarkImage.addEventListener("change", (e) => {
+	bindLogoControls() {
+		const watermarkLogo = document.getElementById("watermarkLogo");
+		if (watermarkLogo) {
+			watermarkLogo.addEventListener("change", (e) => {
 				const file = e.target.files[0];
 				if (file) {
 					const reader = new FileReader();
 					reader.onload = (e) => {
 						const img = new Image();
 						img.onload = () => {
-							this.watermarkSettings.watermarkImage = img;
-							// Switch to image watermark mode so the UI and rendering reflect the newly selected image
+							this.watermarkSettings.watermarkLogo = img;
+							/* Switch to logo watermark mode */
 							try {
-								this.setWatermarkType("image");
+								this.setWatermarkType("logo");
 							} catch (err) {
-								this.watermarkSettings.type = "image";
+								this.watermarkSettings.type = "logo";
 							}
+
+							/* Update logo control visibility now that logo is uploaded */
+							this.updateLogoControlsVisibility();
 
 							const previewImg = document.getElementById("watermarkPreviewImg");
 							const watermarkPreview = document.getElementById("watermarkPreview");
@@ -847,17 +788,17 @@ class BulkWatermarkApp {
 								watermarkPreview.classList.remove("hidden");
 							}
 
-							// Ensure imageScale setting is synced from controls so watermark appears immediately
-							const imgScaleEl = document.getElementById("imageScale");
-							const imgScaleNum = document.getElementById("imageScaleNumber");
-							if (imgScaleEl)
-								this.watermarkSettings.imageScale =
-									Number(imgScaleEl.value) || this.watermarkSettings.imageScale;
-							if (imgScaleNum)
-								this.watermarkSettings.imageScale =
-									Number(imgScaleNum.value) || this.watermarkSettings.imageScale;
+							/* Ensure logoScale setting is synced */
+							const logoScaleEl = document.getElementById("logoScale");
+							const logoScaleNum = document.getElementById("logoScaleNumber");
+							if (logoScaleEl)
+								this.watermarkSettings.logoScale =
+									Number(logoScaleEl.value) || this.watermarkSettings.logoScale;
+							if (logoScaleNum)
+								this.watermarkSettings.logoScale =
+									Number(logoScaleNum.value) || this.watermarkSettings.logoScale;
 
-							// Prebuild watermark cache for immediate rendering (use a small temp canvas)
+							/* Prebuild watermark cache for immediate rendering */
 							try {
 								const tempCanvas = document.createElement("canvas");
 								tempCanvas.width = Math.max(200, img.width);
@@ -865,10 +806,9 @@ class BulkWatermarkApp {
 								const tctx = tempCanvas.getContext("2d");
 								this.buildWatermarkCache(tctx, tempCanvas.width, tempCanvas.height);
 							} catch (err) {
-								// fail silently
+								/* fail silently */
 							}
 
-							// Update form controls and preview to reflect new watermark image
 							this.updateFormControls();
 							this.updatePreview();
 						};
@@ -881,7 +821,8 @@ class BulkWatermarkApp {
 	}
 
 	bindRangeControls() {
-		const controls = ["fontSize", "imageScale", "opacity", "patternAngle", "watermarkRotation"];
+		const controls = ["fontSize", "logoScale", "opacity", "patternAngle", "watermarkRotation"];
+		const logoControls = ["logoOpacity", "logoRotation", "logoPatternAngle"];
 
 		controls.forEach((controlId) => {
 			const rangeEl = document.getElementById(controlId);
@@ -901,6 +842,44 @@ class BulkWatermarkApp {
 					const value = parseInt(e.target.value);
 					this.watermarkSettings[controlId] = value;
 					this.syncControls(controlId, value);
+					this.updatePreview();
+				});
+			}
+		});
+
+		// Logo-specific controls that map to the same settings
+		logoControls.forEach((controlId) => {
+			const rangeEl = document.getElementById(controlId);
+			const numberEl = document.getElementById(controlId + "Number");
+			let settingsKey;
+
+			// Map logo control IDs to actual settings keys
+			switch (controlId) {
+				case "logoOpacity":
+					settingsKey = "opacity";
+					break;
+				case "logoRotation":
+					settingsKey = "watermarkRotation";
+					break;
+				case "logoPatternAngle":
+					settingsKey = "patternAngle";
+					break;
+			}
+
+			if (rangeEl && settingsKey) {
+				rangeEl.addEventListener("input", (e) => {
+					const value = parseInt(e.target.value);
+					this.watermarkSettings[settingsKey] = value;
+					this.syncLogoControls(controlId, value);
+					this.updatePreview();
+				});
+			}
+
+			if (numberEl && settingsKey) {
+				numberEl.addEventListener("input", (e) => {
+					const value = parseInt(e.target.value);
+					this.watermarkSettings[settingsKey] = value;
+					this.syncLogoControls(controlId, value);
 					this.updatePreview();
 				});
 			}
@@ -965,6 +944,12 @@ class BulkWatermarkApp {
 		const spXNum = document.getElementById("patternSpacingXNumber");
 		const spYNum = document.getElementById("patternSpacingYNumber");
 
+		// Logo pattern spacing controls
+		const logoSpX = document.getElementById("logoPatternSpacingX");
+		const logoSpY = document.getElementById("logoPatternSpacingY");
+		const logoSpXNum = document.getElementById("logoPatternSpacingXNumber");
+		const logoSpYNum = document.getElementById("logoPatternSpacingYNumber");
+
 		if (spX) {
 			spX.addEventListener("input", (e) => {
 				const v = parseInt(e.target.value);
@@ -1015,16 +1000,77 @@ class BulkWatermarkApp {
 				this.updatePreview();
 			});
 		}
+
+		// Logo pattern spacing controls
+		if (logoSpX) {
+			logoSpX.addEventListener("input", (e) => {
+				const v = parseInt(e.target.value);
+				this.watermarkSettings.patternSpacingX = v;
+				const el = document.getElementById("logoPatternSpacingXValue");
+				const previewCanvas = document.getElementById("previewCanvas");
+				let px = v;
+				if (previewCanvas) px = Math.round(v * (previewCanvas.width / 800));
+				if (el) el.textContent = px;
+				if (logoSpXNum) logoSpXNum.value = v;
+				this.updatePreview();
+			});
+		}
+
+		if (logoSpY) {
+			logoSpY.addEventListener("input", (e) => {
+				const v = parseInt(e.target.value);
+				this.watermarkSettings.patternSpacingY = v;
+				const el = document.getElementById("logoPatternSpacingYValue");
+				const previewCanvas = document.getElementById("previewCanvas");
+				let px = v;
+				if (previewCanvas) px = Math.round(v * (previewCanvas.height / 800));
+				if (el) el.textContent = px;
+				if (logoSpYNum) logoSpYNum.value = v;
+				this.updatePreview();
+			});
+		}
+
+		if (logoSpXNum) {
+			logoSpXNum.addEventListener("input", (e) => {
+				const v = parseInt(e.target.value);
+				this.watermarkSettings.patternSpacingX = v;
+				if (logoSpX) logoSpX.value = v;
+				const el = document.getElementById("logoPatternSpacingXValue");
+				if (el) el.textContent = v;
+				this.updatePreview();
+			});
+		}
+
+		if (logoSpYNum) {
+			logoSpYNum.addEventListener("input", (e) => {
+				const v = parseInt(e.target.value);
+				this.watermarkSettings.patternSpacingY = v;
+				if (logoSpY) logoSpY.value = v;
+				const el = document.getElementById("logoPatternSpacingYValue");
+				if (el) el.textContent = v;
+				this.updatePreview();
+			});
+		}
 	}
 
 	bindPositionControls() {
-		document.querySelectorAll(".position-btn").forEach((btn) => {
+		// Text position controls
+		document.querySelectorAll("#positionGrid .position-btn").forEach((btn) => {
 			btn.addEventListener("click", () => {
 				this.setPosition(btn.dataset.position);
 				this.updatePreview();
 			});
 		});
 
+		// Logo position controls
+		document.querySelectorAll("#logoPositionGrid .position-btn").forEach((btn) => {
+			btn.addEventListener("click", () => {
+				this.setPosition(btn.dataset.position);
+				this.updatePreview();
+			});
+		});
+
+		// Text offset controls
 		const offsetX = document.getElementById("offsetX");
 		const offsetY = document.getElementById("offsetY");
 
@@ -1041,6 +1087,28 @@ class BulkWatermarkApp {
 			offsetY.addEventListener("input", (e) => {
 				this.watermarkSettings.offsetY = parseInt(e.target.value);
 				const valueEl = document.getElementById("offsetYValue");
+				if (valueEl) valueEl.textContent = e.target.value;
+				this.updatePreview();
+			});
+		}
+
+		// Logo offset controls
+		const logoOffsetX = document.getElementById("logoOffsetX");
+		const logoOffsetY = document.getElementById("logoOffsetY");
+
+		if (logoOffsetX) {
+			logoOffsetX.addEventListener("input", (e) => {
+				this.watermarkSettings.offsetX = parseInt(e.target.value);
+				const valueEl = document.getElementById("logoOffsetXValue");
+				if (valueEl) valueEl.textContent = e.target.value;
+				this.updatePreview();
+			});
+		}
+
+		if (logoOffsetY) {
+			logoOffsetY.addEventListener("input", (e) => {
+				this.watermarkSettings.offsetY = parseInt(e.target.value);
+				const valueEl = document.getElementById("logoOffsetYValue");
 				if (valueEl) valueEl.textContent = e.target.value;
 				this.updatePreview();
 			});
@@ -1086,6 +1154,16 @@ class BulkWatermarkApp {
 		if (valueEl) valueEl.textContent = value;
 	}
 
+	syncLogoControls(controlId, value) {
+		const rangeEl = document.getElementById(controlId);
+		const numberEl = document.getElementById(controlId + "Number");
+		const valueEl = document.getElementById(controlId + "Value");
+
+		if (rangeEl) rangeEl.value = value;
+		if (numberEl) numberEl.value = value;
+		if (valueEl) valueEl.textContent = value;
+	}
+
 	initializeControls() {
 		// Sync all initial values
 		Object.keys(this.watermarkSettings).forEach((key) => {
@@ -1108,8 +1186,11 @@ class BulkWatermarkApp {
 		// Remove pixel display since we're now showing just numerical values
 		// The UI values (0-20) are displayed directly without conversion
 
-		// Set initial pattern mode UI
+		/* Set initial pattern mode UI */
 		this.updatePatternModeUI();
+
+		/* Set initial logo control visibility */
+		this.updateLogoControlsVisibility();
 	}
 
 	updatePatternModeUI() {
@@ -1118,16 +1199,34 @@ class BulkWatermarkApp {
 		const offsetControls = document.getElementById("offsetControls");
 		const patternAngleGroup = document.getElementById("patternAngleGroup");
 
+		// Logo controls
+		const logoPatternControls = document.getElementById("logoPatternControls");
+		const logoPositionControls = document.getElementById("logoPositionControls");
+		const logoOffsetControls = document.getElementById("logoOffsetControls");
+		const logoPatternAngleGroup = document.getElementById("logoPatternAngleGroup");
+
 		const mode = this.watermarkSettings.patternMode;
 
 		if (mode === "single") {
+			// Text controls
 			if (patternControls) patternControls.classList.add("hidden");
 			if (positionControls) positionControls.classList.remove("hidden");
 			if (offsetControls) offsetControls.classList.remove("hidden");
+
+			// Logo controls
+			if (logoPatternControls) logoPatternControls.classList.add("hidden");
+			if (logoPositionControls) logoPositionControls.classList.remove("hidden");
+			if (logoOffsetControls) logoOffsetControls.classList.remove("hidden");
 		} else {
+			// Text controls
 			if (patternControls) patternControls.classList.remove("hidden");
 			if (positionControls) positionControls.classList.add("hidden");
 			if (offsetControls) offsetControls.classList.add("hidden");
+
+			// Logo controls
+			if (logoPatternControls) logoPatternControls.classList.remove("hidden");
+			if (logoPositionControls) logoPositionControls.classList.add("hidden");
+			if (logoOffsetControls) logoOffsetControls.classList.add("hidden");
 
 			if (patternAngleGroup) {
 				// Show angle control only for tiled mode (angle controls diagonal orientation)
@@ -1137,13 +1236,22 @@ class BulkWatermarkApp {
 					patternAngleGroup.classList.add("hidden");
 				}
 			}
+
+			if (logoPatternAngleGroup) {
+				// Show logo angle control only for tiled mode
+				if (mode === "tiled") {
+					logoPatternAngleGroup.classList.remove("hidden");
+				} else {
+					logoPatternAngleGroup.classList.add("hidden");
+				}
+			}
 		}
 	}
 
 	setWatermarkType(type) {
 		this.watermarkSettings.type = type;
 
-		// Clear watermark cache when switching types to prevent artifacts
+		/* Clear watermark cache when switching types to prevent artifacts */
 		this._watermarkCacheMap.clear();
 		this._watermarkCache = null;
 
@@ -1152,41 +1260,65 @@ class BulkWatermarkApp {
 		if (toggleBtn) toggleBtn.classList.add("active");
 
 		const textOptions = document.getElementById("textOptions");
-		const imageOptions = document.getElementById("imageOptions");
+		const logoOptions = document.getElementById("logoOptions");
 
 		if (type === "text") {
 			if (textOptions) textOptions.classList.remove("hidden");
-			if (imageOptions) imageOptions.classList.add("hidden");
+			if (logoOptions) logoOptions.classList.add("hidden");
 			const te = document.getElementById("textEffectsControls");
 			if (te) te.classList.remove("hidden");
-		} else {
+		} else if (type === "logo") {
 			if (textOptions) textOptions.classList.add("hidden");
-			if (imageOptions) imageOptions.classList.remove("hidden");
+			if (logoOptions) logoOptions.classList.remove("hidden");
 			const te = document.getElementById("textEffectsControls");
 			if (te) te.classList.add("hidden");
+
+			/* Update logo control visibility based on upload status */
+			this.updateLogoControlsVisibility();
 		}
 
 		this.updatePreview();
 	}
 
+	updateLogoControlsVisibility() {
+		const hasLogo = !!this.watermarkSettings.watermarkLogo;
+		const logoConfigContainer = document.getElementById("logoConfigContainer");
+
+		if (logoConfigContainer) {
+			if (hasLogo) {
+				logoConfigContainer.classList.remove("hidden");
+			} else {
+				logoConfigContainer.classList.add("hidden");
+			}
+		}
+	}
+
 	setPosition(position) {
 		this.watermarkSettings.position = position;
 
-		document.querySelectorAll(".position-btn").forEach((btn) => btn.classList.remove("active"));
-		const targetBtn = document.querySelector(`[data-position="${position}"]`);
-		if (targetBtn) {
-			targetBtn.classList.add("active");
+		// Update both text and logo position grids
+		document.querySelectorAll("#positionGrid .position-btn").forEach((btn) => btn.classList.remove("active"));
+		document.querySelectorAll("#logoPositionGrid .position-btn").forEach((btn) => btn.classList.remove("active"));
+
+		const textTargetBtn = document.querySelector(`#positionGrid [data-position="${position}"]`);
+		if (textTargetBtn) {
+			textTargetBtn.classList.add("active");
+		}
+
+		const logoTargetBtn = document.querySelector(`#logoPositionGrid [data-position="${position}"]`);
+		if (logoTargetBtn) {
+			logoTargetBtn.classList.add("active");
 		}
 	}
 
 	resetToDefaults() {
-		// Clear all caches
+		/* Clear all caches */
 		this._watermarkCacheMap.clear();
 		this._watermarkCache = null;
 
-		// Store current mode and watermark image to preserve them
+		/* Store current mode and watermark logo to preserve them */
 		const currentType = this.watermarkSettings.type;
-		const currentWatermarkImage = this.watermarkSettings.watermarkImage;
+		const currentWatermarkLogo = this.watermarkSettings.watermarkLogo;
 
 		// Create default settings
 		const defaultSettings = {
@@ -1200,8 +1332,8 @@ class BulkWatermarkApp {
 			position: "bottom-right",
 			offsetX: 0,
 			offsetY: 0,
-			watermarkImage: currentWatermarkImage, // Preserve current watermark image
-			imageScale: 20,
+			watermarkLogo: currentWatermarkLogo /* Preserve current watermark logo */,
+			logoScale: 20,
 			patternSpacing: 6, // Good default spacing for visual separation (UI scale)
 			patternSpacingX: 6, // Good default horizontal spacing to prevent overlap (UI scale)
 			patternSpacingY: 7, // Higher default vertical spacing to prevent overlap (UI scale)
@@ -1387,12 +1519,75 @@ class BulkWatermarkApp {
 		const effectGlowBlur = document.getElementById("effectGlowBlur");
 		if (effectGlowBlur) effectGlowBlur.value = this.watermarkSettings.textEffects.glowBlur;
 
-		// Only clear watermark image input if there's no watermark image in settings
-		// This preserves the uploaded image when doing a mode-dependent reset
-		const watermarkImageInput = document.getElementById("watermarkImage");
-		if (watermarkImageInput && !this.watermarkSettings.watermarkImage) {
-			watermarkImageInput.value = "";
+		/* Only clear watermark logo input if there's no watermark logo in settings */
+		/* This preserves the uploaded logo when doing a mode-dependent reset */
+		const watermarkLogoInput = document.getElementById("watermarkLogo");
+		if (watermarkLogoInput && !this.watermarkSettings.watermarkLogo) {
+			watermarkLogoInput.value = "";
 		}
+
+		// Logo-specific controls that mirror the text controls
+		// Logo opacity controls
+		const logoOpacity = document.getElementById("logoOpacity");
+		if (logoOpacity) logoOpacity.value = this.watermarkSettings.opacity;
+
+		const logoOpacityNumber = document.getElementById("logoOpacityNumber");
+		if (logoOpacityNumber) logoOpacityNumber.value = this.watermarkSettings.opacity;
+
+		const logoOpacityValue = document.getElementById("logoOpacityValue");
+		if (logoOpacityValue) logoOpacityValue.textContent = this.watermarkSettings.opacity;
+
+		// Logo rotation controls
+		const logoRotation = document.getElementById("logoRotation");
+		if (logoRotation) logoRotation.value = this.watermarkSettings.watermarkRotation;
+
+		const logoRotationNumber = document.getElementById("logoRotationNumber");
+		if (logoRotationNumber) logoRotationNumber.value = this.watermarkSettings.watermarkRotation;
+
+		const logoRotationValue = document.getElementById("logoRotationValue");
+		if (logoRotationValue) logoRotationValue.textContent = this.watermarkSettings.watermarkRotation;
+
+		// Logo pattern spacing controls
+		const logoPatternSpacingX = document.getElementById("logoPatternSpacingX");
+		if (logoPatternSpacingX) logoPatternSpacingX.value = this.watermarkSettings.patternSpacingX;
+
+		const logoPatternSpacingXNumber = document.getElementById("logoPatternSpacingXNumber");
+		if (logoPatternSpacingXNumber) logoPatternSpacingXNumber.value = this.watermarkSettings.patternSpacingX;
+
+		const logoPatternSpacingXValue = document.getElementById("logoPatternSpacingXValue");
+		if (logoPatternSpacingXValue) logoPatternSpacingXValue.textContent = this.watermarkSettings.patternSpacingX;
+
+		const logoPatternSpacingY = document.getElementById("logoPatternSpacingY");
+		if (logoPatternSpacingY) logoPatternSpacingY.value = this.watermarkSettings.patternSpacingY;
+
+		const logoPatternSpacingYNumber = document.getElementById("logoPatternSpacingYNumber");
+		if (logoPatternSpacingYNumber) logoPatternSpacingYNumber.value = this.watermarkSettings.patternSpacingY;
+
+		const logoPatternSpacingYValue = document.getElementById("logoPatternSpacingYValue");
+		if (logoPatternSpacingYValue) logoPatternSpacingYValue.textContent = this.watermarkSettings.patternSpacingY;
+
+		// Logo pattern angle controls
+		const logoPatternAngle = document.getElementById("logoPatternAngle");
+		if (logoPatternAngle) logoPatternAngle.value = this.watermarkSettings.patternAngle;
+
+		const logoPatternAngleNumber = document.getElementById("logoPatternAngleNumber");
+		if (logoPatternAngleNumber) logoPatternAngleNumber.value = this.watermarkSettings.patternAngle;
+
+		const logoPatternAngleValue = document.getElementById("logoPatternAngleValue");
+		if (logoPatternAngleValue) logoPatternAngleValue.textContent = this.watermarkSettings.patternAngle;
+
+		// Logo offset controls
+		const logoOffsetX = document.getElementById("logoOffsetX");
+		if (logoOffsetX) logoOffsetX.value = this.watermarkSettings.offsetX;
+
+		const logoOffsetXValue = document.getElementById("logoOffsetXValue");
+		if (logoOffsetXValue) logoOffsetXValue.textContent = this.watermarkSettings.offsetX;
+
+		const logoOffsetY = document.getElementById("logoOffsetY");
+		if (logoOffsetY) logoOffsetY.value = this.watermarkSettings.offsetY;
+
+		const logoOffsetYValue = document.getElementById("logoOffsetYValue");
+		if (logoOffsetYValue) logoOffsetYValue.textContent = this.watermarkSettings.offsetY;
 	}
 
 	getLoadedFiles() {
@@ -1515,17 +1710,13 @@ class BulkWatermarkApp {
 		ctx.clearRect(0, 0, width, height);
 		ctx.drawImage(img, 0, 0, width, height);
 
-		// If we have an image watermark but no cache yet, build one sized to this preview so placement/spacing is accurate immediately
+		/* If we have a logo watermark but no cache yet, build one sized to this preview so placement/spacing is accurate immediately */
 		try {
-			if (this.watermarkSettings.watermarkImage && !this._watermarkCache) {
+			if (this.watermarkSettings.watermarkLogo && !this._watermarkCache) {
 				this.buildWatermarkCache(ctx, width, height);
-				// Debug: report cache info when user has imageScale ~20%
-				if (this.getImageScaleFraction && Math.abs(this.getImageScaleFraction() - 0.2) < 0.001) {
-					this._dbg("renderPreview: built cache for preview", { canvas: { width, height } });
-				}
 			}
 		} catch (e) {
-			// ignore
+			/* ignore */
 		}
 
 		// Apply watermark
@@ -1571,9 +1762,9 @@ class BulkWatermarkApp {
 						metrics.width ||
 						tmpFontSize * (this.watermarkSettings.text ? this.watermarkSettings.text.length * 0.6 : 4);
 					h = Math.ceil(tmpFontSize * 1.1);
-				} else if (this.watermarkSettings.type === "image" && this.watermarkSettings.watermarkImage) {
-					const img = this.watermarkSettings.watermarkImage;
-					const scale = this.getImageScaleFraction();
+				} else if (this.watermarkSettings.type === "logo" && this.watermarkSettings.watermarkLogo) {
+					const img = this.watermarkSettings.watermarkLogo;
+					const scale = this.getLogoScaleFraction();
 					w = img.width * scale;
 					h = img.height * scale;
 				}
@@ -1597,11 +1788,11 @@ class BulkWatermarkApp {
 			return;
 		}
 
-		// Non-corner single placements use the regular drawing paths
+		/* Non-corner single placements use the regular drawing paths */
 		if (this.watermarkSettings.type === "text") {
 			this.drawTextWatermark(ctx, canvasWidth, canvasHeight, position);
-		} else if (this.watermarkSettings.type === "image" && this.watermarkSettings.watermarkImage) {
-			this.drawImageWatermark(ctx, canvasWidth, canvasHeight, position);
+		} else if (this.watermarkSettings.type === "logo" && this.watermarkSettings.watermarkLogo) {
+			this.drawLogoWatermark(ctx, canvasWidth, canvasHeight, position);
 		}
 	}
 
@@ -1697,16 +1888,6 @@ class BulkWatermarkApp {
 					}
 				}
 			}
-
-			if (this.debugLogging && console && console.log) {
-				console.log("applyTiledPattern(diagonal-leaning):", {
-					spacing: { x: safeSpacingX, y: safeSpacingY, avg: safeSpacingAvg },
-					angle,
-					tiledExtent,
-					tilesDrawn,
-					clamped: wasClamped,
-				});
-			}
 		} else {
 			// grid: regular orthogonal grid starting at half-spacing offset
 			const startX = (safeSpacingX / 2) % safeSpacingX;
@@ -1733,15 +1914,6 @@ class BulkWatermarkApp {
 					}
 				}
 			}
-
-			if (this.debugLogging && console && console.log)
-				console.log("applyTiledPattern(grid-like):", {
-					spacing: { x: safeSpacingX, y: safeSpacingY },
-					angle,
-					startX,
-					startY,
-					tilesDrawn,
-				});
 		}
 	}
 
@@ -1764,9 +1936,9 @@ class BulkWatermarkApp {
 				metrics.width ||
 				fontSize * (this.watermarkSettings.text ? this.watermarkSettings.text.length * 0.6 : 4);
 			estHeight = fontSize * 1.1;
-		} else if (this.watermarkSettings.type === "image" && this.watermarkSettings.watermarkImage) {
-			const img = this.watermarkSettings.watermarkImage;
-			const scale = this.getImageScaleFraction();
+		} else if (this.watermarkSettings.type === "logo" && this.watermarkSettings.watermarkLogo) {
+			const img = this.watermarkSettings.watermarkLogo;
+			const scale = this.getLogoScaleFraction();
 			estWidth = img.width * scale;
 			estHeight = img.height * scale;
 		}
@@ -1782,13 +1954,6 @@ class BulkWatermarkApp {
 			// Prefer the visible content size (without padding) so spacing matches what is drawn
 			baseX = this._watermarkCache.contentW || this._watermarkCache.w;
 			baseY = this._watermarkCache.contentH || this._watermarkCache.h;
-			if (this._watermarkCache)
-				this._dbg("computePatternSpacing: using cache footprint", {
-					cacheW: this._watermarkCache.w,
-					cacheH: this._watermarkCache.h,
-					baseX,
-					baseY,
-				});
 		}
 
 		// Keep a record of last computed base per-axis so UI can be synced (for slider ranges)
@@ -1831,40 +1996,16 @@ class BulkWatermarkApp {
 				sx.max = 20;
 				sx.step = 1;
 				if (!sx.matches(":active")) sx.value = uiSpacingX;
-				this._dbg("patternSpacingX sync", {
-					uiValue: uiSpacingX,
-					pixelValue: this.convertSpacingToPixels(uiSpacingX, baseX, canvasScaleX, false),
-				});
 			}
 			if (sy) {
 				sy.min = 0;
 				sy.max = 20;
 				sy.step = 1;
 				if (!sy.matches(":active")) sy.value = uiSpacingY;
-				this._dbg("patternSpacingY sync", {
-					uiValue: uiSpacingY,
-					pixelValue: this.convertSpacingToPixels(uiSpacingY, baseY, canvasScaleY, true),
-				});
 			}
 		} catch (err) {
 			if (console && console.warn) console.warn("Failed to sync patternSpacing X/Y sliders:", err);
 		}
-
-		this._dbg("computePatternSpacing", {
-			estWidth,
-			estHeight,
-			baseX,
-			baseY,
-			minX,
-			minY,
-			uiSpacingX,
-			uiSpacingY,
-			configuredPixelsX,
-			configuredPixelsY,
-			spacingX,
-			spacingY,
-			useCacheFootprint: !!this._watermarkCache,
-		});
 
 		return { x: spacingX, y: spacingY };
 	}
@@ -1965,18 +2106,12 @@ class BulkWatermarkApp {
 			const realSrcY = cache.pad ? cache.pad : Math.round((cache.h - srcH) / 2);
 			// If computed content area looks suspiciously small, fall back to drawing the full cache
 			if (srcW <= 2 || srcH <= 2) {
-				this._dbg("drawRotatedWatermark: small contentW/H, falling back to full cache draw", {
-					srcW,
-					srcH,
-					cacheW: cache.w,
-					cacheH: cache.h,
-				});
 				ctx.drawImage(cache.canvas, -cache.w / 2, -cache.h / 2, cache.w, cache.h);
 				ctx.restore();
 				return;
 			}
 			ctx.drawImage(cache.canvas, realSrcX, realSrcY, srcW, srcH, -srcW / 2, -srcH / 2, srcW, srcH);
-			this._dbg("drawRotatedWatermark: drew cache", { realSrcX, realSrcY, srcW, srcH });
+
 			ctx.restore();
 			return;
 		}
@@ -1994,9 +2129,9 @@ class BulkWatermarkApp {
 			ctx.fillStyle = this.getEffectFillStyle(ctx);
 			ctx.fillText(this.watermarkSettings.text, 0, 0);
 			ctx.restore();
-		} else if (this.watermarkSettings.type === "image" && this.watermarkSettings.watermarkImage) {
-			const img = this.watermarkSettings.watermarkImage;
-			const scale = this.getImageScaleFraction();
+		} else if (this.watermarkSettings.type === "logo" && this.watermarkSettings.watermarkLogo) {
+			const img = this.watermarkSettings.watermarkLogo;
+			const scale = this.getLogoScaleFraction();
 			const size = Math.min(600, 600) * scale * 0.3;
 			const ratio = Math.min(size / img.width, size / img.height);
 			const width = img.width * ratio;
@@ -2020,13 +2155,13 @@ class BulkWatermarkApp {
 			const QUANTIZE = 50; // 50px buckets
 			const qW = Math.max(1, Math.round(canvasWidth / QUANTIZE) * QUANTIZE);
 			const qH = Math.max(1, Math.round(canvasHeight / QUANTIZE) * QUANTIZE);
-			// Compute a cache key that includes quantized sizes and watermark settings
+			/* Compute a cache key that includes quantized sizes and watermark settings */
 			const keyObj = {
 				type: this.watermarkSettings.type,
 				text: this.watermarkSettings.text,
 				fontSize: this.watermarkSettings.fontSize,
 				fontFamily: this.watermarkSettings.fontFamily,
-				imageScale: this.watermarkSettings.imageScale,
+				logoScale: this.watermarkSettings.logoScale,
 				textColor: this.watermarkSettings.textColor,
 				overlayEffect: this.watermarkSettings.overlayEffect,
 				qW,
@@ -2036,15 +2171,15 @@ class BulkWatermarkApp {
 				canvasHeight,
 			};
 
-			// If current watermark is an image, include its intrinsic dimensions so caches
-			// built for one image are not mistakenly reused for a different image.
-			if (this.watermarkSettings.type === "image" && this.watermarkSettings.watermarkImage) {
+			/* If current watermark is a logo, include its intrinsic dimensions so caches */
+			/* built for one logo are not mistakenly reused for a different logo. */
+			if (this.watermarkSettings.type === "logo" && this.watermarkSettings.watermarkLogo) {
 				try {
-					const wi = this.watermarkSettings.watermarkImage;
-					keyObj.imageW = wi.width || 0;
-					keyObj.imageH = wi.height || 0;
+					const wi = this.watermarkSettings.watermarkLogo;
+					keyObj.logoW = wi.width || 0;
+					keyObj.logoH = wi.height || 0;
 				} catch (e) {
-					// ignore
+					/* ignore */
 				}
 			}
 			const key = JSON.stringify(keyObj);
@@ -2053,15 +2188,7 @@ class BulkWatermarkApp {
 			const existing = this._watermarkCacheMap.get(key);
 			if (existing) {
 				this._watermarkCache = existing; // keep a quick-ref to the chosen cache
-				this._dbg("Watermark cache reuse", {
-					keyObj,
-					reusedFor: {
-						w: existing.w,
-						h: existing.h,
-						contentW: existing.contentW,
-						contentH: existing.contentH,
-					},
-				});
+
 				return;
 			}
 
@@ -2081,17 +2208,17 @@ class BulkWatermarkApp {
 					metrics.width ||
 					fontSize * (this.watermarkSettings.text ? this.watermarkSettings.text.length * 0.6 : 4);
 				estH = Math.ceil(fontSize * 1.1);
-			} else if (this.watermarkSettings.type === "image" && this.watermarkSettings.watermarkImage) {
-				const img = this.watermarkSettings.watermarkImage;
-				const scale = this.getImageScaleFraction();
-				// Compute the effective drawn size on the given canvas so the cache footprint
-				// matches how drawImageWatermark will render the image for this canvas.
+			} else if (this.watermarkSettings.type === "logo" && this.watermarkSettings.watermarkLogo) {
+				const img = this.watermarkSettings.watermarkLogo;
+				const scale = this.getLogoScaleFraction();
+				/* Compute the effective drawn size on the given canvas so the cache footprint */
+				/* matches how drawLogoWatermark will render the logo for this canvas. */
 				const maxSize = Math.min(canvasWidth, canvasHeight) * scale;
 				let imgRatio = Math.min(maxSize / Math.max(1, img.width), maxSize / Math.max(1, img.height));
 				imgRatio = Math.max(imgRatio, 0.02);
 				estW = Math.ceil(img.width * imgRatio);
 				estH = Math.ceil(img.height * imgRatio);
-				// Ensure estimated cache footprint is at least a few pixels to avoid zero-sized caches
+				/* Ensure estimated cache footprint is at least a few pixels to avoid zero-sized caches */
 				const MIN_VISIBLE_PX = 6;
 				if (estW < MIN_VISIBLE_PX) estW = MIN_VISIBLE_PX;
 				if (estH < MIN_VISIBLE_PX) estH = MIN_VISIBLE_PX;
@@ -2113,16 +2240,16 @@ class BulkWatermarkApp {
 				this.applyTextEffects(cctx);
 				cctx.fillStyle = this.getEffectFillStyle(cctx);
 				cctx.fillText(this.watermarkSettings.text, c.width / 2, c.height / 2);
-			} else if (this.watermarkSettings.type === "image" && this.watermarkSettings.watermarkImage) {
-				const img = this.watermarkSettings.watermarkImage;
-				const scale = this.getImageScaleFraction();
+			} else if (this.watermarkSettings.type === "logo" && this.watermarkSettings.watermarkLogo) {
+				const img = this.watermarkSettings.watermarkLogo;
+				const scale = this.getLogoScaleFraction();
 				const maxSize = Math.min(canvasWidth, canvasHeight) * scale;
 				let ratio = Math.min(maxSize / img.width, maxSize / img.height);
 				ratio = Math.max(ratio, 0.05);
 				const w = img.width * ratio;
 				const h = img.height * ratio;
 				this.applyTextEffects(cctx);
-				// For image watermarks, tint/gradient effects are handled by composite operations if chosen.
+				/* For logo watermarks, tint/gradient effects are handled by composite operations if chosen. */
 				if (this.watermarkSettings.overlayEffect === "tint") {
 					cctx.globalCompositeOperation = "source-atop";
 					cctx.fillStyle = this.getEffectFillStyle(cctx);
@@ -2147,64 +2274,50 @@ class BulkWatermarkApp {
 			};
 
 			this._watermarkCacheMap.set(key, cacheEntry);
-			this._watermarkCache = cacheEntry; // quick reference
-			// Debug: when user is at 20% scale and debugLogging, show computed cache footprint
-			if (this.getImageScaleFraction && Math.abs(this.getImageScaleFraction() - 0.2) < 0.001) {
-				this._dbg("buildWatermarkCache: created cacheEntry", cacheEntry);
-			}
-
-			this._dbg("Built watermark cache", { keyObj, w: c.width, h: c.height });
+			this._watermarkCache = cacheEntry; /* quick reference */
 		} catch (err) {
 			console.warn("Failed to build watermark cache", err);
 		}
 	}
 
-	getImageScaleFraction() {
-		let s = Number(this.watermarkSettings.imageScale);
-		if (!isFinite(s) || s <= 0) s = 20; // default to 20% when invalid
-		// clamp to reasonable range
+	getLogoScaleFraction() {
+		let s = Number(this.watermarkSettings.logoScale);
+		if (!isFinite(s) || s <= 0) s = 20; /* default to 20% when invalid */
+		/* clamp to reasonable range */
 		s = Math.max(1, Math.min(500, s));
 		return s / 100;
 	}
 
-	// Centralized guarded debug logger to avoid unguarded console.debug calls
-	_dbg(...args) {
-		if (this.debugLogging && typeof console !== "undefined" && console.debug) {
-			console.debug(...args);
-		}
-	}
-
-	drawImageWatermark(ctx, canvasWidth, canvasHeight, position) {
-		const img = this.watermarkSettings.watermarkImage;
-		const scale = this.getImageScaleFraction();
+	drawLogoWatermark(ctx, canvasWidth, canvasHeight, position) {
+		const img = this.watermarkSettings.watermarkLogo;
+		const scale = this.getLogoScaleFraction();
 		const maxSize = Math.min(canvasWidth, canvasHeight) * scale;
 		let ratio = Math.min(maxSize / img.width, maxSize / img.height);
-		// Ensure ratio is not zero; clamp to tiny epsilon to keep image visible
-		ratio = Math.max(ratio, 0.02); // allow smaller ratio for cache but we'll enforce visible px later
+		/* Ensure ratio is not zero; clamp to tiny epsilon to keep logo visible */
+		ratio = Math.max(ratio, 0.02); /* allow smaller ratio for cache but we'll enforce visible px later */
 		const width = img.width * ratio;
 		const height = img.height * ratio;
-		// Debug code removed - was causing red border artifacts in production
 
 		let x = canvasWidth * position.x;
 		let y = canvasHeight * position.y;
 
-		// Ensure image watermark stays inside canvas bounds with tighter padding
-		const maxImageSize = Math.min(canvasWidth, canvasHeight) * this.getImageScaleFraction();
-		let imgWidth = Math.min(width, maxImageSize);
-		let imgHeight = Math.min(height, maxImageSize);
+		/* Ensure logo watermark stays inside canvas bounds with tighter padding */
+		const maxLogoSize = Math.min(canvasWidth, canvasHeight) * this.getLogoScaleFraction();
+		let logoWidth = Math.min(width, maxLogoSize);
+		let logoHeight = Math.min(height, maxLogoSize);
 
-		// Enforce a sensible minimum visible size (in px) to avoid invisible preview
-		// due to rounding on small canvases or small source images. Keep clip-safe minimum.
+		/* Enforce a sensible minimum visible size (in px) to avoid invisible preview */
+		/* due to rounding on small canvases or small source logos. Keep clip-safe minimum. */
 		const MIN_VISIBLE_PX = 6;
-		if (imgWidth < MIN_VISIBLE_PX || imgHeight < MIN_VISIBLE_PX) {
-			// Scale up proportionally to meet min visible threshold while preserving aspect
-			const scaleUp = MIN_VISIBLE_PX / Math.max(1, Math.max(imgWidth, imgHeight));
-			imgWidth = Math.max(MIN_VISIBLE_PX, Math.round(imgWidth * scaleUp));
-			imgHeight = Math.max(MIN_VISIBLE_PX, Math.round(imgHeight * scaleUp));
+		if (logoWidth < MIN_VISIBLE_PX || logoHeight < MIN_VISIBLE_PX) {
+			/* Scale up proportionally to meet min visible threshold while preserving aspect */
+			const scaleUp = MIN_VISIBLE_PX / Math.max(1, Math.max(logoWidth, logoHeight));
+			logoWidth = Math.max(MIN_VISIBLE_PX, Math.round(logoWidth * scaleUp));
+			logoHeight = Math.max(MIN_VISIBLE_PX, Math.round(logoHeight * scaleUp));
 		}
 
-		let padX = Math.min(12, Math.round(imgWidth * 0.05) + 4);
-		let padY = Math.min(12, Math.round(imgHeight * 0.05) + 4);
+		let padX = Math.min(12, Math.round(logoWidth * 0.05) + 4);
+		let padY = Math.min(12, Math.round(logoHeight * 0.05) + 4);
 		const singleMode = this.watermarkSettings.patternMode === "single";
 		const isCorner = position.x <= 0.2 || position.x >= 0.8 || position.y <= 0.2 || position.y >= 0.8;
 		if (singleMode && isCorner) {
@@ -2213,41 +2326,41 @@ class BulkWatermarkApp {
 		}
 
 		if (position.x >= 0.8) {
-			x = Math.min(canvasWidth - imgWidth - padX, x);
+			x = Math.min(canvasWidth - logoWidth - padX, x);
 		} else if (position.x <= 0.2) {
 			x = Math.max(padX, x);
 		} else {
-			x = x - imgWidth / 2;
+			x = x - logoWidth / 2;
 		}
 
 		if (position.y >= 0.8) {
-			y = Math.min(canvasHeight - imgHeight - padY, y);
+			y = Math.min(canvasHeight - logoHeight - padY, y);
 		} else if (position.y <= 0.2) {
 			y = Math.max(padY, y);
 		} else {
-			y = y - imgHeight / 2;
+			y = y - logoHeight / 2;
 		}
 
-		// Apply offsets
+		/* Apply offsets */
 		x += (this.watermarkSettings.offsetX * canvasWidth) / 800;
 		y += (this.watermarkSettings.offsetY * canvasHeight) / 600;
 
-		// Apply rotation
+		/* Apply rotation */
 		if (this.watermarkSettings.watermarkRotation !== 0) {
 			ctx.save();
-			// Use clamped imgWidth/imgHeight for translation so rotation centers correctly
-			ctx.translate(x + imgWidth / 2, y + imgHeight / 2);
+			/* Use clamped logoWidth/logoHeight for translation so rotation centers correctly */
+			ctx.translate(x + logoWidth / 2, y + logoHeight / 2);
 			ctx.rotate((this.watermarkSettings.watermarkRotation * Math.PI) / 180);
 			ctx.drawImage(
 				img,
-				-Math.max(imgWidth, 4) / 2,
-				-Math.max(imgHeight, 4) / 2,
-				Math.max(imgWidth, 4),
-				Math.max(imgHeight, 4)
+				-Math.max(logoWidth, 4) / 2,
+				-Math.max(logoHeight, 4) / 2,
+				Math.max(logoWidth, 4),
+				Math.max(logoHeight, 4)
 			);
 			ctx.restore();
 		} else {
-			ctx.drawImage(img, x, y, Math.max(imgWidth, 4), Math.max(imgHeight, 4));
+			ctx.drawImage(img, x, y, Math.max(logoWidth, 4), Math.max(logoHeight, 4));
 		}
 	}
 
@@ -2354,7 +2467,6 @@ class BulkWatermarkApp {
 
 		// AUTO-SHOW MODAL
 		setTimeout(() => {
-			this._dbg("processAllImages: attempting to show modal", { count: this.processedImages.length });
 			try {
 				if (this.modal && typeof this.modal.showModal === "function") {
 					this.modal.showModal(this.processedImages);
@@ -2395,20 +2507,9 @@ class BulkWatermarkApp {
 				canvas.height = img.height;
 
 				ctx.drawImage(img, 0, 0);
-				// Before applying, rebuild or reuse cache for this image size and compute spacing
+				/* Before applying, rebuild or reuse cache for this image size and compute spacing */
 				this.buildWatermarkCache(ctx, canvas.width, canvas.height);
 				const spacing = this.computePatternSpacing(ctx, canvas.width, canvas.height);
-				if (this.debugLogging && console && console.info) {
-					console.info("processImage: image canvas", {
-						name: fileData.name,
-						canvasWidth: canvas.width,
-						canvasHeight: canvas.height,
-						spacing,
-						cacheFootprint: this._watermarkCache
-							? { w: this._watermarkCache.w, h: this._watermarkCache.h }
-							: null,
-					});
-				}
 				this.applyWatermark(ctx, canvas.width, canvas.height);
 
 				canvas.toBlob(
@@ -2459,15 +2560,11 @@ class BulkWatermarkApp {
 	}
 }
 
-// Initialize when DOM is ready
-console.log("Watermark App Script Loading...");
-
+/* Initialize when DOM is ready */
 if (document.readyState === "loading") {
 	document.addEventListener("DOMContentLoaded", () => {
-		console.log("DOM loaded - initializing app");
 		new BulkWatermarkApp();
 	});
 } else {
-	console.log("DOM ready - initializing app immediately");
 	new BulkWatermarkApp();
 }
