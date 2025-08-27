@@ -17,20 +17,16 @@ jobs:
       run: echo "date=$(date +'%Y-%m-%d-%H%M%S')" >> $GITHUB_OUTPUT
       
     - name: Create Release
-      uses: actions/create-release@v1
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: v${{ steps.date.outputs.date }}
-        release_name: Release v${{ steps.date.outputs.date }}
-        body: |
-          Automated release triggered by Netlify deployment
-          
-          ## Changes
-          - Latest changes deployed to production
-          
-          ## Deployment
-          - Successfully deployed to Netlify
-          - Triggered at: ${{ steps.date.outputs.date }}
-        draft: false
-        prerelease: false
+        GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+      run: |
+        gh release create v${{ steps.date.outputs.date }} \
+          --title "Release v${{ steps.date.outputs.date }}" \
+          --notes "Automated release triggered by Netlify deployment
+
+        ## Changes
+        - Latest changes deployed to production
+        
+        ## Deployment  
+        - Successfully deployed to Netlify
+        - Triggered at: ${{ steps.date.outputs.date }}"
