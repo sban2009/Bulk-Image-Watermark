@@ -1,8 +1,5 @@
 [build]
-  # The command is empty because a static site does not require a build step.
-  # The '&&' ensures the 'curl' command only runs if the build is successful.
-  # It then calls the GitHub API to create a new release.
-  command = "curl -X POST -H 'Authorization: token $RELEASE_TOKEN' -H 'Accept: application/vnd.github.v3+json' https://api.github.com/repos/sban2009/Bulk-Image-Watermark/releases -d '{\"tag_name\":\"$COMMIT_REF\", \"name\":\"$COMMIT_REF\", \"body\":\"New release from Netlify build\"}'"
-
-  # The publish directory is where Netlify should find the files to deploy.
-  publish = "/"
+  # The `command` field is left empty for a static site with no build process.
+  # The `&&` operator then executes the `curl` command to trigger the GitHub release.
+  # This command sends a POST request to the GitHub API.
+  command = "curl -X POST -H 'Authorization: token $RELEASE_TOKEN' -H 'Accept: application/vnd.github.v3+json'
