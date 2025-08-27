@@ -51,19 +51,22 @@ jobs:
               if: steps.check_changes.outputs.relevant_change == 'true'
               id: release_tag
               run: |
-                  # Generate base date in YY.MM.DD format
-                  base_date=$(date +'%y.%m.%d')
+                  # Generate base date in YY.MM.DD format using IST (GMT+5:30)
+                  base_date=$(TZ='Asia/Kolkata' date +'%y.%m.%d')
                   echo "Base date: $base_date"
 
-                  # Get all releases for today
-                  today_releases=$(gh release list --json tagName --jq '.[] | select(.tagName | startswith("'$base_date'.")) | .tagName' 2>/dev/null || echo "")
+                  # Get all releases for today (looking for v prefix)
+                  today_releases=$(gh release list --json tagName --jq '.[] | select(.tagName | startswith("v'$base_date'.")) | .tagName' 2>/dev/null || echo "")
+
+                  echo "Today's releases: $today_releases"
 
                   if [ -z "$today_releases" ]; then
                     # No releases today, start with build 1
                     build_number=1
                   else
-                    # Find the highest build number for today
-                    highest_build=$(echo "$today_releases" | sed "s/^$base_date\.//" | sort -n | tail -1)
+                    # Find the highest build number for today (remove v prefix and base date)
+                    highest_build=$(echo "$today_releases" | sed "s/^v$base_date\.//" | sort -n | tail -1)
+                    echo "Highest build found: $highest_build"
                     build_number=$((highest_build + 1))
                   fi
 
@@ -109,6 +112,9 @@ jobs:
               env:
                   GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
               run: |
+                  # Get current IST date and time for triggered at field
+                  triggered_time=$(TZ='Asia/Kolkata' date +'%Y-%m-%d %H:%M:%S IST')
+
                   gh release create v${{ steps.release_tag.outputs.release_tag }} \
                     --title "Release v${{ steps.release_tag.outputs.release_tag }}" \
                     --notes "Automated release triggered by app file changes
@@ -121,7 +127,7 @@ jobs:
 
                   ## Deployment  
                   - Successfully deployed to Netlify
-                  - Triggered at: ${{ steps.release_tag.outputs.release_tag }}"
+                  - Triggered at: $triggered_time"
 
             - name: Skip release notification
               if: steps.check_changes.outputs.relevant_change == 'false'
