@@ -1,32 +1,60 @@
 name: Create Release on Netlify Deploy
 
 on:
-  repository_dispatch:
-    types: [webhook_trigger]
+    repository_dispatch:
+        types: [webhook_trigger]
 
 jobs:
-  create-release:
-    runs-on: ubuntu-latest
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Get current date
-      id: date
-      run: echo "date=$(date +'%Y-%m-%d-%H%M')" >> $GITHUB_OUTPUT
-      
-    - name: Create Release
-      env:
-        GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
-      run: |
-        gh release create v${{ steps.date.outputs.date }} \
-          --title "Release v${{ steps.date.outputs.date }}" \
-          --notes "Automated release triggered by Netlify deployment
+    create-release:
+        runs-on: ubuntu-latest
 
-        ## Changes
-        - Latest changes deployed to production
-        
-        ## Deployment  
-        - Successfully deployed to Netlify
-        - Triggered at: ${{ steps.date.outputs.date }}"
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Get current date
+              id: date
+              run: echo "date=$(date +'%Y-%m-%d-%H%M')" >> $GITHUB_OUTPUT
+
+            - name: Get latest release tag
+              id: latest_release
+              run: |
+                  latest_tag=$(gh release list --limit 1 --json tagName --jq '.[0].tagName' 2>/dev/null || echo "")
+                  echo "latest_tag=${latest_tag}" >> $GITHUB_OUTPUT
+              env:
+                  GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+
+            - name: Get git changes since last release
+              id: changes
+              run: |
+                  if [ -n "${{ steps.latest_release.outputs.latest_tag }}" ]; then
+                    echo "Getting changes since ${{ steps.latest_release.outputs.latest_tag }}"
+                    changes=$(git log --oneline --pretty=format:"- %s" ${{ steps.latest_release.outputs.latest_tag }}..HEAD | head -20)
+                  else
+                    echo "No previous release found, getting recent commits"
+                    changes=$(git log --oneline --pretty=format:"- %s" -10)
+                  fi
+
+                  if [ -z "$changes" ]; then
+                    changes="- No new commits since last release"
+                  fi
+
+                  # Save changes to output, handling multiline
+                  echo "changes<<EOF" >> $GITHUB_OUTPUT
+                  echo "$changes" >> $GITHUB_OUTPUT
+                  echo "EOF" >> $GITHUB_OUTPUT
+
+            - name: Create Release
+              env:
+                  GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+              run: |
+                  gh release create v${{ steps.date.outputs.date }} \
+                    --title "Release v${{ steps.date.outputs.date }}" \
+                    --notes "Automated release triggered by Netlify deployment
+
+                  ## Changes Since Last Release
+                  ${{ steps.changes.outputs.changes }}
+
+                  ## Deployment  
+                  - Successfully deployed to Netlify
+                  - Triggered at: ${{ steps.date.outputs.date }}"
