@@ -577,9 +577,9 @@ class BulkWatermarkApp {
 			offsetY: 0,
 			watermarkImage: null,
 			imageScale: 20,
-			patternSpacing: 0,
-			patternSpacingX: 0,
-			patternSpacingY: 0,
+			patternSpacing: 6, // Good default spacing for visual separation (UI scale)
+			patternSpacingX: 6, // Good default horizontal spacing to prevent overlap (UI scale)
+			patternSpacingY: 7, // Higher default vertical spacing to prevent overlap (UI scale)
 			patternAngle: -45,
 			watermarkRotation: 0,
 			// Legacy overlayEffect retained for backward compatibility but superseded by textEffects
@@ -617,6 +617,42 @@ class BulkWatermarkApp {
 		};
 
 		this.init();
+	}
+
+	// Convert UI spacing values (0-20) to actual pixel values for rendering
+	// This function now handles the complete spacing calculation including canvas scaling
+	convertSpacingToPixels(uiValue, baseSize, canvasScale = 1, isVertical = false) {
+		// Calculate the actual watermark size on the canvas
+		const actualWatermarkSize = baseSize * canvasScale;
+
+		if (uiValue <= 0) {
+			// 0 = touching - return exact watermark size
+			console.log(
+				`convertSpacingToPixels: UI=${uiValue} → ${actualWatermarkSize}px (touching) - isVertical=${isVertical}`
+			);
+			return actualWatermarkSize;
+		}
+
+		// For values 1-20, start from watermark size + buffer and scale up
+		// Vertical spacing needs more buffer to prevent text overlap
+		const minBuffer = isVertical
+			? Math.max(20, actualWatermarkSize * 0.3)
+			: Math.max(10, actualWatermarkSize * 0.15);
+		const maxSpacing = Math.max(actualWatermarkSize * 3, 800 * canvasScale); // Scale max spacing with canvas
+
+		// Calculate spacing starting from watermark size + buffer
+		const minSpacing = actualWatermarkSize + minBuffer;
+		const spacingRange = maxSpacing - minSpacing;
+
+		// Use exponential scaling for fine control at lower values
+		const factor = Math.pow(2, (uiValue - 1) / 4); // Exponential curve
+		const normalizedFactor = (factor - 1) / (Math.pow(2, 19 / 4) - 1); // Normalize to 0-1 range
+
+		const result = Math.round(minSpacing + spacingRange * normalizedFactor);
+		console.log(
+			`convertSpacingToPixels: UI=${uiValue} → ${result}px (actualSize=${actualWatermarkSize}, buffer=${minBuffer}) - isVertical=${isVertical}`
+		);
+		return result;
 	}
 
 	init() {
@@ -719,6 +755,12 @@ class BulkWatermarkApp {
 		const clearBtn = document.getElementById("clearFiles");
 		if (clearBtn) {
 			clearBtn.addEventListener("click", () => this.clearAllFiles());
+		}
+
+		// Reset to defaults button
+		const resetBtn = document.getElementById("resetDefaults");
+		if (resetBtn) {
+			resetBtn.addEventListener("click", () => this.resetToDefaults());
 		}
 
 		// Watermark type toggles
@@ -826,6 +868,8 @@ class BulkWatermarkApp {
 								// fail silently
 							}
 
+							// Update form controls and preview to reflect new watermark image
+							this.updateFormControls();
 							this.updatePreview();
 						};
 						img.src = e.target.result;
@@ -1061,16 +1105,8 @@ class BulkWatermarkApp {
 		if (spyVal) spyVal.textContent = this.watermarkSettings.patternSpacingY || 0;
 		// If preview canvas exists, show an estimated pixel value instead of raw slider unit
 		const previewCanvas = document.getElementById("previewCanvas");
-		if (previewCanvas) {
-			if (spxVal)
-				spxVal.textContent = Math.round(
-					(this.watermarkSettings.patternSpacingX || 0) * (previewCanvas.width / 800)
-				);
-			if (spyVal)
-				spyVal.textContent = Math.round(
-					(this.watermarkSettings.patternSpacingY || 0) * (previewCanvas.height / 800)
-				);
-		}
+		// Remove pixel display since we're now showing just numerical values
+		// The UI values (0-20) are displayed directly without conversion
 
 		// Set initial pattern mode UI
 		this.updatePatternModeUI();
@@ -1107,6 +1143,10 @@ class BulkWatermarkApp {
 	setWatermarkType(type) {
 		this.watermarkSettings.type = type;
 
+		// Clear watermark cache when switching types to prevent artifacts
+		this._watermarkCacheMap.clear();
+		this._watermarkCache = null;
+
 		document.querySelectorAll(".toggle-btn").forEach((btn) => btn.classList.remove("active"));
 		const toggleBtn = document.getElementById(type + "Toggle");
 		if (toggleBtn) toggleBtn.classList.add("active");
@@ -1136,6 +1176,222 @@ class BulkWatermarkApp {
 		const targetBtn = document.querySelector(`[data-position="${position}"]`);
 		if (targetBtn) {
 			targetBtn.classList.add("active");
+		}
+	}
+
+	resetToDefaults() {
+		// Clear all caches
+		this._watermarkCacheMap.clear();
+		this._watermarkCache = null;
+
+		// Store current mode and watermark image to preserve them
+		const currentType = this.watermarkSettings.type;
+		const currentWatermarkImage = this.watermarkSettings.watermarkImage;
+
+		// Create default settings
+		const defaultSettings = {
+			type: currentType, // Preserve current type instead of forcing text
+			patternMode: "single",
+			text: "© Your Watermark",
+			fontSize: 24,
+			fontFamily: "Arial",
+			textColor: "#ffffff",
+			opacity: 70,
+			position: "bottom-right",
+			offsetX: 0,
+			offsetY: 0,
+			watermarkImage: currentWatermarkImage, // Preserve current watermark image
+			imageScale: 20,
+			patternSpacing: 6, // Good default spacing for visual separation (UI scale)
+			patternSpacingX: 6, // Good default horizontal spacing to prevent overlap (UI scale)
+			patternSpacingY: 7, // Higher default vertical spacing to prevent overlap (UI scale)
+			patternAngle: -45,
+			watermarkRotation: 0,
+			overlayEffect: "none",
+			textEffects: {
+				shadow: false,
+				shadowColor: "#000000",
+				shadowBlur: 6,
+				shadowOffsetX: 2,
+				shadowOffsetY: 2,
+				outline: false,
+				outlineColor: "#000000",
+				outlineThickness: 2,
+				glow: false,
+				glowColor: "#ffffff",
+				glowBlur: 12,
+			},
+		};
+
+		// Apply the default settings
+		this.watermarkSettings = defaultSettings;
+
+		// Update all form controls to reflect default values
+		this.updateFormControls();
+
+		// Update pattern mode UI (show/hide appropriate controls)
+		this.updatePatternModeUI();
+
+		// Set default position (but don't change type)
+		this.setPosition("bottom-right");
+
+		// Update preview
+		this.updatePreview();
+	}
+
+	updateFormControls() {
+		// Update text controls
+		const textContent = document.getElementById("textContent");
+		if (textContent) textContent.value = this.watermarkSettings.text;
+
+		// Font size - range, number input, and display value
+		const fontSize = document.getElementById("fontSize");
+		if (fontSize) fontSize.value = this.watermarkSettings.fontSize;
+
+		const fontSizeNumber = document.getElementById("fontSizeNumber");
+		if (fontSizeNumber) fontSizeNumber.value = this.watermarkSettings.fontSize;
+
+		const fontSizeValue = document.getElementById("fontSizeValue");
+		if (fontSizeValue) fontSizeValue.textContent = this.watermarkSettings.fontSize;
+
+		const fontFamily = document.getElementById("fontFamily");
+		if (fontFamily) fontFamily.value = this.watermarkSettings.fontFamily;
+
+		const textColor = document.getElementById("textColor");
+		if (textColor) textColor.value = this.watermarkSettings.textColor;
+
+		// Opacity - range, number input, and display value
+		const opacity = document.getElementById("opacity");
+		if (opacity) opacity.value = this.watermarkSettings.opacity;
+
+		const opacityNumber = document.getElementById("opacityNumber");
+		if (opacityNumber) opacityNumber.value = this.watermarkSettings.opacity;
+
+		const opacityValue = document.getElementById("opacityValue");
+		if (opacityValue) opacityValue.textContent = this.watermarkSettings.opacity;
+
+		// Offset controls - range, number input, and display value
+		const offsetX = document.getElementById("offsetX");
+		if (offsetX) offsetX.value = this.watermarkSettings.offsetX;
+
+		const offsetXNumber = document.getElementById("offsetXNumber");
+		if (offsetXNumber) offsetXNumber.value = this.watermarkSettings.offsetX;
+
+		const offsetXValue = document.getElementById("offsetXValue");
+		if (offsetXValue) offsetXValue.textContent = this.watermarkSettings.offsetX;
+
+		const offsetY = document.getElementById("offsetY");
+		if (offsetY) offsetY.value = this.watermarkSettings.offsetY;
+
+		const offsetYNumber = document.getElementById("offsetYNumber");
+		if (offsetYNumber) offsetYNumber.value = this.watermarkSettings.offsetY;
+
+		const offsetYValue = document.getElementById("offsetYValue");
+		if (offsetYValue) offsetYValue.textContent = this.watermarkSettings.offsetY;
+
+		// Image scale - range, number input, and display value
+		const imageScale = document.getElementById("imageScale");
+		if (imageScale) imageScale.value = this.watermarkSettings.imageScale;
+
+		const imageScaleNumber = document.getElementById("imageScaleNumber");
+		if (imageScaleNumber) imageScaleNumber.value = this.watermarkSettings.imageScale;
+
+		const imageScaleValue = document.getElementById("imageScaleValue");
+		if (imageScaleValue) imageScaleValue.textContent = this.watermarkSettings.imageScale;
+
+		// Watermark rotation - range, number input, and display value
+		const watermarkRotation = document.getElementById("watermarkRotation");
+		if (watermarkRotation) watermarkRotation.value = this.watermarkSettings.watermarkRotation;
+
+		const watermarkRotationNumber = document.getElementById("watermarkRotationNumber");
+		if (watermarkRotationNumber) watermarkRotationNumber.value = this.watermarkSettings.watermarkRotation;
+
+		const watermarkRotationValue = document.getElementById("watermarkRotationValue");
+		if (watermarkRotationValue) watermarkRotationValue.textContent = this.watermarkSettings.watermarkRotation;
+
+		// Pattern spacing controls - range, number input, and display value
+		const patternSpacing = document.getElementById("patternSpacing");
+		if (patternSpacing) patternSpacing.value = this.watermarkSettings.patternSpacing;
+
+		const patternSpacingNumber = document.getElementById("patternSpacingNumber");
+		if (patternSpacingNumber) patternSpacingNumber.value = this.watermarkSettings.patternSpacing;
+
+		const patternSpacingValue = document.getElementById("patternSpacingValue");
+		if (patternSpacingValue) patternSpacingValue.textContent = this.watermarkSettings.patternSpacing;
+
+		const patternSpacingX = document.getElementById("patternSpacingX");
+		if (patternSpacingX) patternSpacingX.value = this.watermarkSettings.patternSpacingX;
+
+		const patternSpacingXNumber = document.getElementById("patternSpacingXNumber");
+		if (patternSpacingXNumber) patternSpacingXNumber.value = this.watermarkSettings.patternSpacingX;
+
+		const patternSpacingXValue = document.getElementById("patternSpacingXValue");
+		if (patternSpacingXValue) patternSpacingXValue.textContent = this.watermarkSettings.patternSpacingX;
+
+		const patternSpacingY = document.getElementById("patternSpacingY");
+		if (patternSpacingY) patternSpacingY.value = this.watermarkSettings.patternSpacingY;
+
+		const patternSpacingYNumber = document.getElementById("patternSpacingYNumber");
+		if (patternSpacingYNumber) patternSpacingYNumber.value = this.watermarkSettings.patternSpacingY;
+
+		const patternSpacingYValue = document.getElementById("patternSpacingYValue");
+		if (patternSpacingYValue) patternSpacingYValue.textContent = this.watermarkSettings.patternSpacingY;
+
+		// Pattern angle - range, number input, and display value
+		const patternAngle = document.getElementById("patternAngle");
+		if (patternAngle) patternAngle.value = this.watermarkSettings.patternAngle;
+
+		const patternAngleNumber = document.getElementById("patternAngleNumber");
+		if (patternAngleNumber) patternAngleNumber.value = this.watermarkSettings.patternAngle;
+
+		const patternAngleValue = document.getElementById("patternAngleValue");
+		if (patternAngleValue) patternAngleValue.textContent = this.watermarkSettings.patternAngle;
+
+		// Update pattern mode radio buttons
+		const patternModeRadios = document.querySelectorAll('input[name="patternMode"]');
+		patternModeRadios.forEach((radio) => {
+			radio.checked = radio.value === this.watermarkSettings.patternMode;
+		});
+
+		// Update text effects - checkboxes, colors, and number inputs
+		const effectShadow = document.getElementById("effectShadow");
+		if (effectShadow) effectShadow.checked = this.watermarkSettings.textEffects.shadow;
+
+		const effectShadowColor = document.getElementById("effectShadowColor");
+		if (effectShadowColor) effectShadowColor.value = this.watermarkSettings.textEffects.shadowColor;
+
+		const effectShadowBlur = document.getElementById("effectShadowBlur");
+		if (effectShadowBlur) effectShadowBlur.value = this.watermarkSettings.textEffects.shadowBlur;
+
+		const effectShadowOffsetX = document.getElementById("effectShadowOffsetX");
+		if (effectShadowOffsetX) effectShadowOffsetX.value = this.watermarkSettings.textEffects.shadowOffsetX;
+
+		const effectShadowOffsetY = document.getElementById("effectShadowOffsetY");
+		if (effectShadowOffsetY) effectShadowOffsetY.value = this.watermarkSettings.textEffects.shadowOffsetY;
+
+		const effectOutline = document.getElementById("effectOutline");
+		if (effectOutline) effectOutline.checked = this.watermarkSettings.textEffects.outline;
+
+		const effectOutlineColor = document.getElementById("effectOutlineColor");
+		if (effectOutlineColor) effectOutlineColor.value = this.watermarkSettings.textEffects.outlineColor;
+
+		const effectOutlineThickness = document.getElementById("effectOutlineThickness");
+		if (effectOutlineThickness) effectOutlineThickness.value = this.watermarkSettings.textEffects.outlineThickness;
+
+		const effectGlow = document.getElementById("effectGlow");
+		if (effectGlow) effectGlow.checked = this.watermarkSettings.textEffects.glow;
+
+		const effectGlowColor = document.getElementById("effectGlowColor");
+		if (effectGlowColor) effectGlowColor.value = this.watermarkSettings.textEffects.glowColor;
+
+		const effectGlowBlur = document.getElementById("effectGlowBlur");
+		if (effectGlowBlur) effectGlowBlur.value = this.watermarkSettings.textEffects.glowBlur;
+
+		// Only clear watermark image input if there's no watermark image in settings
+		// This preserves the uploaded image when doing a mode-dependent reset
+		const watermarkImageInput = document.getElementById("watermarkImage");
+		if (watermarkImageInput && !this.watermarkSettings.watermarkImage) {
+			watermarkImageInput.value = "";
 		}
 	}
 
@@ -1365,57 +1621,32 @@ class BulkWatermarkApp {
 		const angle = Number(this.watermarkSettings.patternAngle || 0);
 		const useDiagonal = Math.abs(angle) > 1; // small angles treated as grid
 
-		/* Safety: avoid pathological loops when spacing is tiny.
-		   Use per-axis safe spacing derived from computePatternSpacing result. */
-		let safeSpacingX = Math.max(1, spacing.x || spacing);
-		let safeSpacingY = Math.max(1, spacing.y || spacing);
+		/* Use per-axis spacing derived from computePatternSpacing result.
+		   The spacing calculation already ensures safe values. */
+		let safeSpacingX = spacing.x || spacing;
+		let safeSpacingY = spacing.y || spacing;
 		// For diagonal layouts we tile using independent horizontal (dx) and vertical (dy)
 		// spacings projected onto the rotated axes. Previously we used an averaged spacing
 		// which coupled the two sliders; using dx/dy preserves independent control.
 		let dx = safeSpacingX;
 		let dy = safeSpacingY;
-		// Safety: ensure dx/dy are not absurdly small which can cause tight loops or projection errors
-		try {
-			if (this._watermarkCache) {
-				const cw = this._watermarkCache.contentW || this._watermarkCache.w || 1;
-				const ch = this._watermarkCache.contentH || this._watermarkCache.h || 1;
-				if (dx < 1) dx = Math.max(1, cw);
-				if (dy < 1) dy = Math.max(1, ch);
-			}
-		} catch (e) {
-			// ignore
-		}
+
 		// If we have a cache with content size, and the user has chosen the minimum spacing
 		// (configured value 0), force dx/dy to the visible content size so tiles sit
 		// back-to-back with no gap.
 		try {
-			// Use same slider minimum computation as computePatternSpacing so 'touching'
-			// behavior is consistent when users set spacing to the minimum slider value.
-			const configuredRawX =
-				Number(this.watermarkSettings.patternSpacingX || this.watermarkSettings.patternSpacing) || 0;
-			const configuredRawY =
-				Number(this.watermarkSettings.patternSpacingY || this.watermarkSettings.patternSpacing) || 0;
+			// Use same logic as computePatternSpacing for 'touching' behavior consistency
+			const uiSpacingX = Number(this.watermarkSettings.patternSpacingX) || 0;
+			const uiSpacingY = Number(this.watermarkSettings.patternSpacingY) || 0;
+
 			if (this._watermarkCache) {
 				const cw = this._watermarkCache.contentW || this._watermarkCache.w || 1;
 				const ch = this._watermarkCache.contentH || this._watermarkCache.h || 1;
-				// compute slider minima in raw units using canvas size so we know when the
-				// user requested the 'touching' mode (<= sliderMin)
-				try {
-					const sliderMinX = Math.round((cw * 800) / Math.max(1, canvasWidth));
-					const sliderMinY = Math.round((ch * 800) / Math.max(1, canvasHeight));
-					const configuredPixelsX = configuredRawX * (canvasWidth / 800);
-					const configuredPixelsY = configuredRawY * (canvasHeight / 800);
-					const thresholdX = Math.ceil(cw * 1.05);
-					const thresholdY = Math.ceil(ch * 1.05);
-					if (configuredRawX === 0 || configuredRawX <= sliderMinX || configuredPixelsX <= thresholdX)
-						dx = cw;
-					if (configuredRawY === 0 || configuredRawY <= sliderMinY || configuredPixelsY <= thresholdY)
-						dy = ch;
-				} catch (e) {
-					// fallback: if we fail to compute minima, default to content sizes when raw=0
-					if (configuredRawX === 0) dx = cw;
-					if (configuredRawY === 0) dy = ch;
-				}
+
+				// For UI scale, only 0 = touching mode, all other values use calculated spacing
+				if (uiSpacingX === 0) dx = cw;
+				if (uiSpacingY === 0) dy = ch;
+
 				// keep safeSpacing vars in sync for downstream checks
 				safeSpacingX = dx;
 				safeSpacingY = dy;
@@ -1565,80 +1796,58 @@ class BulkWatermarkApp {
 		this._lastPatternEst = { width: estWidth, height: estHeight };
 
 		// Interpret UI spacing controls separately for horizontal and vertical axes.
-		// Controls are expressed in '800px reference' units; convert to canvas pixels.
-		const configuredRawX =
-			Number(this.watermarkSettings.patternSpacingX || this.watermarkSettings.patternSpacing) || 0;
-		const configuredRawY =
-			Number(this.watermarkSettings.patternSpacingY || this.watermarkSettings.patternSpacing) || 0;
-		const configuredPixelsX = configuredRawX * (canvasWidth / 800);
-		// Vertical control should map relative units to canvas *height* pixels
-		const configuredPixelsY = configuredRawY * (canvasHeight / 800);
+		// UI controls are now in 0-20 scale, convert to pixels first, then scale to canvas.
+		const uiSpacingX = Number(this.watermarkSettings.patternSpacingX) || 0;
+		const uiSpacingY = Number(this.watermarkSettings.patternSpacingY) || 0;
+
+		// Convert UI scale (0-20) to pixel values with proper canvas scaling
+		// Pass base size, canvas scale, and vertical flag for complete calculation
+		const canvasScaleX = canvasWidth / 800;
+		const canvasScaleY = canvasHeight / 800;
+
+		const configuredPixelsX = this.convertSpacingToPixels(uiSpacingX, baseX, canvasScaleX, false);
+		const configuredPixelsY = this.convertSpacingToPixels(uiSpacingY, baseY, canvasScaleY, true);
 
 		/*
-			Swap minima rules: make horizontal spacing touch at minimum (watermark width),
-			and allow vertical spacing a smaller breathing-room minimum so vertical tiles
-			pack a bit tighter when desired.
+			Determine per-axis minimal spacing using the watermark's visible content size
+			for touching behavior (when UI value is 0).
 		*/
-		// Determine per-axis minimal spacing using the watermark's visible content size
-		// so tiles align back-to-back at the minimum setting. This intentionally uses
-		// the content width/height (or fallback baseX/baseY) rather than the rotated
-		// projection to ensure no visual gaps when users choose the minimum slider.
 		const minX = Math.max(1, Math.round(baseX));
 		const minY = Math.max(1, Math.round(baseY));
 
-		// Determine slider minimum thresholds (in raw units). Default to 0 if not computed.
-		let sliderMinX = 0;
-		let sliderMinY = 0;
-
-		// Temporarily compute spacing as pixels; we'll override below if touching is requested.
-		let spacingX = Math.max(minX, configuredPixelsX);
-		let spacingY = Math.max(minY, configuredPixelsY);
+		// Spacing logic: conversion function handles all values and canvas scaling
+		// No need for additional Math.max since the function ensures proper progression
+		let spacingX = configuredPixelsX;
+		let spacingY = configuredPixelsY;
 
 		// Sync new X/Y sliders (if present) so ranges reflect safe min/start values.
 		try {
 			const sx = document.getElementById("patternSpacingX");
 			const sy = document.getElementById("patternSpacingY");
 			if (sx) {
-				// Slider min/value for X should reflect the projected touching width when 0 is chosen
-				sliderMinX = Math.round((minX * 800) / Math.max(1, canvasWidth));
-				const sliderMaxX = Math.round((Math.max(canvasWidth, canvasHeight) * 800) / Math.max(1, canvasWidth));
-				let sliderValueX = configuredRawX;
-				if (sliderValueX < sliderMinX) sliderValueX = sliderMinX;
-				sx.min = sliderMinX;
-				sx.max = sliderMaxX;
+				// For the new UI scale (0-20), we don't need to calculate complex minimums
+				// 0 = touching, so min stays 0, max stays 20
+				sx.min = 0;
+				sx.max = 20;
 				sx.step = 1;
-				if (!sx.matches(":active")) sx.value = sliderValueX;
-				this._dbg("patternSpacingX sync", { sliderMinX, sliderMaxX, sliderValueX });
+				if (!sx.matches(":active")) sx.value = uiSpacingX;
+				this._dbg("patternSpacingX sync", {
+					uiValue: uiSpacingX,
+					pixelValue: this.convertSpacingToPixels(uiSpacingX, baseX, canvasScaleX, false),
+				});
 			}
 			if (sy) {
-				// For vertical slider, calculate min/max/value using canvas height so
-				// the slider maps intuitively to pixels in the Y axis.
-				sliderMinY = Math.round((minY * 800) / Math.max(1, canvasHeight));
-				const sliderMaxY = Math.round((Math.max(canvasWidth, canvasHeight) * 800) / Math.max(1, canvasHeight));
-				let sliderValueY = configuredRawY;
-				if (sliderValueY < sliderMinY) sliderValueY = sliderMinY;
-				sy.min = sliderMinY;
-				sy.max = sliderMaxY;
+				sy.min = 0;
+				sy.max = 20;
 				sy.step = 1;
-				if (!sy.matches(":active")) sy.value = sliderValueY;
-				this._dbg("patternSpacingY sync", { sliderMinY, sliderMaxY, sliderValueY });
+				if (!sy.matches(":active")) sy.value = uiSpacingY;
+				this._dbg("patternSpacingY sync", {
+					uiValue: uiSpacingY,
+					pixelValue: this.convertSpacingToPixels(uiSpacingY, baseY, canvasScaleY, true),
+				});
 			}
 		} catch (err) {
 			if (console && console.warn) console.warn("Failed to sync patternSpacing X/Y sliders:", err);
-		}
-
-		// Decide touching mode: treat explicit 0 or any configured pixel spacing very close
-		// to the content size (within 5%) as touching. This avoids situations where
-		// slider-to-pixel mapping variations leave a small gap at the visual minimum.
-		try {
-			const thresholdX = Math.ceil(minX * 1.05);
-			const thresholdY = Math.ceil(minY * 1.05);
-			if (configuredRawX === 0 || configuredRawX <= sliderMinX || configuredPixelsX <= thresholdX)
-				spacingX = minX;
-			if (configuredRawY === 0 || configuredRawY <= sliderMinY || configuredPixelsY <= thresholdY)
-				spacingY = minY;
-		} catch (e) {
-			// ignore
 		}
 
 		this._dbg("computePatternSpacing", {
@@ -1648,8 +1857,8 @@ class BulkWatermarkApp {
 			baseY,
 			minX,
 			minY,
-			configuredRawX,
-			configuredRawY,
+			uiSpacingX,
+			uiSpacingY,
 			configuredPixelsX,
 			configuredPixelsY,
 			spacingX,
@@ -1974,36 +2183,7 @@ class BulkWatermarkApp {
 		ratio = Math.max(ratio, 0.02); // allow smaller ratio for cache but we'll enforce visible px later
 		const width = img.width * ratio;
 		const height = img.height * ratio;
-		if (this.getImageScaleFraction && Math.abs(this.getImageScaleFraction() - 0.2) < 0.001) {
-			this._dbg("drawImageWatermark: computed", {
-				canvasWidth,
-				canvasHeight,
-				imgWidth: img.width,
-				imgHeight: img.height,
-				scale,
-				maxSize,
-				ratio,
-				width,
-				height,
-			});
-			// Also draw a translucent debug rectangle on the target ctx to show where the
-			// image is intended to be drawn. This helps diagnose off-canvas or zero-size
-			// rendering when users report disappearance at small scales.
-			try {
-				ctx.save();
-				ctx.strokeStyle = "rgba(255,0,0,0.9)";
-				ctx.lineWidth = 2;
-				ctx.fillStyle = "rgba(255,0,0,0.12)";
-				// compute center-based coords used later (before offsets/rotation applied)
-				const dbgX = (canvasWidth - width) / 2;
-				const dbgY = (canvasHeight - height) / 2;
-				ctx.fillRect(dbgX, dbgY, Math.max(width, 2), Math.max(height, 2));
-				ctx.strokeRect(dbgX, dbgY, Math.max(width, 2), Math.max(height, 2));
-				ctx.restore();
-			} catch (e) {
-				// ignore debug-draw failures
-			}
-		}
+		// Debug code removed - was causing red border artifacts in production
 
 		let x = canvasWidth * position.x;
 		let y = canvasHeight * position.y;
