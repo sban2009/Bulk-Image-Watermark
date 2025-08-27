@@ -337,11 +337,7 @@ class ProcessedImageModal {
 
 	bindEvents() {
 		// Modal close events
-		const closeButtons = [
-			document.getElementById("modalCloseBtn"),
-			document.getElementById("modalCloseBtn2"),
-			document.getElementById("modalOverlay"),
-		];
+		const closeButtons = [document.getElementById("modalCloseBtn"), document.getElementById("modalOverlay")];
 
 		closeButtons.forEach((btn) => {
 			if (btn) {
