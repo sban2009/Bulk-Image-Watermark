@@ -51,8 +51,8 @@ jobs:
               if: steps.check_changes.outputs.relevant_change == 'true'
               id: release_tag
               run: |
-                  # Generate base date in YY.MM.DD format
-                  base_date=$(date +'%y.%m.%d')
+                  # Generate base date in YY.MM.DD format using IST (GMT+5:30)
+                  base_date=$(TZ='Asia/Kolkata' date +'%y.%m.%d')
                   echo "Base date: $base_date"
 
                   # Get all releases for today
