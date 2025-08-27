@@ -130,39 +130,32 @@ class FileUploadHandler {
 			return;
 		}
 
-		/* Handle label clicks for better accessibility */
-		const label = document.querySelector(`label[for="${this.fileInput.id}"]`);
-		if (label) {
-			label.addEventListener("click", () => {
-				this.fileInput.value = "";
-				try {
-					this.fileInput.click();
-				} catch (err) {
-					console.error("Label click failed to open file chooser", err);
-				}
-			});
-		}
-
-		/* Direct upload area click handler */
+		// Simple click handler for upload area
 		this.uploadArea.addEventListener("click", (e) => {
 			if (this.uploadArea.classList.contains("processing")) return;
 
 			this.fileInput.value = "";
-			try {
-				this.fileInput.click();
-			} catch (error) {
-				console.error("File input click failed:", error);
-				this.showError("Unable to open file chooser. Please try drag and drop instead.");
-			}
+			this.fileInput.click();
 		});
 
 		this.uploadArea.style.cursor = "pointer";
 	}
 
+	setupMobileUploadButton() {
+		// Mobile button is removed, keeping method for compatibility
+	}
+
 	triggerFileInput() {
 		if (!this.fileInput) return;
 		this.fileInput.value = "";
-		this.fileInput.click();
+		// Use setTimeout for better mobile compatibility
+		setTimeout(() => {
+			try {
+				this.fileInput.click();
+			} catch (error) {
+				console.error("File input trigger failed:", error);
+			}
+		}, 10);
 	}
 
 	handleFileSelect(e) {
@@ -275,6 +268,7 @@ class FileUploadHandler {
 
 		this.setupFileInputClick();
 		this.setupDragAndDrop();
+		this.setupMobileUploadButton();
 		this.fileInput.addEventListener("change", (e) => this.handleFileSelect(e));
 		this.isInitialized = true;
 		this.showStatus("Ready to upload images - Click here or drag files");
@@ -623,6 +617,7 @@ class BulkWatermarkApp {
 		// File management arrays
 		this.uploadedFiles = []; // Original uploaded image files with metadata
 		this.processedImages = []; // Final watermarked images ready for download
+		this.currentPreviewFileId = null; // Track which file is currently being previewed
 
 		/*
 		 * WATERMARK CONFIGURATION: Complete settings object defining appearance and behavior.
@@ -841,15 +836,18 @@ class BulkWatermarkApp {
 		reader.onload = (e) => {
 			fileData.preview = e.target.result;
 			fileData.loaded = true;
-			this.renderImageGrid();
 
 			// Update UI to reflect new loaded file count and status
 			this.updateUI();
 
 			// Update preview if this is the first loaded file
 			if (this.getLoadedFiles().length === 1) {
+				this.currentPreviewFileId = fileData.id;
 				setTimeout(() => this.updatePreview(), 500);
 			}
+
+			// Re-render grid to show selection state
+			this.renderImageGrid();
 		};
 
 		reader.onerror = () => {
@@ -1811,12 +1809,32 @@ class BulkWatermarkApp {
 			const imageItem = document.createElement("div");
 			imageItem.className = "image-item";
 
+			// Add selected class if this is the current preview file
+			if (this.currentPreviewFileId === fileData.id) {
+				imageItem.classList.add("selected");
+			}
+
 			if (fileData.preview) {
 				imageItem.innerHTML = `
-                    <img src="${fileData.preview}" alt="${fileData.name}">
+                    <div class="image-container">
+                        <img src="${fileData.preview}" alt="${fileData.name}">
+                        <div class="image-overlay">
+                            <span class="overlay-text">Set as Preview</span>
+                        </div>
+                    </div>
                     <div class="image-info">${fileData.name}</div>
                     <button class="remove-btn" data-id="${fileData.id}">×</button>
                 `;
+
+				// Add click handler to select this image for preview
+				const imageContainer = imageItem.querySelector(".image-container");
+				if (imageContainer) {
+					imageContainer.addEventListener("click", (e) => {
+						e.stopPropagation();
+						this.selectImageForPreview(fileData.id);
+					});
+					imageContainer.style.cursor = "pointer";
+				}
 			} else if (fileData.error) {
 				imageItem.innerHTML = `
                     <div style="height: 120px; display: flex; align-items: center; justify-content: center; background: var(--color-bg-4); color: var(--color-error); text-align: center; font-size: var(--font-size-xs);">
@@ -1847,6 +1865,39 @@ class BulkWatermarkApp {
 	}
 
 	/**
+	 * Select a specific image for preview by its file ID
+	 * @param {string} fileId - The ID of the file to preview
+	 */
+	selectImageForPreview(fileId) {
+		// Find the file data
+		const fileData = this.uploadedFiles.find((file) => file.id === fileId);
+		if (!fileData || !fileData.preview || fileData.error) {
+			return;
+		}
+
+		// Update current preview file ID
+		this.currentPreviewFileId = fileId;
+
+		// Re-render the grid to update selection visual
+		this.renderImageGrid();
+
+		// Update the preview with this specific image
+		this.updatePreviewWithFile(fileData);
+	}
+
+	/**
+	 * Update preview with a specific file
+	 * @param {Object} fileData - The file data object to preview
+	 */
+	updatePreviewWithFile(fileData) {
+		if (!fileData.preview) return;
+
+		const img = new Image();
+		img.onload = () => this.renderPreview(img);
+		img.src = fileData.preview;
+	}
+
+	/**
 	 * Remove a specific file from the uploaded files list.
 	 *
 	 * UI UPDATES:
@@ -1858,7 +1909,16 @@ class BulkWatermarkApp {
 	 * @param {string|number} id - Unique identifier of file to remove
 	 */
 	removeFile(id) {
+		// Check if we're removing the currently previewed file
+		const removingCurrentPreview = this.currentPreviewFileId === id;
+
 		this.uploadedFiles = this.uploadedFiles.filter((file) => file.id !== id);
+
+		// If we removed the currently previewed file, reset the preview selection
+		if (removingCurrentPreview) {
+			this.currentPreviewFileId = null;
+		}
+
 		this.renderImageGrid();
 		this.updateUI();
 
@@ -1999,14 +2059,28 @@ class BulkWatermarkApp {
 
 	updatePreview() {
 		const loadedFiles = this.getLoadedFiles();
-		if (loadedFiles.length === 0) return;
+		if (loadedFiles.length === 0) {
+			this.currentPreviewFileId = null;
+			return;
+		}
 
-		const firstFile = loadedFiles[0];
-		if (!firstFile.preview) return;
+		// Always default to the first file, unless a specific file is explicitly selected
+		let fileToPreview = null;
+		if (this.currentPreviewFileId) {
+			fileToPreview = loadedFiles.find((file) => file.id === this.currentPreviewFileId);
+		}
+
+		// If no valid current preview file, always use the first file
+		if (!fileToPreview) {
+			fileToPreview = loadedFiles[0];
+			this.currentPreviewFileId = fileToPreview.id;
+		}
+
+		if (!fileToPreview.preview) return;
 
 		const img = new Image();
 		img.onload = () => this.renderPreview(img);
-		img.src = firstFile.preview;
+		img.src = fileToPreview.preview;
 	}
 
 	renderPreview(img) {
