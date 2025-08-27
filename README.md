@@ -1,5 +1,7 @@
 # Bulk Image Watermark Tool
 
+Deployment Status: [![Netlify Status](https://api.netlify.com/api/v1/badges/7f815f19-9df9-4e43-a08c-3823e4c17ff7/deploy-status)](https://app.netlify.com/projects/bulk-watermark-tool/deploys)
+
 A simple web tool for adding watermarks (text or image) to multiple images at once. No software installation required - works directly in your browser.
 
 ## ✨ Features
