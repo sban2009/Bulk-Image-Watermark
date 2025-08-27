@@ -47,6 +47,14 @@ A simple web tool for adding watermarks (text or image) to multiple images at on
 - **[Changelog](CHANGELOG.md)**: Version history and updates
 - **[License](LICENSE)**: MIT License details
 
+## App Screenshots
+
+<img width="1856" height="2625" alt="Screen Shot 2025-08-28 at 02 30 30-fullpage" src="https://github.com/user-attachments/assets/1a02156e-0613-45ea-9f3e-5df6be36fe79" />
+<img width="1533" height="554" alt="Screen Shot 2025-08-28 at 02 31 38-fullpage" src="https://github.com/user-attachments/assets/cb6ae824-8825-4969-b1f0-b1f661994c3c" />
+
+
+Updated on: 28-8-2025
+
 ## 💡 Perfect For
 
 - Photographers protecting their work
