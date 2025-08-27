@@ -77,7 +77,7 @@ document.addEventListener("DOMContentLoaded", function () {
 	function setTheme(dark) {
 		document.documentElement.setAttribute("data-color-scheme", dark ? "dark" : "light");
 		document.body.classList.toggle("dark-mode", dark);
-		themeBtn.textContent = dark ? "🌖 Light Mode" : "🌒 Dark Mode";
+		themeBtn.textContent = dark ? "🌒 Dark Mode" : "🌖 Light Mode";
 	}
 
 	/*
