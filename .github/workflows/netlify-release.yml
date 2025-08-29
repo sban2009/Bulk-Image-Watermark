@@ -24,15 +24,32 @@ jobs:
             - name: Check if relevant files changed
               id: check_changes
               run: |
-                  # Get the list of changed files in the last commit
+                  # Check for duplicate runs - skip if this is a repository_dispatch and a recent release exists
+                  if [ "${{ github.event_name }}" = "repository_dispatch" ]; then
+                    # Check if a release was created in the last 5 minutes (to avoid webhook duplicates)
+                    recent_release=$(gh release list --limit 1 --json publishedAt --jq '.[0].publishedAt' 2>/dev/null || echo "")
+                    if [ -n "$recent_release" ]; then
+                      release_time=$(date -d "$recent_release" +%s 2>/dev/null || echo "0")
+                      current_time=$(date +%s)
+                      time_diff=$((current_time - release_time))
+                      
+                      if [ $time_diff -lt 300 ]; then  # 5 minutes = 300 seconds
+                        echo "Recent release found (${time_diff}s ago), skipping duplicate webhook trigger"
+                        echo "relevant_change=false" >> $GITHUB_OUTPUT
+                        exit 0
+                      fi
+                    fi
+                  fi
+
+                  # Get the list of changed files based on trigger type
                   if [ "${{ github.event_name }}" = "push" ]; then
                     changed_files=$(git diff --name-only HEAD~1 HEAD)
                   else
                     # For repository_dispatch, check recent commits
-                    changed_files=$(git diff --name-only HEAD~5 HEAD)
+                    changed_files=$(git diff --name-only HEAD~3 HEAD)
                   fi
 
-                  echo "Changed files:"
+                  echo "Changed files in recent commits:"
                   echo "$changed_files"
 
                   # Check if any of our target files changed
@@ -46,6 +63,8 @@ jobs:
                   done
 
                   echo "relevant_change=$relevant_change" >> $GITHUB_OUTPUT
+              env:
+                  GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
 
             - name: Generate release tag
               if: steps.check_changes.outputs.relevant_change == 'true'
