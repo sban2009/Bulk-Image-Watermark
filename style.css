@@ -948,7 +948,7 @@ select.form-control {
 }
 
 /* END PERPLEXITY DESIGN SYSTEM */
-/* FIXED File input styling - critical fix */
+/* File input styling - enhanced mobile compatibility */
 .file-input-clickable {
 	position: absolute;
 	top: 0;
@@ -961,16 +961,108 @@ select.form-control {
 	/* Improve mobile compatibility */
 	-webkit-appearance: none;
 	appearance: none;
+	/* Mobile-specific improvements */
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	/* Ensure touch events work */
+	font-size: 16px; /* Prevents zoom on iOS */
+	background: transparent;
+	border: none;
+	touch-action: manipulation;
+	-webkit-tap-highlight-color: transparent;
+}
+
+/* Mobile file input overrides - applied via JavaScript */
+@media (max-width: 768px) {
+	.upload-area {
+		position: relative;
+	}
+
+	/* Ensure file input can receive touch events on mobile */
+	.file-input-clickable {
+		-webkit-tap-highlight-color: transparent;
+	}
+
+	/* Mobile fallback button styling */
+	.mobile-select-btn {
+		font-size: 14px !important;
+		padding: 8px 16px !important;
+		margin: 0 !important;
+		min-height: auto !important;
+		border-radius: 6px !important;
+		background: var(--primary-color) !important;
+		color: white !important;
+		border: none !important;
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+	}
 }
 
 /* Application-specific styles */
 .app-header {
+	position: relative;
 	text-align: center;
-	padding: var(--space-32) 0 var(--space-32) 0;
+	padding: var(--space-32) var(--space-32) var(--space-32) var(--space-32);
 	border-bottom: 1px solid var(--color-border);
 	margin-bottom: var(--space-32);
 	background: linear-gradient(135deg, var(--color-bg-1), var(--color-bg-2));
 	border-radius: var(--radius-lg);
+}
+
+.header-content {
+	margin-bottom: 0;
+}
+
+/* Desktop theme switcher positioning */
+.theme-switcher-btn {
+	position: absolute;
+	top: 16px;
+	right: 16px;
+	z-index: 10;
+}
+
+/* Mobile responsive styles for theme switcher */
+@media (max-width: 768px) {
+	.app-header {
+		padding: var(--space-24) var(--space-16) var(--space-20) var(--space-16);
+		text-align: center;
+	}
+
+	.header-content {
+		margin-bottom: var(--space-16);
+	}
+
+	.theme-switcher-btn {
+		position: static !important;
+		display: block !important;
+		margin: 0 auto !important;
+		width: fit-content !important;
+	}
+}
+
+@media (max-width: 480px) {
+	.app-header {
+		padding: var(--space-20) var(--space-12) var(--space-16) var(--space-12);
+	}
+
+	.app-header h1 {
+		font-size: var(--font-size-xl);
+		line-height: 1.2;
+		margin-bottom: var(--space-8);
+	}
+
+	.app-header p {
+		font-size: var(--font-size-base);
+		line-height: 1.4;
+	}
+
+	.theme-switcher-btn {
+		margin-top: var(--space-8);
+		padding: var(--space-8) var(--space-16);
+		font-size: var(--font-size-sm);
+	}
 }
 
 .app-header h1 {

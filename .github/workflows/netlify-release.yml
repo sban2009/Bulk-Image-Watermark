@@ -24,15 +24,32 @@ jobs:
             - name: Check if relevant files changed
               id: check_changes
               run: |
-                  # Get the list of changed files in the last commit
+                  # Check for duplicate runs - skip if this is a repository_dispatch and a recent release exists
+                  if [ "${{ github.event_name }}" = "repository_dispatch" ]; then
+                    # Check if a release was created in the last 5 minutes (to avoid webhook duplicates)
+                    recent_release=$(gh release list --limit 1 --json publishedAt --jq '.[0].publishedAt' 2>/dev/null || echo "")
+                    if [ -n "$recent_release" ]; then
+                      release_time=$(date -d "$recent_release" +%s 2>/dev/null || echo "0")
+                      current_time=$(date +%s)
+                      time_diff=$((current_time - release_time))
+                      
+                      if [ $time_diff -lt 300 ]; then  # 5 minutes = 300 seconds
+                        echo "Recent release found (${time_diff}s ago), skipping duplicate webhook trigger"
+                        echo "relevant_change=false" >> $GITHUB_OUTPUT
+                        exit 0
+                      fi
+                    fi
+                  fi
+
+                  # Get the list of changed files based on trigger type
                   if [ "${{ github.event_name }}" = "push" ]; then
                     changed_files=$(git diff --name-only HEAD~1 HEAD)
                   else
                     # For repository_dispatch, check recent commits
-                    changed_files=$(git diff --name-only HEAD~5 HEAD)
+                    changed_files=$(git diff --name-only HEAD~3 HEAD)
                   fi
 
-                  echo "Changed files:"
+                  echo "Changed files in recent commits:"
                   echo "$changed_files"
 
                   # Check if any of our target files changed
@@ -46,6 +63,8 @@ jobs:
                   done
 
                   echo "relevant_change=$relevant_change" >> $GITHUB_OUTPUT
+              env:
+                  GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
 
             - name: Generate release tag
               if: steps.check_changes.outputs.relevant_change == 'true'
@@ -85,27 +104,32 @@ jobs:
               env:
                   GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
 
-            - name: Get git changes since last release
+            - name: Get git history since last release
               if: steps.check_changes.outputs.relevant_change == 'true'
-              id: changes
+              id: git_history
               run: |
                   if [ -n "${{ steps.latest_release.outputs.latest_tag }}" ]; then
-                    echo "Getting changes since ${{ steps.latest_release.outputs.latest_tag }}"
-                    # Filter changes to only include our target files
-                    changes=$(git log --oneline --pretty=format:"- %s" ${{ steps.latest_release.outputs.latest_tag }}..HEAD -- index.html app.js style.css | head -20)
+                    echo "Getting commit history since ${{ steps.latest_release.outputs.latest_tag }}"
+                    # Get all commits since last release with better formatting
+                    commits=$(git log --oneline --pretty=format:"- **%s** (%h)" ${{ steps.latest_release.outputs.latest_tag }}..HEAD | head -15)
+                    commit_count=$(git rev-list --count ${{ steps.latest_release.outputs.latest_tag }}..HEAD)
                   else
-                    echo "No previous release found, getting recent commits for target files"
-                    changes=$(git log --oneline --pretty=format:"- %s" -10 -- index.html app.js style.css)
+                    echo "No previous release found, getting recent commits"
+                    commits=$(git log --oneline --pretty=format:"- **%s** (%h)" -10)
+                    commit_count=$(git rev-list --count HEAD)
                   fi
 
-                  if [ -z "$changes" ]; then
-                    changes="- Minor changes"
+                  if [ -z "$commits" ]; then
+                    commits="- Initial release"
+                    commit_count=1
                   fi
 
-                  # Save changes to output, handling multiline
-                  echo "changes<<EOF" >> $GITHUB_OUTPUT
-                  echo "$changes" >> $GITHUB_OUTPUT
+                  # Save commits to output, handling multiline
+                  echo "git_history<<EOF" >> $GITHUB_OUTPUT
+                  echo "$commits" >> $GITHUB_OUTPUT
                   echo "EOF" >> $GITHUB_OUTPUT
+
+                  echo "commit_count=$commit_count" >> $GITHUB_OUTPUT
 
             - name: Create Release
               if: steps.check_changes.outputs.relevant_change == 'true'
@@ -117,17 +141,20 @@ jobs:
 
                   gh release create v${{ steps.release_tag.outputs.release_tag }} \
                     --title "Release v${{ steps.release_tag.outputs.release_tag }}" \
-                    --notes "Automated release triggered by app file changes
+                    --notes "## 🚀 Automated Release
 
-                  ## Changes Since Last Release
-                  ${{ steps.changes.outputs.changes }}
+                  This release was automatically created following a successful deployment.
 
-                  ## Files Affected
-                  - App files (index.html, app.js, style.css) have been updated
+                  ### 📋 Commit History (${{ steps.git_history.outputs.commit_count }} commits)
+                  ${{ steps.git_history.outputs.git_history }}
 
-                  ## Deployment  
-                  - Successfully deployed to Netlify
-                  - Triggered at: $triggered_time"
+                  ### 🔗 Previous Version
+                  Previous release: ${{ steps.latest_release.outputs.latest_tag || 'None' }}
+
+                  ### ⏰ Release Information  
+                  - **Released on**: $triggered_time
+                  - **Build version**: v${{ steps.release_tag.outputs.release_tag }}
+                  - **Deployment**: Successfully deployed to Netlify"
 
             - name: Skip release notification
               if: steps.check_changes.outputs.relevant_change == 'false'
