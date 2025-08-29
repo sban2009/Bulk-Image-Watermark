@@ -130,19 +130,100 @@ class FileUploadHandler {
 			return;
 		}
 
-		// Simple click handler for upload area
-		this.uploadArea.addEventListener("click", (e) => {
+		// Enhanced mobile-compatible click handler
+		const triggerFileInput = (e) => {
+			// Only prevent default on mobile devices to avoid breaking desktop clicks
+			if (this.isMobileDevice()) {
+				e.preventDefault();
+				e.stopPropagation();
+			}
+
 			if (this.uploadArea.classList.contains("processing")) return;
+
+			// Clear previous selection
+			this.fileInput.value = "";
+
+			// Use different approaches for different browsers
+			try {
+				// For mobile browsers, try direct click first
+				if (this.isMobileDevice()) {
+					// On mobile, we need to ensure the input is visible momentarily
+					this.fileInput.style.opacity = "0.01";
+					this.fileInput.style.pointerEvents = "auto";
+
+					setTimeout(() => {
+						this.fileInput.click();
+						// Reset after a brief moment
+						setTimeout(() => {
+							this.fileInput.style.opacity = "0";
+							this.fileInput.style.pointerEvents = "none";
+						}, 100);
+					}, 10);
+				} else {
+					// Desktop browsers can use direct click
+					this.fileInput.click();
+				}
+			} catch (error) {
+				console.error("File input trigger failed:", error);
+				// Fallback: make input temporarily visible
+				this.makeInputTemporarilyVisible();
+			}
+		};
+
+		// Add multiple event listeners for better mobile compatibility
+		this.uploadArea.addEventListener("click", triggerFileInput);
+
+		// Only add touch events on actual mobile devices
+		if (this.isMobileDevice()) {
+			this.uploadArea.addEventListener("touchstart", triggerFileInput, { passive: false });
+			this.uploadArea.addEventListener(
+				"touchend",
+				(e) => {
+					e.preventDefault();
+				},
+				{ passive: false }
+			);
+		}
+
+		this.uploadArea.style.cursor = "pointer";
+	}
+
+	setupMobileFallback() {
+		// Setup mobile fallback button for browsers that block programmatic file input clicks
+		const fallbackBtn = document.getElementById("mobileFallbackBtn");
+		if (!fallbackBtn) return;
+
+		// Only show fallback button on actual mobile devices
+		if (this.isMobileDevice()) {
+			setTimeout(() => {
+				fallbackBtn.style.display = "block";
+				console.log("Mobile fallback button shown");
+			}, 2000); // Show after 2 seconds if main method doesn't work
+		}
+
+		fallbackBtn.addEventListener("click", (e) => {
+			e.preventDefault();
+			e.stopPropagation();
 
 			this.fileInput.value = "";
 			this.fileInput.click();
 		});
 
-		this.uploadArea.style.cursor = "pointer";
+		fallbackBtn.addEventListener(
+			"touchstart",
+			(e) => {
+				e.preventDefault();
+				this.fileInput.value = "";
+				this.fileInput.click();
+			},
+			{ passive: false }
+		);
 	}
 
 	setupMobileUploadButton() {
-		// Mobile button is removed, keeping method for compatibility
+		// Mobile upload button setup - placeholder method for compatibility
+		// This method is kept for backward compatibility but is no longer used
+		// The mobile fallback button is handled by setupMobileFallback()
 	}
 
 	triggerFileInput() {
@@ -156,6 +237,53 @@ class FileUploadHandler {
 				console.error("File input trigger failed:", error);
 			}
 		}, 10);
+	}
+
+	// Helper method to detect mobile devices
+	isMobileDevice() {
+		// More accurate mobile detection
+		const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+
+		// Check for mobile user agents
+		const mobileRegex = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
+
+		// Check for touch capability (but not just any touch - exclude hybrid devices)
+		const hasTouch = "ontouchstart" in window || navigator.maxTouchPoints > 0;
+
+		// Check screen size (typical mobile breakpoint)
+		const smallScreen = window.innerWidth <= 768 && window.innerHeight <= 1024;
+
+		// Additional check for iOS devices
+		const isIOS =
+			/iPad|iPhone|iPod/.test(userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
+		// Return true only if it's clearly a mobile device
+		return mobileRegex.test(userAgent) || (hasTouch && smallScreen) || isIOS;
+	}
+
+	// Fallback method to make input temporarily visible for mobile browsers
+	makeInputTemporarilyVisible() {
+		const originalOpacity = this.fileInput.style.opacity;
+		const originalPointerEvents = this.fileInput.style.pointerEvents;
+		const originalZIndex = this.fileInput.style.zIndex;
+
+		// Make input temporarily visible and clickable
+		this.fileInput.style.opacity = "0.1";
+		this.fileInput.style.pointerEvents = "auto";
+		this.fileInput.style.zIndex = "9999";
+		this.fileInput.style.backgroundColor = "rgba(255, 0, 0, 0.1)"; // Debug color
+
+		// Show a message to user
+		this.showStatus("Please tap the file input to select images...");
+
+		// Reset after 3 seconds
+		setTimeout(() => {
+			this.fileInput.style.opacity = originalOpacity || "0";
+			this.fileInput.style.pointerEvents = originalPointerEvents || "none";
+			this.fileInput.style.zIndex = originalZIndex || "10";
+			this.fileInput.style.backgroundColor = "";
+			this.clearStatus();
+		}, 3000);
 	}
 
 	handleFileSelect(e) {
@@ -269,6 +397,7 @@ class FileUploadHandler {
 		this.setupFileInputClick();
 		this.setupDragAndDrop();
 		this.setupMobileUploadButton();
+		this.setupMobileFallback();
 		this.fileInput.addEventListener("change", (e) => this.handleFileSelect(e));
 		this.isInitialized = true;
 		this.showStatus("Ready to upload images - Click here or drag files");

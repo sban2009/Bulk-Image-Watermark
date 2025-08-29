@@ -12,11 +12,12 @@
     <body>
         <div class="container">
             <!-- Header -->
-            <header class="app-header" style="position: relative">
-                <h1>Bulk Image Watermarking Tool</h1>
-                <p>Upload multiple images and add custom watermarks with advanced pattern controls and effects</p>
-                <button id="themeSwitcher" class="btn btn--sm"
-                    style="position: absolute; top: 16px; right: 16px; z-index: 10">
+            <header class="app-header">
+                <div class="header-content">
+                    <h1>Bulk Image Watermarking Tool</h1>
+                    <p>Upload multiple images and add custom watermarks with advanced pattern controls and effects</p>
+                </div>
+                <button id="themeSwitcher" class="btn btn--sm theme-switcher-btn">
                     🌙 Dark Mode
                 </button>
             </header>
@@ -40,6 +41,11 @@
                             <div class="upload-status" id="uploadStatus"></div>
                         </div>
                         <input type="file" id="fileInput" multiple accept="image/*" class="file-input-clickable" />
+                        <!-- Mobile fallback button (hidden by default, shown via JS if needed) -->
+                        <button type="button" id="mobileFallbackBtn" class="btn btn--primary mobile-fallback-btn"
+                            style="display: none; position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 20;">
+                            📁 Select Images
+                        </button>
                     </div>
 
                     <div id="fileList" class="file-list hidden">
