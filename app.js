@@ -112,10 +112,16 @@ document.addEventListener("DOMContentLoaded", function () {
  * - Preview image generation with proper scaling
  * - Error handling for unsupported files
  * - Integration with main application file management
- * - Mobile debug overlay for troubleshooting
+ * - Mobile debug overlay for troubleshooting (configurable via showMobileDebugUI flag)
+ *
+ * CONFIGURATION:
+ * - showMobileDebugUI: Set to false to completely disable the mobile debug overlay
  */
 class FileUploadHandler {
 	constructor() {
+		// Configuration flags
+		this.showMobileDebugUI = true; // Set to false to disable mobile debug overlay
+
 		// Supported image formats for validation
 		this.supportedTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"];
 		this.maxFileSize = 10485760; /* 10MB */
@@ -123,7 +129,9 @@ class FileUploadHandler {
 		this.fileInput = null;
 		this.isInitialized = false;
 		this.debugOverlay = null;
-		this.debugEnabled = this.isMobileDevice();
+		this.debugEnabled = this.isMobileDevice() && this.showMobileDebugUI;
+		this.isProcessing = false; // Prevent duplicate processing
+		this.lastProcessedFiles = null; // Track last processed files
 		this.init();
 	}
 
@@ -132,6 +140,10 @@ class FileUploadHandler {
 	}
 
 	enableDebugMode() {
+		if (!this.showMobileDebugUI) {
+			console.log("[FileUpload] Debug mode requested but mobile debug UI is disabled via flag");
+			return;
+		}
 		this.debugEnabled = true;
 		this.createDebugOverlay();
 		this.debug("Debug mode manually enabled");
@@ -152,7 +164,7 @@ class FileUploadHandler {
 	}
 
 	createDebugOverlay() {
-		if (!this.debugEnabled || this.debugOverlay) return;
+		if (!this.debugEnabled || !this.showMobileDebugUI || this.debugOverlay) return;
 
 		this.debugOverlay = document.createElement("div");
 		this.debugOverlay.id = "mobile-debug-overlay";
@@ -314,26 +326,46 @@ class FileUploadHandler {
 		button.style.cursor = "pointer";
 		button.style.boxShadow = "0 2px 8px rgba(0,123,255,0.3)";
 
+		let touchHandled = false;
+
 		const handleButtonClick = (e) => {
+			// Prevent double-firing on mobile devices
+			if (e.type === "click" && touchHandled) {
+				touchHandled = false;
+				return;
+			}
+
+			if (e.type === "touchend") {
+				touchHandled = true;
+			}
+
 			e.preventDefault();
 			e.stopPropagation();
 			this.debug("Fallback button clicked");
 
-			const handleFileSelection = () => {
-				setTimeout(() => {
-					if (this.fileInput.files && this.fileInput.files.length > 0) {
-						this.debug("Files selected via fallback", {
-							count: this.fileInput.files.length,
-						});
-						this.processFiles(Array.from(this.fileInput.files));
-					} else {
-						this.debug("No files selected via fallback");
-					}
-				}, 300);
+			// Create a new file input to avoid conflicts with existing event handlers
+			const tempInput = document.createElement("input");
+			tempInput.type = "file";
+			tempInput.multiple = true;
+			tempInput.accept = "image/*";
+			tempInput.style.display = "none";
+
+			const handleFileSelection = (e) => {
+				if (e.target.files && e.target.files.length > 0) {
+					this.debug("Files selected via fallback", {
+						count: e.target.files.length,
+					});
+					this.processFiles(Array.from(e.target.files));
+				} else {
+					this.debug("No files selected via fallback");
+				}
+				// Clean up temp input
+				document.body.removeChild(tempInput);
 			};
 
-			this.fileInput.addEventListener("change", handleFileSelection, { once: true });
-			this.fileInput.click();
+			tempInput.addEventListener("change", handleFileSelection);
+			document.body.appendChild(tempInput);
+			tempInput.click();
 		};
 
 		button.addEventListener("click", handleButtonClick);
@@ -376,9 +408,23 @@ class FileUploadHandler {
 			return;
 		}
 
-		const fileNames = Array.from(files).map((f) => f.name);
-		this.debug("Files selected", { files: fileNames });
+		// Prevent duplicate processing
+		if (this.isProcessing) {
+			this.debug("Already processing files, ignoring duplicate event");
+			return;
+		}
 
+		// Check if these are the same files we just processed
+		const fileNames = Array.from(files).map((f) => f.name + f.size);
+		const currentFilesSignature = fileNames.join("|");
+
+		if (this.lastProcessedFiles === currentFilesSignature) {
+			this.debug("Same files already processed, ignoring duplicate");
+			return;
+		}
+
+		this.debug("Files selected", { files: Array.from(files).map((f) => f.name) });
+		this.lastProcessedFiles = currentFilesSignature;
 		this.processFiles(Array.from(files));
 	}
 
@@ -389,6 +435,9 @@ class FileUploadHandler {
 			this.showError("No files to process");
 			return;
 		}
+
+		// Set processing flag
+		this.isProcessing = true;
 
 		const validFiles = [];
 		const errors = [];
@@ -428,6 +477,11 @@ class FileUploadHandler {
 		} else {
 			this.debug("No valid files to process");
 		}
+
+		// Reset processing flag after a short delay
+		setTimeout(() => {
+			this.isProcessing = false;
+		}, 1000);
 	}
 
 	validateFile(file) {
