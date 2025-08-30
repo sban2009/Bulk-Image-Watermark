@@ -948,7 +948,7 @@ select.form-control {
 }
 
 /* END PERPLEXITY DESIGN SYSTEM */
-/* FIXED File input styling - critical fix */
+/* File input styling - enhanced mobile compatibility */
 .file-input-clickable {
 	position: absolute;
 	top: 0;
@@ -968,13 +968,36 @@ select.form-control {
 	-ms-user-select: none;
 	user-select: none;
 	/* Ensure touch events work */
-	touch-action: manipulation;
-	/* Prevent text selection on tap */
-	-webkit-tap-highlight-color: transparent;
-	/* Safari/Edge specific fixes */
-	font-size: 16px; /* Prevent zoom on iOS */
-	border: none;
+	font-size: 16px; /* Prevents zoom on iOS */
 	background: transparent;
+	border: none;
+	touch-action: manipulation;
+	-webkit-tap-highlight-color: transparent;
+}
+
+/* Mobile file input overrides - applied via JavaScript */
+@media (max-width: 768px) {
+	.upload-area {
+		position: relative;
+	}
+
+	/* Ensure file input can receive touch events on mobile */
+	.file-input-clickable {
+		-webkit-tap-highlight-color: transparent;
+	}
+
+	/* Mobile fallback button styling */
+	.mobile-select-btn {
+		font-size: 14px !important;
+		padding: 8px 16px !important;
+		margin: 0 !important;
+		min-height: auto !important;
+		border-radius: 6px !important;
+		background: var(--primary-color) !important;
+		color: white !important;
+		border: none !important;
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+	}
 }
 
 /* Application-specific styles */

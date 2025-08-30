@@ -112,6 +112,7 @@ document.addEventListener("DOMContentLoaded", function () {
  * - Preview image generation with proper scaling
  * - Error handling for unsupported files
  * - Integration with main application file management
+ * - Mobile debug overlay for troubleshooting
  */
 class FileUploadHandler {
 	constructor() {
@@ -121,16 +122,228 @@ class FileUploadHandler {
 		this.uploadArea = null;
 		this.fileInput = null;
 		this.isInitialized = false;
+		this.debugOverlay = null;
+		this.debugEnabled = this.isMobileDevice();
 		this.init();
+	}
+
+	isMobileDevice() {
+		return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+	}
+
+	enableDebugMode() {
+		this.debugEnabled = true;
+		this.createDebugOverlay();
+		this.debug("Debug mode manually enabled");
+	}
+
+	debug(message, data = null) {
+		// Always log to console
+		if (data) {
+			console.log(`[FileUpload] ${message}`, data);
+		} else {
+			console.log(`[FileUpload] ${message}`);
+		}
+
+		// Show on mobile debug overlay
+		if (this.debugEnabled && this.debugOverlay) {
+			this.addDebugMessage(message, data);
+		}
+	}
+
+	createDebugOverlay() {
+		if (!this.debugEnabled || this.debugOverlay) return;
+
+		this.debugOverlay = document.createElement("div");
+		this.debugOverlay.id = "mobile-debug-overlay";
+		this.debugOverlay.innerHTML = `
+			<div style="
+				position: fixed;
+				top: 10px;
+				right: 10px;
+				width: 300px;
+				max-height: 200px;
+				background: rgba(0,0,0,0.9);
+				color: #00ff00;
+				font-family: monospace;
+				font-size: 11px;
+				padding: 8px;
+				border-radius: 4px;
+				z-index: 9999;
+				overflow-y: auto;
+				border: 1px solid #333;
+			">
+				<div style="display: flex; justify-content: between; align-items: center; margin-bottom: 5px;">
+					<strong style="color: #fff;">Mobile Debug</strong>
+					<button id="debug-close" style="background: #ff4444; color: white; border: none; padding: 2px 6px; border-radius: 2px; margin-left: auto;">×</button>
+				</div>
+				<div id="debug-messages" style="max-height: 150px; overflow-y: auto;"></div>
+			</div>
+		`;
+
+		document.body.appendChild(this.debugOverlay);
+
+		// Close button functionality
+		document.getElementById("debug-close").addEventListener("click", () => {
+			this.debugOverlay.remove();
+			this.debugOverlay = null;
+		});
+
+		this.debug("Debug overlay initialized");
+	}
+
+	addDebugMessage(message, data) {
+		if (!this.debugOverlay) return;
+
+		const messagesContainer = this.debugOverlay.querySelector("#debug-messages");
+		const timestamp = new Date().toLocaleTimeString();
+		const logEntry = document.createElement("div");
+		logEntry.style.marginBottom = "2px";
+		logEntry.style.fontSize = "10px";
+
+		let displayMessage = `${timestamp}: ${message}`;
+		if (data) {
+			displayMessage += ` ${JSON.stringify(data)}`;
+		}
+
+		logEntry.textContent = displayMessage;
+		messagesContainer.appendChild(logEntry);
+
+		// Keep only last 20 messages
+		while (messagesContainer.children.length > 20) {
+			messagesContainer.removeChild(messagesContainer.firstChild);
+		}
+
+		// Auto scroll to bottom
+		messagesContainer.scrollTop = messagesContainer.scrollHeight;
 	}
 
 	setupFileInputClick() {
 		if (!this.uploadArea || !this.fileInput) {
+			this.debug("ERROR: Elements not found for file input click setup");
 			console.error("Elements not found for file input click setup");
 			return;
 		}
 
-		// Simple, reliable click handler that works across all browsers
+		// Create debug overlay on mobile
+		if (this.debugEnabled) {
+			this.createDebugOverlay();
+		}
+
+		// Detect mobile browsers for different handling
+		const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+		const isIOSSafari = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+		const isAndroidChrome = /Android/.test(navigator.userAgent) && /Chrome/.test(navigator.userAgent);
+
+		this.debug("File upload setup", {
+			userAgent: navigator.userAgent.substring(0, 50) + "...",
+			isMobile,
+			isIOSSafari,
+			isAndroidChrome,
+		});
+
+		if (isMobile) {
+			this.setupMobileFileInput();
+		} else {
+			this.setupDesktopFileInput();
+		}
+
+		// Add file change handler
+		this.fileInput.addEventListener("change", (e) => {
+			this.debug("File input change event triggered", {
+				filesCount: e.target.files ? e.target.files.length : 0,
+			});
+			this.handleFileSelect(e);
+		});
+
+		// Additional mobile event handlers for better compatibility
+		if (isMobile) {
+			this.fileInput.addEventListener("input", (e) => {
+				if (e.target.files && e.target.files.length > 0) {
+					this.debug("File input input event triggered", {
+						filesCount: e.target.files.length,
+					});
+					this.handleFileSelect(e);
+				}
+			});
+		}
+
+		// Add fallback button for problematic mobile browsers
+		if (isIOSSafari || isAndroidChrome) {
+			this.setupMobileFallback();
+		}
+	}
+
+	setupMobileFileInput() {
+		this.uploadArea.style.cursor = "default";
+
+		// Style file input for mobile compatibility
+		this.fileInput.style.opacity = "0";
+		this.fileInput.style.position = "absolute";
+		this.fileInput.style.top = "0";
+		this.fileInput.style.left = "0";
+		this.fileInput.style.width = "100%";
+		this.fileInput.style.height = "100%";
+		this.fileInput.style.cursor = "pointer";
+		this.fileInput.style.fontSize = "16px"; // Prevents zoom on iOS
+		this.fileInput.style.background = "transparent";
+		this.fileInput.style.border = "none";
+		this.fileInput.style.zIndex = "15";
+
+		this.uploadArea.style.position = "relative";
+		this.debug("Mobile file input setup completed");
+	}
+
+	setupMobileFallback() {
+		// Visible button for problematic mobile browsers
+		const button = document.createElement("button");
+		button.textContent = "📁 Select Images";
+		button.className = "btn btn--primary mobile-select-btn";
+		button.style.position = "absolute";
+		button.style.bottom = "15px";
+		button.style.left = "50%";
+		button.style.transform = "translateX(-50%)";
+		button.style.zIndex = "25";
+		button.style.fontSize = "16px";
+		button.style.padding = "12px 24px";
+		button.style.borderRadius = "8px";
+		button.style.border = "none";
+		button.style.backgroundColor = "#007bff";
+		button.style.color = "white";
+		button.style.fontWeight = "600";
+		button.style.cursor = "pointer";
+		button.style.boxShadow = "0 2px 8px rgba(0,123,255,0.3)";
+
+		const handleButtonClick = (e) => {
+			e.preventDefault();
+			e.stopPropagation();
+			this.debug("Fallback button clicked");
+
+			const handleFileSelection = () => {
+				setTimeout(() => {
+					if (this.fileInput.files && this.fileInput.files.length > 0) {
+						this.debug("Files selected via fallback", {
+							count: this.fileInput.files.length,
+						});
+						this.processFiles(Array.from(this.fileInput.files));
+					} else {
+						this.debug("No files selected via fallback");
+					}
+				}, 300);
+			};
+
+			this.fileInput.addEventListener("change", handleFileSelection, { once: true });
+			this.fileInput.click();
+		};
+
+		button.addEventListener("click", handleButtonClick);
+		button.addEventListener("touchend", handleButtonClick);
+		this.uploadArea.appendChild(button);
+		this.debug("Mobile fallback button added");
+	}
+
+	setupDesktopFileInput() {
+		// Desktop: Use the click-through approach
 		this.uploadArea.addEventListener("click", (e) => {
 			// Prevent processing if already handling files
 			if (this.uploadArea.classList.contains("processing")) {
@@ -140,7 +353,7 @@ class FileUploadHandler {
 			// Clear previous selection to ensure change event fires
 			this.fileInput.value = "";
 
-			// Direct click - works reliably on all browsers
+			// Direct click - works reliably on desktop browsers
 			try {
 				this.fileInput.click();
 			} catch (error) {
@@ -153,14 +366,25 @@ class FileUploadHandler {
 
 	handleFileSelect(e) {
 		const files = e.target.files;
+		this.debug("handleFileSelect called", {
+			filesCount: files ? files.length : 0,
+			eventType: e.type,
+		});
+
 		if (!files || files.length === 0) {
+			this.debug("No files selected");
 			return;
 		}
+
+		const fileNames = Array.from(files).map((f) => f.name);
+		this.debug("Files selected", { files: fileNames });
 
 		this.processFiles(Array.from(files));
 	}
 
 	processFiles(files) {
+		this.debug("processFiles called", { count: files.length });
+
 		if (!files || files.length === 0) {
 			this.showError("No files to process");
 			return;
@@ -171,11 +395,21 @@ class FileUploadHandler {
 
 		files.forEach((file) => {
 			const validation = this.validateFile(file);
+			this.debug(`File validation: ${file.name}`, {
+				valid: validation.isValid,
+				error: validation.error || "none",
+			});
+
 			if (validation.isValid) {
 				validFiles.push(file);
 			} else {
 				errors.push(`${file.name}: ${validation.error}`);
 			}
+		});
+
+		this.debug("Validation complete", {
+			validFiles: validFiles.length,
+			errors: errors.length,
 		});
 
 		if (errors.length > 0) {
@@ -185,10 +419,14 @@ class FileUploadHandler {
 		if (validFiles.length > 0) {
 			this.showStatus(`Processing ${validFiles.length} valid files...`);
 			if (window.watermarkApp) {
+				this.debug("Calling watermarkApp.addFiles");
 				window.watermarkApp.addFiles(validFiles);
 			} else {
+				this.debug("ERROR: watermarkApp not found");
 				this.showError("Application not ready. Please refresh the page.");
 			}
+		} else {
+			this.debug("No valid files to process");
 		}
 	}
 
@@ -249,6 +487,23 @@ class FileUploadHandler {
 		} else {
 			this.setupElements();
 		}
+
+		// Global debug toggle (press Ctrl+Shift+D on desktop)
+		document.addEventListener("keydown", (e) => {
+			if (e.ctrlKey && e.shiftKey && e.key === "D") {
+				e.preventDefault();
+				if (!this.debugEnabled) {
+					this.enableDebugMode();
+				} else if (this.debugOverlay) {
+					this.debugOverlay.remove();
+					this.debugOverlay = null;
+					this.debugEnabled = false;
+				}
+			}
+		});
+
+		// Make debug accessible globally for console access
+		window.fileUploadDebug = this;
 	}
 
 	setupElements() {
@@ -266,10 +521,6 @@ class FileUploadHandler {
 
 		this.setupFileInputClick();
 		this.setupDragAndDrop();
-
-		this.fileInput.addEventListener("change", (e) => {
-			this.handleFileSelect(e);
-		});
 
 		this.isInitialized = true;
 		this.showStatus("Ready to upload images - Click here or drag files");
@@ -850,8 +1101,6 @@ class BulkWatermarkApp {
 		reader.onerror = () => {
 			fileData.error = "Failed to load image";
 			this.renderImageGrid();
-
-			// Update UI even on error to show current status
 			this.updateUI();
 		};
 
