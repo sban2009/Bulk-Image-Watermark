@@ -961,16 +961,85 @@ select.form-control {
 	/* Improve mobile compatibility */
 	-webkit-appearance: none;
 	appearance: none;
+	/* Mobile-specific improvements */
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	/* Ensure touch events work */
+	touch-action: manipulation;
+	/* Prevent text selection on tap */
+	-webkit-tap-highlight-color: transparent;
+	/* Safari/Edge specific fixes */
+	font-size: 16px; /* Prevent zoom on iOS */
+	border: none;
+	background: transparent;
 }
 
 /* Application-specific styles */
 .app-header {
+	position: relative;
 	text-align: center;
-	padding: var(--space-32) 0 var(--space-32) 0;
+	padding: var(--space-32) var(--space-32) var(--space-32) var(--space-32);
 	border-bottom: 1px solid var(--color-border);
 	margin-bottom: var(--space-32);
 	background: linear-gradient(135deg, var(--color-bg-1), var(--color-bg-2));
 	border-radius: var(--radius-lg);
+}
+
+.header-content {
+	margin-bottom: 0;
+}
+
+/* Desktop theme switcher positioning */
+.theme-switcher-btn {
+	position: absolute;
+	top: 16px;
+	right: 16px;
+	z-index: 10;
+}
+
+/* Mobile responsive styles for theme switcher */
+@media (max-width: 768px) {
+	.app-header {
+		padding: var(--space-24) var(--space-16) var(--space-20) var(--space-16);
+		text-align: center;
+	}
+
+	.header-content {
+		margin-bottom: var(--space-16);
+	}
+
+	.theme-switcher-btn {
+		position: static !important;
+		display: block !important;
+		margin: 0 auto !important;
+		width: fit-content !important;
+	}
+}
+
+@media (max-width: 480px) {
+	.app-header {
+		padding: var(--space-20) var(--space-12) var(--space-16) var(--space-12);
+	}
+
+	.app-header h1 {
+		font-size: var(--font-size-xl);
+		line-height: 1.2;
+		margin-bottom: var(--space-8);
+	}
+
+	.app-header p {
+		font-size: var(--font-size-base);
+		line-height: 1.4;
+	}
+
+	.theme-switcher-btn {
+		margin-top: var(--space-8);
+		padding: var(--space-8) var(--space-16);
+		font-size: var(--font-size-sm);
+	}
 }
 
 .app-header h1 {

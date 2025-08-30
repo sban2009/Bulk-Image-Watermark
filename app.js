@@ -130,37 +130,33 @@ class FileUploadHandler {
 			return;
 		}
 
-		// Simple click handler for upload area
+		// Simple, reliable click handler that works across all browsers
 		this.uploadArea.addEventListener("click", (e) => {
-			if (this.uploadArea.classList.contains("processing")) return;
+			// Prevent processing if already handling files
+			if (this.uploadArea.classList.contains("processing")) {
+				return;
+			}
 
+			// Clear previous selection to ensure change event fires
 			this.fileInput.value = "";
-			this.fileInput.click();
+
+			// Direct click - works reliably on all browsers
+			try {
+				this.fileInput.click();
+			} catch (error) {
+				console.error("File input click failed:", error);
+			}
 		});
 
 		this.uploadArea.style.cursor = "pointer";
 	}
 
-	setupMobileUploadButton() {
-		// Mobile button is removed, keeping method for compatibility
-	}
-
-	triggerFileInput() {
-		if (!this.fileInput) return;
-		this.fileInput.value = "";
-		// Use setTimeout for better mobile compatibility
-		setTimeout(() => {
-			try {
-				this.fileInput.click();
-			} catch (error) {
-				console.error("File input trigger failed:", error);
-			}
-		}, 10);
-	}
-
 	handleFileSelect(e) {
 		const files = e.target.files;
-		if (!files || files.length === 0) return;
+		if (!files || files.length === 0) {
+			return;
+		}
+
 		this.processFiles(Array.from(files));
 	}
 
@@ -190,6 +186,8 @@ class FileUploadHandler {
 			this.showStatus(`Processing ${validFiles.length} valid files...`);
 			if (window.watermarkApp) {
 				window.watermarkApp.addFiles(validFiles);
+			} else {
+				this.showError("Application not ready. Please refresh the page.");
 			}
 		}
 	}
@@ -243,7 +241,7 @@ class FileUploadHandler {
 			statusEl.textContent = "";
 		}
 	}
-	// Call drag and drop setup after DOM is ready
+
 	init() {
 		// Wait for DOM to be fully loaded
 		if (document.readyState === "loading") {
@@ -261,15 +259,18 @@ class FileUploadHandler {
 			return;
 		}
 
-		/* Ensure uploadArea is positioned for absolute children */
+		// Ensure uploadArea is positioned for absolute children
 		if (getComputedStyle(this.uploadArea).position === "static") {
 			this.uploadArea.style.position = "relative";
 		}
 
 		this.setupFileInputClick();
 		this.setupDragAndDrop();
-		this.setupMobileUploadButton();
-		this.fileInput.addEventListener("change", (e) => this.handleFileSelect(e));
+
+		this.fileInput.addEventListener("change", (e) => {
+			this.handleFileSelect(e);
+		});
+
 		this.isInitialized = true;
 		this.showStatus("Ready to upload images - Click here or drag files");
 	}
