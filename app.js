@@ -2389,7 +2389,7 @@ class BulkWatermarkApp {
 
 		const ctx = canvas.getContext("2d");
 
-		// Calculate canvas size
+		// Calculate canvas size for preview display
 		const maxWidth = 800;
 		const maxHeight = 600;
 		const ratio = Math.min(maxWidth / img.width, maxHeight / img.height);
@@ -2403,17 +2403,42 @@ class BulkWatermarkApp {
 		ctx.clearRect(0, 0, width, height);
 		ctx.drawImage(img, 0, 0, width, height);
 
-		/* If we have a logo watermark but no cache yet, build one sized to this preview so placement/spacing is accurate immediately */
-		try {
-			if (this.watermarkSettings.watermarkLogo && !this._watermarkCache) {
-				this.buildWatermarkCache(ctx, width, height);
-			}
-		} catch (e) {
-			/* ignore */
+		// Store the scaling ratio for watermark positioning
+		const originalImageWidth = img.width;
+		const originalImageHeight = img.height;
+		const previewRatio = ratio;
+
+		/* Apply watermark with proper scaling - base calculations on original image size,
+		   then scale the final positioning for the preview canvas */
+		this.applyWatermarkWithScaling(ctx, originalImageWidth, originalImageHeight, previewRatio);
+	}
+
+	applyWatermarkWithScaling(ctx, originalWidth, originalHeight, scalingRatio) {
+		// Create a temporary context for calculations based on original image size
+		const tempCanvas = document.createElement("canvas");
+		const tempCtx = tempCanvas.getContext("2d");
+		tempCanvas.width = originalWidth;
+		tempCanvas.height = originalHeight;
+
+		// Build watermark cache based on original image dimensions
+		this.buildWatermarkCache(tempCtx, originalWidth, originalHeight);
+
+		// Now apply watermark positioning logic based on original dimensions
+		const mode = this.watermarkSettings.patternMode;
+
+		ctx.save();
+		// Scale the context to match the preview scaling
+		ctx.scale(scalingRatio, scalingRatio);
+		ctx.globalAlpha = this.watermarkSettings.opacity / 100;
+
+		if (mode === "single") {
+			this.applySingleWatermark(ctx, originalWidth, originalHeight);
+		} else {
+			// Treat diagonal and grid as a single tiled pattern implementation
+			this.applyTiledPattern(ctx, originalWidth, originalHeight);
 		}
 
-		// Apply watermark
-		this.applyWatermark(ctx, width, height);
+		ctx.restore();
 	}
 
 	applyWatermark(ctx, canvasWidth, canvasHeight) {
@@ -2442,40 +2467,65 @@ class BulkWatermarkApp {
 		const isCorner = position.x <= 0.2 || position.x >= 0.8 || position.y <= 0.2 || position.y >= 0.8;
 
 		if (singleMode && isCorner) {
-			// Prefer cached footprint for exact placement; fall back to estimation.
-			let w = this._watermarkCache?.w || 0;
-			let h = this._watermarkCache?.h || 0;
-			if (!w || !h) {
-				// Try a light estimate based on current settings
-				if (this.watermarkSettings.type === "text") {
-					const tmpFontSize = Math.max(8, (this.watermarkSettings.fontSize * canvasWidth) / 800);
-					ctx.font = `${tmpFontSize}px ${this.watermarkSettings.fontFamily}`;
-					const metrics = ctx.measureText(this.watermarkSettings.text || "Watermark");
-					w =
-						metrics.width ||
-						tmpFontSize * (this.watermarkSettings.text ? this.watermarkSettings.text.length * 0.6 : 4);
-					h = Math.ceil(tmpFontSize * 1.1);
-				} else if (this.watermarkSettings.type === "logo" && this.watermarkSettings.watermarkLogo) {
-					const img = this.watermarkSettings.watermarkLogo;
-					const scale = this.getLogoScaleFraction();
-					w = img.width * scale;
-					h = img.height * scale;
+			// Calculate actual watermark dimensions for this specific canvas
+			let w = 0;
+			let h = 0;
+
+			if (this.watermarkSettings.type === "text") {
+				const fontSize = Math.max(12, (this.watermarkSettings.fontSize * canvasWidth) / 800);
+				ctx.font = `${fontSize}px ${this.watermarkSettings.fontFamily}`;
+				const metrics = ctx.measureText(this.watermarkSettings.text || "Watermark");
+				w =
+					metrics.width ||
+					fontSize * (this.watermarkSettings.text ? this.watermarkSettings.text.length * 0.6 : 4);
+				h = fontSize;
+			} else if (this.watermarkSettings.type === "logo" && this.watermarkSettings.watermarkLogo) {
+				const img = this.watermarkSettings.watermarkLogo;
+				const scale = this.getLogoScaleFraction();
+				const maxSize = Math.min(canvasWidth, canvasHeight) * scale;
+				let ratio = Math.min(maxSize / img.width, maxSize / img.height);
+				ratio = Math.max(ratio, 0.02); // Ensure minimum visibility
+				w = img.width * ratio;
+				h = img.height * ratio;
+
+				// Enforce minimum visible size
+				const MIN_VISIBLE_PX = 6;
+				if (w < MIN_VISIBLE_PX || h < MIN_VISIBLE_PX) {
+					const scaleUp = MIN_VISIBLE_PX / Math.max(1, Math.max(w, h));
+					w = Math.max(MIN_VISIBLE_PX, Math.round(w * scaleUp));
+					h = Math.max(MIN_VISIBLE_PX, Math.round(h * scaleUp));
 				}
 			}
 
-			// Center coordinates that will place watermark content flush to edges
-			let x = canvasWidth / 2;
-			let y = canvasHeight / 2;
+			// Calculate proper corner positions with padding to keep watermark inside canvas
+			const padding = 10; // Small padding to keep watermark fully visible
+			let x, y;
 
-			if (position.x <= 0.2) x = w / 2;
-			else if (position.x >= 0.8) x = canvasWidth - w / 2;
+			// X positioning
+			if (position.x <= 0.2) {
+				x = w / 2 + padding; // Left edge with padding
+			} else if (position.x >= 0.8) {
+				x = canvasWidth - w / 2 - padding; // Right edge with padding
+			} else {
+				x = canvasWidth / 2; // Center
+			}
 
-			if (position.y <= 0.2) y = h / 2;
-			else if (position.y >= 0.8) y = canvasHeight - h / 2;
+			// Y positioning
+			if (position.y <= 0.2) {
+				y = h / 2 + padding; // Top edge with padding
+			} else if (position.y >= 0.8) {
+				y = canvasHeight - h / 2 - padding; // Bottom edge with padding
+			} else {
+				y = canvasHeight / 2; // Center
+			}
 
-			// apply any fine offsets
+			// Apply fine offsets
 			x += (this.watermarkSettings.offsetX * canvasWidth) / 800;
 			y += (this.watermarkSettings.offsetY * canvasHeight) / 600;
+
+			// Ensure watermark stays within canvas bounds after offsets
+			x = Math.max(w / 2 + padding, Math.min(canvasWidth - w / 2 - padding, x));
+			y = Math.max(h / 2 + padding, Math.min(canvasHeight - h / 2 - padding, y));
 
 			this.drawRotatedWatermark(ctx, x, y, angle);
 			return;
@@ -2739,43 +2789,62 @@ class BulkWatermarkApp {
 		let x = canvasWidth * position.x;
 		let y = canvasHeight * position.y;
 
-		// adjust to keep watermark inside canvas and aligned to corners
+		// Calculate text dimensions for proper positioning
 		const metrics = ctx.measureText(this.watermarkSettings.text);
 		const textWidth =
 			metrics.width || fontSize * (this.watermarkSettings.text ? this.watermarkSettings.text.length * 0.6 : 4);
 		const textHeight = fontSize;
 
-		// Padding: keep small by default. If in single mode and a corner position, reduce padding to bring watermark flush to edge.
-		let padX = Math.min(12, Math.round(textWidth * 0.05) + 4);
-		let padY = Math.min(12, Math.round(textHeight * 0.1) + 2);
+		// Padding: use consistent padding for all modes
+		const padding = 10;
 		const singleMode = this.watermarkSettings.patternMode === "single";
 		const isCorner = position.x <= 0.2 || position.x >= 0.8 || position.y <= 0.2 || position.y >= 0.8;
-		if (singleMode && isCorner) {
-			// allow exact flush: zero pad will place watermark at the edge.
-			padX = 0;
-			padY = 0;
-		}
 
-		// Clamp X/Y depending on alignment
+		// Position and clamp based on alignment, ensuring watermark stays within bounds
 		if (position.x <= 0.2) {
-			x = Math.max(textWidth / 2 + padX, x);
+			// Left alignment
+			x = Math.max(padding, x);
 			ctx.textAlign = "start";
+			// Ensure text doesn't go beyond right edge
+			x = Math.min(x, canvasWidth - textWidth - padding);
 		} else if (position.x >= 0.8) {
-			x = Math.min(canvasWidth - textWidth / 2 - padX, x);
+			// Right alignment
+			x = Math.min(canvasWidth - padding, x);
 			ctx.textAlign = "end";
+			// Ensure text doesn't go beyond left edge
+			x = Math.max(x, textWidth + padding);
 		} else {
+			// Center alignment
 			ctx.textAlign = "center";
+			// Ensure centered text stays within bounds
+			x = Math.max(textWidth / 2 + padding, Math.min(canvasWidth - textWidth / 2 - padding, x));
 		}
 
+		// Y positioning with bounds checking
 		if (position.y <= 0.2) {
-			y = Math.max(textHeight / 2 + padY, y);
+			// Top alignment
+			y = Math.max(textHeight / 2 + padding, y);
 		} else if (position.y >= 0.8) {
-			y = Math.min(canvasHeight - textHeight / 2 - padY, y);
+			// Bottom alignment
+			y = Math.min(canvasHeight - textHeight / 2 - padding, y);
+		} else {
+			// Center alignment
+			y = Math.max(textHeight / 2 + padding, Math.min(canvasHeight - textHeight / 2 - padding, y));
 		}
 
 		// Apply offsets
 		x += (this.watermarkSettings.offsetX * canvasWidth) / 800;
 		y += (this.watermarkSettings.offsetY * canvasHeight) / 600;
+
+		// Final bounds check after applying offsets
+		if (ctx.textAlign === "start") {
+			x = Math.max(padding, Math.min(canvasWidth - textWidth - padding, x));
+		} else if (ctx.textAlign === "end") {
+			x = Math.max(textWidth + padding, Math.min(canvasWidth - padding, x));
+		} else {
+			x = Math.max(textWidth / 2 + padding, Math.min(canvasWidth - textWidth / 2 - padding, x));
+		}
+		y = Math.max(textHeight / 2 + padding, Math.min(canvasHeight - textHeight / 2 - padding, y));
 
 		// Apply rotation and effects
 		if (this.watermarkSettings.watermarkRotation !== 0) {
@@ -3109,73 +3178,70 @@ class BulkWatermarkApp {
 		const maxSize = Math.min(canvasWidth, canvasHeight) * scale;
 		let ratio = Math.min(maxSize / img.width, maxSize / img.height);
 		/* Ensure ratio is not zero; clamp to tiny epsilon to keep logo visible */
-		ratio = Math.max(ratio, 0.02); /* allow smaller ratio for cache but we'll enforce visible px later */
-		const width = img.width * ratio;
-		const height = img.height * ratio;
+		ratio = Math.max(ratio, 0.02);
 
-		let x = canvasWidth * position.x;
-		let y = canvasHeight * position.y;
-
-		/* Ensure logo watermark stays inside canvas bounds with tighter padding */
-		const maxLogoSize = Math.min(canvasWidth, canvasHeight) * this.getLogoScaleFraction();
-		let logoWidth = Math.min(width, maxLogoSize);
-		let logoHeight = Math.min(height, maxLogoSize);
+		let logoWidth = img.width * ratio;
+		let logoHeight = img.height * ratio;
 
 		/* Enforce a sensible minimum visible size (in px) to avoid invisible preview */
-		/* due to rounding on small canvases or small source logos. Keep clip-safe minimum. */
 		const MIN_VISIBLE_PX = 6;
 		if (logoWidth < MIN_VISIBLE_PX || logoHeight < MIN_VISIBLE_PX) {
-			/* Scale up proportionally to meet min visible threshold while preserving aspect */
 			const scaleUp = MIN_VISIBLE_PX / Math.max(1, Math.max(logoWidth, logoHeight));
 			logoWidth = Math.max(MIN_VISIBLE_PX, Math.round(logoWidth * scaleUp));
 			logoHeight = Math.max(MIN_VISIBLE_PX, Math.round(logoHeight * scaleUp));
 		}
 
-		let padX = Math.min(12, Math.round(logoWidth * 0.05) + 4);
-		let padY = Math.min(12, Math.round(logoHeight * 0.05) + 4);
-		const singleMode = this.watermarkSettings.patternMode === "single";
-		const isCorner = position.x <= 0.2 || position.x >= 0.8 || position.y <= 0.2 || position.y >= 0.8;
-		if (singleMode && isCorner) {
-			padX = 0;
-			padY = 0;
+		// Use consistent padding for all modes
+		const padding = 10;
+
+		// Calculate initial position
+		let x = canvasWidth * position.x;
+		let y = canvasHeight * position.y;
+
+		// Position based on alignment, ensuring logo stays within bounds
+		if (position.x <= 0.2) {
+			// Left alignment
+			x = Math.max(padding, x);
+		} else if (position.x >= 0.8) {
+			// Right alignment
+			x = Math.min(canvasWidth - logoWidth - padding, x);
+		} else {
+			// Center alignment
+			x = Math.max(logoWidth / 2 + padding, Math.min(canvasWidth - logoWidth / 2 - padding, x - logoWidth / 2));
 		}
 
-		if (position.x >= 0.8) {
-			x = Math.min(canvasWidth - logoWidth - padX, x);
-		} else if (position.x <= 0.2) {
-			x = Math.max(padX, x);
+		if (position.y <= 0.2) {
+			// Top alignment
+			y = Math.max(padding, y);
+		} else if (position.y >= 0.8) {
+			// Bottom alignment
+			y = Math.min(canvasHeight - logoHeight - padding, y);
 		} else {
-			x = x - logoWidth / 2;
-		}
-
-		if (position.y >= 0.8) {
-			y = Math.min(canvasHeight - logoHeight - padY, y);
-		} else if (position.y <= 0.2) {
-			y = Math.max(padY, y);
-		} else {
-			y = y - logoHeight / 2;
+			// Center alignment
+			y = Math.max(
+				logoHeight / 2 + padding,
+				Math.min(canvasHeight - logoHeight / 2 - padding, y - logoHeight / 2)
+			);
 		}
 
 		/* Apply offsets */
 		x += (this.watermarkSettings.offsetX * canvasWidth) / 800;
 		y += (this.watermarkSettings.offsetY * canvasHeight) / 600;
 
+		/* Final bounds check after applying offsets */
+		x = Math.max(padding, Math.min(canvasWidth - logoWidth - padding, x));
+		y = Math.max(padding, Math.min(canvasHeight - logoHeight - padding, y));
+
 		/* Apply rotation */
 		if (this.watermarkSettings.watermarkRotation !== 0) {
 			ctx.save();
-			/* Use clamped logoWidth/logoHeight for translation so rotation centers correctly */
+			/* Use center of logo for rotation */
 			ctx.translate(x + logoWidth / 2, y + logoHeight / 2);
 			ctx.rotate((this.watermarkSettings.watermarkRotation * Math.PI) / 180);
-			ctx.drawImage(
-				img,
-				-Math.max(logoWidth, 4) / 2,
-				-Math.max(logoHeight, 4) / 2,
-				Math.max(logoWidth, 4),
-				Math.max(logoHeight, 4)
-			);
+			ctx.drawImage(img, -logoWidth / 2, -logoHeight / 2, logoWidth, logoHeight);
 			ctx.restore();
 		} else {
-			ctx.drawImage(img, x, y, Math.max(logoWidth, 4), Math.max(logoHeight, 4));
+			ctx.drawImage(img, x, y, logoWidth, logoHeight);
 		}
 	}
 
