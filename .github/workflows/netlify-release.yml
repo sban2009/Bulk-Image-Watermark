@@ -4,6 +4,10 @@ on:
     repository_dispatch:
         types: [webhook_trigger]
 
+concurrency:
+    group: netlify-release
+    cancel-in-progress: false
+
 jobs:
     create-release:
         runs-on: ubuntu-latest
@@ -35,8 +39,28 @@ jobs:
 
                   echo "relevant_change=$relevant_change" >> $GITHUB_OUTPUT
 
-            - name: Generate release tag
+            - name: Check for existing release
               if: steps.check_changes.outputs.relevant_change == 'true'
+              id: check_existing
+              run: |
+                  # Check if current HEAD commit already has a release
+                  current_commit=$(git rev-parse HEAD)
+                  echo "Current commit: $current_commit"
+
+                  existing_release=$(gh release list --json tagName,targetCommitish --jq ".[] | select(.targetCommitish == \"$current_commit\") | .tagName" 2>/dev/null || echo "")
+
+                  if [ -n "$existing_release" ]; then
+                    echo "Release already exists for commit $current_commit: $existing_release"
+                    echo "should_create=false" >> $GITHUB_OUTPUT
+                  else
+                    echo "No existing release found for current commit"
+                    echo "should_create=true" >> $GITHUB_OUTPUT
+                  fi
+              env:
+                  GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+
+            - name: Generate release tag
+              if: steps.check_changes.outputs.relevant_change == 'true' && steps.check_existing.outputs.should_create == 'true'
               id: release_tag
               run: |
                   # Generate base date in YY.MM.DD format using IST (GMT+5:30)
@@ -65,7 +89,7 @@ jobs:
                   GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
 
             - name: Get latest release tag
-              if: steps.check_changes.outputs.relevant_change == 'true'
+              if: steps.check_changes.outputs.relevant_change == 'true' && steps.check_existing.outputs.should_create == 'true'
               id: latest_release
               run: |
                   latest_tag=$(gh release list --limit 1 --json tagName --jq '.[0].tagName' 2>/dev/null || echo "")
@@ -74,17 +98,17 @@ jobs:
                   GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
 
             - name: Get git history since last release
-              if: steps.check_changes.outputs.relevant_change == 'true'
+              if: steps.check_changes.outputs.relevant_change == 'true' && steps.check_existing.outputs.should_create == 'true'
               id: git_history
               run: |
                   if [ -n "${{ steps.latest_release.outputs.latest_tag }}" ]; then
                     echo "Getting commit history since ${{ steps.latest_release.outputs.latest_tag }}"
-                    # Get all commits since last release with better formatting, excluding merge commits
-                    commits=$(git log --oneline --no-merges --pretty=format:"- **%s** (%h)" ${{ steps.latest_release.outputs.latest_tag }}..HEAD | head -15)
+                    # Get all commits since last release with better formatting, excluding merge commits and duplicates
+                    commits=$(git log --oneline --no-merges --pretty=format:"- **%s** (%h)" ${{ steps.latest_release.outputs.latest_tag }}..HEAD | sort -u | head -15)
                     commit_count=$(git rev-list --count --no-merges ${{ steps.latest_release.outputs.latest_tag }}..HEAD)
                   else
                     echo "No previous release found, getting recent commits"
-                    commits=$(git log --oneline --no-merges --pretty=format:"- **%s** (%h)" -10)
+                    commits=$(git log --oneline --no-merges --pretty=format:"- **%s** (%h)" -10 | sort -u)
                     commit_count=$(git rev-list --count --no-merges HEAD)
                   fi
 
@@ -101,7 +125,7 @@ jobs:
                   echo "commit_count=$commit_count" >> $GITHUB_OUTPUT
 
             - name: Create Release
-              if: steps.check_changes.outputs.relevant_change == 'true'
+              if: steps.check_changes.outputs.relevant_change == 'true' && steps.check_existing.outputs.should_create == 'true'
               env:
                   GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
               run: |
@@ -114,7 +138,7 @@ jobs:
 
                   This release was automatically created following a successful deployment.
 
-                  ### 📋 Commit History (${{ steps.git_history.outputs.commit_count }} commits)
+                  ### � Changelog (${{ steps.git_history.outputs.commit_count }} commits)
                   ${{ steps.git_history.outputs.git_history }}
 
                   ### 🔗 Previous Version
@@ -130,3 +154,9 @@ jobs:
               run: |
                   echo "No relevant file changes detected. Skipping release creation."
                   echo "Only changes to index.html, app.js, or style.css trigger releases."
+
+            - name: Skip duplicate release notification
+              if: steps.check_changes.outputs.relevant_change == 'true' && steps.check_existing.outputs.should_create == 'false'
+              run: |
+                  echo "Release already exists for current commit. Skipping duplicate release creation."
+                  echo "This prevents multiple releases for the same code changes."
