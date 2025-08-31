@@ -346,6 +346,16 @@ class FileUploadHandler {
 		button.style.cursor = "pointer";
 		button.style.boxShadow = "0 2px 8px rgba(0,123,255,0.3)";
 
+		// Hide fallback button if drag-and-drop is visible
+		const observer = new MutationObserver(() => {
+			if (this.uploadArea.offsetParent !== null) {
+				button.style.display = "none";
+			} else {
+				button.style.display = "block";
+			}
+		});
+		observer.observe(this.uploadArea, { attributes: true, childList: false, subtree: false });
+
 		let touchHandled = false;
 
 		const handleButtonClick = (e) => {
