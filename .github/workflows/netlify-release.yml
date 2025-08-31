@@ -18,7 +18,22 @@ jobs:
               with:
                   fetch-depth: 0
 
+            - name: Check if on master branch
+              id: check_branch
+              run: |
+                  current_branch=$(git branch --show-current)
+                  echo "Current branch: $current_branch"
+
+                  if [ "$current_branch" = "master" ]; then
+                    echo "On master branch, proceeding with release"
+                    echo "is_master=true" >> $GITHUB_OUTPUT
+                  else
+                    echo "Not on master branch ($current_branch), skipping release"
+                    echo "is_master=false" >> $GITHUB_OUTPUT
+                  fi
+
             - name: Check if relevant files changed
+              if: steps.check_branch.outputs.is_master == 'true'
               id: check_changes
               run: |
                   # For webhook triggers, check recent commits for relevant file changes
@@ -40,7 +55,7 @@ jobs:
                   echo "relevant_change=$relevant_change" >> $GITHUB_OUTPUT
 
             - name: Check for existing release
-              if: steps.check_changes.outputs.relevant_change == 'true'
+              if: steps.check_branch.outputs.is_master == 'true' && steps.check_changes.outputs.relevant_change == 'true'
               id: check_existing
               run: |
                   # Check if current HEAD commit already has a release
@@ -60,7 +75,7 @@ jobs:
                   GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
 
             - name: Generate release tag
-              if: steps.check_changes.outputs.relevant_change == 'true' && steps.check_existing.outputs.should_create == 'true'
+              if: steps.check_branch.outputs.is_master == 'true' && steps.check_changes.outputs.relevant_change == 'true' && steps.check_existing.outputs.should_create == 'true'
               id: release_tag
               run: |
                   # Generate base date in YY.MM.DD format using IST (GMT+5:30)
@@ -89,7 +104,7 @@ jobs:
                   GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
 
             - name: Get latest release tag
-              if: steps.check_changes.outputs.relevant_change == 'true' && steps.check_existing.outputs.should_create == 'true'
+              if: steps.check_branch.outputs.is_master == 'true' && steps.check_changes.outputs.relevant_change == 'true' && steps.check_existing.outputs.should_create == 'true'
               id: latest_release
               run: |
                   latest_tag=$(gh release list --limit 1 --json tagName --jq '.[0].tagName' 2>/dev/null || echo "")
@@ -98,23 +113,26 @@ jobs:
                   GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
 
             - name: Get git history since last release
-              if: steps.check_changes.outputs.relevant_change == 'true' && steps.check_existing.outputs.should_create == 'true'
+              if: steps.check_branch.outputs.is_master == 'true' && steps.check_changes.outputs.relevant_change == 'true' && steps.check_existing.outputs.should_create == 'true'
               id: git_history
               run: |
                   if [ -n "${{ steps.latest_release.outputs.latest_tag }}" ]; then
                     echo "Getting commit history since ${{ steps.latest_release.outputs.latest_tag }}"
                     # Get all commits since last release with better formatting, excluding merge commits and duplicates
-                    commits=$(git log --oneline --no-merges --pretty=format:"- **%s** (%h)" ${{ steps.latest_release.outputs.latest_tag }}..HEAD | sort -u | head -15)
+                    commits=$(git log --oneline --no-merges --pretty=format:"- **%s** (%h)" ${{ steps.latest_release.outputs.latest_tag }}..HEAD | head -15)
                     commit_count=$(git rev-list --count --no-merges ${{ steps.latest_release.outputs.latest_tag }}..HEAD)
                   else
                     echo "No previous release found, getting recent commits"
-                    commits=$(git log --oneline --no-merges --pretty=format:"- **%s** (%h)" -10 | sort -u)
+                    commits=$(git log --oneline --no-merges --pretty=format:"- **%s** (%h)" -10)
                     commit_count=$(git rev-list --count --no-merges HEAD)
                   fi
 
                   if [ -z "$commits" ]; then
                     commits="- Initial release"
                     commit_count=1
+                  else
+                    # Remove duplicate commit messages (same text, different hashes)
+                    commits=$(echo "$commits" | awk '!seen[substr($0, index($0, "**") + 2, index($0, "** (") - index($0, "**") - 2)]++')
                   fi
 
                   # Save commits to output, handling multiline
@@ -125,7 +143,7 @@ jobs:
                   echo "commit_count=$commit_count" >> $GITHUB_OUTPUT
 
             - name: Create Release
-              if: steps.check_changes.outputs.relevant_change == 'true' && steps.check_existing.outputs.should_create == 'true'
+              if: steps.check_branch.outputs.is_master == 'true' && steps.check_changes.outputs.relevant_change == 'true' && steps.check_existing.outputs.should_create == 'true'
               env:
                   GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
               run: |
@@ -150,13 +168,19 @@ jobs:
                   - **Deployment**: Successfully deployed to Netlify"
 
             - name: Skip release notification
-              if: steps.check_changes.outputs.relevant_change == 'false'
+              if: steps.check_branch.outputs.is_master == 'true' && steps.check_changes.outputs.relevant_change == 'false'
               run: |
                   echo "No relevant file changes detected. Skipping release creation."
                   echo "Only changes to index.html, app.js, or style.css trigger releases."
 
             - name: Skip duplicate release notification
-              if: steps.check_changes.outputs.relevant_change == 'true' && steps.check_existing.outputs.should_create == 'false'
+              if: steps.check_branch.outputs.is_master == 'true' && steps.check_changes.outputs.relevant_change == 'true' && steps.check_existing.outputs.should_create == 'false'
               run: |
                   echo "Release already exists for current commit. Skipping duplicate release creation."
                   echo "This prevents multiple releases for the same code changes."
+
+            - name: Skip non-master branch notification
+              if: steps.check_branch.outputs.is_master == 'false'
+              run: |
+                  echo "Workflow triggered from non-master branch. Skipping release creation."
+                  echo "Releases are only created from master branch deployments."
