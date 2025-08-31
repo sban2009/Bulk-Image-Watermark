@@ -120,7 +120,7 @@ document.addEventListener("DOMContentLoaded", function () {
 class FileUploadHandler {
 	constructor() {
 		// Configuration flags
-		this.showMobileDebugUI = true; // Set to false to disable mobile debug overlay
+		this.showMobileDebugUI = false; // Set to false to disable mobile debug overlay
 
 		// Supported image formats for validation
 		this.supportedTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"];
@@ -280,13 +280,20 @@ class FileUploadHandler {
 			});
 		}
 
-		// Add fallback button for problematic mobile browsers
-		if (isIOSSafari || isAndroidChrome) {
+		// Add fallback button for all mobile browsers and hide drag-drop UI
+		if (isMobile) {
 			this.setupMobileFallback();
+			this.hideDragDropOnMobile();
 		}
 	}
 
 	setupMobileFileInput() {
+		// Hide the drag-drop UI content on mobile
+		const uploadContent = this.uploadArea.querySelector(".upload-content");
+		if (uploadContent) {
+			uploadContent.style.display = "none";
+		}
+
 		this.uploadArea.style.cursor = "default";
 
 		// Style file input for mobile compatibility
@@ -306,15 +313,28 @@ class FileUploadHandler {
 		this.debug("Mobile file input setup completed");
 	}
 
+	hideDragDropOnMobile() {
+		// Hide the main drag-drop visual content
+		const uploadContent = this.uploadArea.querySelector(".upload-content");
+		if (uploadContent) {
+			uploadContent.style.display = "none";
+		}
+
+		// Reduce upload area height on mobile
+		this.uploadArea.style.minHeight = "100px";
+		this.uploadArea.style.height = "100px";
+		this.debug("Drag-drop UI hidden on mobile");
+	}
+
 	setupMobileFallback() {
-		// Visible button for problematic mobile browsers
+		// Visible button for all mobile browsers
 		const button = document.createElement("button");
 		button.textContent = "📁 Select Images";
 		button.className = "btn btn--primary mobile-select-btn";
 		button.style.position = "absolute";
-		button.style.bottom = "15px";
+		button.style.top = "50%";
 		button.style.left = "50%";
-		button.style.transform = "translateX(-50%)";
+		button.style.transform = "translate(-50%, -50%)";
 		button.style.zIndex = "25";
 		button.style.fontSize = "16px";
 		button.style.padding = "12px 24px";
