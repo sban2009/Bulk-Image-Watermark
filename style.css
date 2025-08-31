@@ -1006,7 +1006,16 @@ select.form-control {
 /* Mobile file input overrides - applied via JavaScript */
 @media (max-width: 768px) {
 	.upload-area {
-		position: relative;
+		position: relative !important;
+		padding: var(--space-24) !important;
+		min-height: 120px !important;
+		height: 120px !important;
+		display: flex !important;
+		align-items: center !important;
+		justify-content: center !important;
+		border: 2px solid var(--color-primary) !important;
+		border-radius: 8px !important;
+		background: var(--color-bg-1) !important;
 	}
 
 	/* Ensure file input can receive touch events on mobile */
@@ -1014,17 +1023,38 @@ select.form-control {
 		-webkit-tap-highlight-color: transparent;
 	}
 
-	/* Mobile fallback button styling */
+	/* Mobile select button styling */
 	.mobile-select-btn {
-		font-size: 14px !important;
-		padding: 8px 16px !important;
+		font-size: 16px !important;
+		padding: 12px 24px !important;
 		margin: 0 !important;
-		min-height: auto !important;
-		border-radius: 6px !important;
-		background: var(--primary-color) !important;
-		color: white !important;
+		min-height: 44px !important;
+		min-width: 140px !important;
+		border-radius: var(--radius-base) !important;
+		background: var(--color-primary) !important;
+		color: var(--color-white) !important;
 		border: none !important;
-		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+		font-weight: 600 !important;
+		cursor: pointer !important;
+		box-shadow: var(--shadow-md) !important;
+		display: block !important;
+		z-index: 10 !important;
+		-webkit-tap-highlight-color: transparent !important;
+		touch-action: manipulation !important;
+		transition: all var(--duration-fast) var(--ease-standard) !important;
+	}
+
+	.mobile-select-btn:hover,
+	.mobile-select-btn:focus,
+	.mobile-select-btn:active {
+		background: var(--color-primary-hover) !important;
+		transform: translateY(-1px) !important;
+		box-shadow: var(--shadow-lg) !important;
+	}
+
+	.mobile-select-btn:active {
+		background: var(--color-primary-active) !important;
+		transform: translateY(0px) !important;
 	}
 }
 
