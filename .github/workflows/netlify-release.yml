@@ -96,13 +96,13 @@ jobs:
               run: |
                   if [ -n "${{ steps.latest_release.outputs.latest_tag }}" ]; then
                     echo "Getting commit history since ${{ steps.latest_release.outputs.latest_tag }}"
-                    # Get all commits since last release with better formatting
-                    commits=$(git log --oneline --pretty=format:"- **%s** (%h)" ${{ steps.latest_release.outputs.latest_tag }}..HEAD | head -15)
-                    commit_count=$(git rev-list --count ${{ steps.latest_release.outputs.latest_tag }}..HEAD)
+                    # Get all commits since last release with better formatting, excluding merge commits
+                    commits=$(git log --oneline --no-merges --pretty=format:"- **%s** (%h)" ${{ steps.latest_release.outputs.latest_tag }}..HEAD | head -15)
+                    commit_count=$(git rev-list --count --no-merges ${{ steps.latest_release.outputs.latest_tag }}..HEAD)
                   else
                     echo "No previous release found, getting recent commits"
-                    commits=$(git log --oneline --pretty=format:"- **%s** (%h)" -10)
-                    commit_count=$(git rev-list --count HEAD)
+                    commits=$(git log --oneline --no-merges --pretty=format:"- **%s** (%h)" -10)
+                    commit_count=$(git rev-list --count --no-merges HEAD)
                   fi
 
                   if [ -z "$commits" ]; then

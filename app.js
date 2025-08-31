@@ -136,7 +136,43 @@ class FileUploadHandler {
 	}
 
 	isMobileDevice() {
-		return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+		// Comprehensive mobile detection for all mobile browsers
+		const userAgent = navigator.userAgent.toLowerCase();
+		const mobileKeywords = [
+			"android",
+			"webos",
+			"iphone",
+			"ipad",
+			"ipod",
+			"blackberry",
+			"iemobile",
+			"opera mini",
+			"mobile",
+			"tablet",
+			"kindle",
+			"silk",
+			"gt-",
+			"sm-",
+			"nokia",
+			"fennec",
+			"maemo",
+			"meego",
+			"mobi",
+			"palm",
+			"windows phone",
+		];
+
+		// Check user agent for mobile keywords
+		const hasMobileKeyword = mobileKeywords.some((keyword) => userAgent.includes(keyword));
+
+		// Check for touch capability and small screen
+		const isTouchDevice = "ontouchstart" in window || navigator.maxTouchPoints > 0;
+		const isSmallScreen = window.screen.width <= 768 || window.innerWidth <= 768;
+
+		// Additional mobile indicators
+		const hasOrientationAPI = "orientation" in window;
+
+		return hasMobileKeyword || (isTouchDevice && isSmallScreen) || hasOrientationAPI;
 	}
 
 	enableDebugMode() {
@@ -242,25 +278,21 @@ class FileUploadHandler {
 			this.createDebugOverlay();
 		}
 
-		// Detect mobile browsers for different handling
-		const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-		const isIOSSafari = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-		const isAndroidChrome = /Android/.test(navigator.userAgent) && /Chrome/.test(navigator.userAgent);
+		// Detect mobile browsers for complete mobile experience
+		const isMobile = this.isMobileDevice();
 
 		this.debug("File upload setup", {
 			userAgent: navigator.userAgent.substring(0, 50) + "...",
 			isMobile,
-			isIOSSafari,
-			isAndroidChrome,
 		});
 
 		if (isMobile) {
-			this.setupMobileFileInput();
+			this.setupMobileInterface();
 		} else {
 			this.setupDesktopFileInput();
 		}
 
-		// Add file change handler
+		// Add file change handler - ensure this is always called
 		this.fileInput.addEventListener("change", (e) => {
 			this.debug("File input change event triggered", {
 				filesCount: e.target.files ? e.target.files.length : 0,
@@ -268,74 +300,38 @@ class FileUploadHandler {
 			this.handleFileSelect(e);
 		});
 
-		// Additional mobile event handlers for better compatibility
-		if (isMobile) {
-			this.fileInput.addEventListener("input", (e) => {
-				if (e.target.files && e.target.files.length > 0) {
-					this.debug("File input input event triggered", {
-						filesCount: e.target.files.length,
-					});
-					this.handleFileSelect(e);
-				}
-			});
-		}
-
-		// Add fallback button for all mobile browsers and hide drag-drop UI
-		if (isMobile) {
-			this.setupMobileFallback();
-			this.hideDragDropOnMobile();
-		}
+		this.debug("File upload setup completed", { isMobile });
 	}
 
-	setupMobileFileInput() {
-		// Hide the drag-drop UI content on mobile
+	setupMobileInterface() {
+		// Complete mobile interface replacement
+		this.debug("Setting up mobile interface");
+
+		// Store reference to file input before modifying DOM
+		const fileInput = this.fileInput;
+
+		// Hide existing upload content but preserve file input
 		const uploadContent = this.uploadArea.querySelector(".upload-content");
 		if (uploadContent) {
 			uploadContent.style.display = "none";
 		}
 
-		this.uploadArea.style.cursor = "default";
-
-		// Style file input for mobile compatibility
-		this.fileInput.style.opacity = "0";
-		this.fileInput.style.position = "absolute";
-		this.fileInput.style.top = "0";
-		this.fileInput.style.left = "0";
-		this.fileInput.style.width = "100%";
-		this.fileInput.style.height = "100%";
-		this.fileInput.style.cursor = "pointer";
-		this.fileInput.style.fontSize = "16px"; // Prevents zoom on iOS
-		this.fileInput.style.background = "transparent";
-		this.fileInput.style.border = "none";
-		this.fileInput.style.zIndex = "15";
-
+		// Style upload area as button container
+		this.uploadArea.style.cursor = "pointer";
 		this.uploadArea.style.position = "relative";
-		this.debug("Mobile file input setup completed");
-	}
+		this.uploadArea.style.minHeight = "120px";
+		this.uploadArea.style.height = "120px";
+		this.uploadArea.style.display = "flex";
+		this.uploadArea.style.alignItems = "center";
+		this.uploadArea.style.justifyContent = "center";
+		this.uploadArea.style.border = "2px solid var(--color-primary)";
+		this.uploadArea.style.borderRadius = "8px";
+		this.uploadArea.style.background = "var(--color-bg-1)";
 
-	hideDragDropOnMobile() {
-		// Hide the main drag-drop visual content
-		const uploadContent = this.uploadArea.querySelector(".upload-content");
-		if (uploadContent) {
-			uploadContent.style.display = "none";
-		}
-
-		// Reduce upload area height on mobile
-		this.uploadArea.style.minHeight = "100px";
-		this.uploadArea.style.height = "100px";
-		this.debug("Drag-drop UI hidden on mobile");
-	}
-
-	setupMobileFallback() {
-		// Visible button for all mobile browsers
+		// Create mobile select button
 		const button = document.createElement("button");
 		button.textContent = "📁 Select Images";
 		button.className = "btn btn--primary mobile-select-btn";
-		button.style.position = "absolute";
-		button.style.top = "50%";
-		button.style.left = "50%";
-		button.style.transform = "translate(-50%, -50%)";
-		button.style.zIndex = "25";
 		button.style.fontSize = "16px";
 		button.style.padding = "12px 24px";
 		button.style.borderRadius = "8px";
@@ -345,66 +341,60 @@ class FileUploadHandler {
 		button.style.fontWeight = "600";
 		button.style.cursor = "pointer";
 		button.style.boxShadow = "0 2px 8px rgba(0,123,255,0.3)";
+		button.style.minHeight = "44px";
+		button.style.minWidth = "140px";
+		button.style.zIndex = "10";
 
-		// Hide fallback button if drag-and-drop is visible
-		const observer = new MutationObserver(() => {
-			if (this.uploadArea.offsetParent !== null) {
-				button.style.display = "none";
-			} else {
-				button.style.display = "block";
-			}
-		});
-		observer.observe(this.uploadArea, { attributes: true, childList: false, subtree: false });
-
-		let touchHandled = false;
-
+		// Handle button clicks
 		const handleButtonClick = (e) => {
-			// Prevent double-firing on mobile devices
-			if (e.type === "click" && touchHandled) {
-				touchHandled = false;
-				return;
-			}
-
-			if (e.type === "touchend") {
-				touchHandled = true;
-			}
-
 			e.preventDefault();
 			e.stopPropagation();
-			this.debug("Fallback button clicked");
+			this.debug("Mobile select button clicked");
 
-			// Create a new file input to avoid conflicts with existing event handlers
-			const tempInput = document.createElement("input");
-			tempInput.type = "file";
-			tempInput.multiple = true;
-			tempInput.accept = "image/*";
-			tempInput.style.display = "none";
+			// Clear previous selection to ensure change event fires
+			this.fileInput.value = "";
 
-			const handleFileSelection = (e) => {
-				if (e.target.files && e.target.files.length > 0) {
-					this.debug("Files selected via fallback", {
-						count: e.target.files.length,
-					});
-					this.processFiles(Array.from(e.target.files));
-				} else {
-					this.debug("No files selected via fallback");
-				}
-				// Clean up temp input
-				document.body.removeChild(tempInput);
-			};
-
-			tempInput.addEventListener("change", handleFileSelection);
-			document.body.appendChild(tempInput);
-			tempInput.click();
+			// Trigger file input
+			this.fileInput.click();
 		};
 
 		button.addEventListener("click", handleButtonClick);
-		button.addEventListener("touchend", handleButtonClick);
+		button.addEventListener("touchend", (e) => {
+			e.preventDefault();
+			handleButtonClick(e);
+		});
+
+		// Hide the original file input but keep it in DOM
+		this.fileInput.style.display = "none";
+		this.fileInput.style.position = "absolute";
+		this.fileInput.style.top = "0";
+		this.fileInput.style.left = "0";
+		this.fileInput.style.width = "100%";
+		this.fileInput.style.height = "100%";
+		this.fileInput.style.opacity = "0";
+		this.fileInput.style.zIndex = "1";
+
+		// Add button to upload area
 		this.uploadArea.appendChild(button);
-		this.debug("Mobile fallback button added");
+
+		this.debug("Mobile interface setup completed");
 	}
 
 	setupDesktopFileInput() {
+		// Desktop: Ensure file input is properly positioned and accessible
+		this.fileInput.style.display = "block";
+		this.fileInput.style.position = "absolute";
+		this.fileInput.style.top = "0";
+		this.fileInput.style.left = "0";
+		this.fileInput.style.width = "100%";
+		this.fileInput.style.height = "100%";
+		this.fileInput.style.opacity = "0";
+		this.fileInput.style.cursor = "pointer";
+		this.fileInput.style.zIndex = "10";
+
+		this.uploadArea.style.position = "relative";
+		this.uploadArea.style.cursor = "pointer";
+
 		// Desktop: Use the click-through approach
 		this.uploadArea.addEventListener("click", (e) => {
 			// Prevent processing if already handling files
@@ -423,7 +413,7 @@ class FileUploadHandler {
 			}
 		});
 
-		this.uploadArea.style.cursor = "pointer";
+		this.debug("Desktop file input setup completed");
 	}
 
 	handleFileSelect(e) {
