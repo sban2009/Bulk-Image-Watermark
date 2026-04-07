@@ -1,3 +1,11 @@
 [build]
-  # This command sends a POST request to the GitHub API.
+  publish = "."
+
+[context.production]
   command = """curl -X POST -H "Authorization: token $RELEASE_TOKEN" -H 'Accept: application/vnd.github.v3+json' https://api.github.com/repos/sban2009/Bulk-Image-Watermark/dispatches -d '{"event_type": "webhook_trigger"}'"""
+
+[context.deploy-preview]
+  command = "echo 'Deploy preview - skipping release'"
+
+[context.branch-deploy]
+  command = "echo 'Branch deploy - skipping release'"
