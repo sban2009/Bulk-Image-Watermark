@@ -66,8 +66,8 @@
  */
 
 /* THEME MANAGEMENT: Dark/Light Mode Switcher */
-document.addEventListener("DOMContentLoaded", function () {
-	const themeBtn = document.getElementById("themeSwitcher");
+document.addEventListener('DOMContentLoaded', function () {
+	const themeBtn = document.getElementById('themeSwitcher');
 	if (!themeBtn) return;
 
 	/**
@@ -75,9 +75,9 @@ document.addEventListener("DOMContentLoaded", function () {
 	 * @param {boolean} dark - Whether to apply dark theme
 	 */
 	function setTheme(dark) {
-		document.documentElement.setAttribute("data-color-scheme", dark ? "dark" : "light");
-		document.body.classList.toggle("dark-mode", dark);
-		themeBtn.textContent = dark ? "🌒 Dark Mode" : "🌖 Light Mode";
+		document.documentElement.setAttribute('data-color-scheme', dark ? 'dark' : 'light');
+		document.body.classList.toggle('dark-mode', dark);
+		themeBtn.textContent = dark ? '🌒 Dark Mode' : '🌖 Light Mode';
 	}
 
 	/*
@@ -86,15 +86,15 @@ document.addEventListener("DOMContentLoaded", function () {
 	 */
 	let isDark = true;
 	try {
-		const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
-		const prefersLight = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches;
+		const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+		const prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
 		isDark = prefersDark || !prefersLight;
 	} catch (err) {
 		isDark = true; // Default to dark mode on error
 	}
 
 	setTheme(isDark);
-	themeBtn.addEventListener("click", function () {
+	themeBtn.addEventListener('click', function () {
 		isDark = !isDark;
 		setTheme(isDark);
 	});
@@ -123,7 +123,7 @@ class FileUploadHandler {
 		this.showMobileDebugUI = false; // Set to false to disable mobile debug overlay
 
 		// Supported image formats for validation
-		this.supportedTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"];
+		this.supportedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
 		this.maxFileSize = 10485760; /* 10MB */
 		this.uploadArea = null;
 		this.fileInput = null;
@@ -139,50 +139,50 @@ class FileUploadHandler {
 		// Comprehensive mobile detection for all mobile browsers
 		const userAgent = navigator.userAgent.toLowerCase();
 		const mobileKeywords = [
-			"android",
-			"webos",
-			"iphone",
-			"ipad",
-			"ipod",
-			"blackberry",
-			"iemobile",
-			"opera mini",
-			"mobile",
-			"tablet",
-			"kindle",
-			"silk",
-			"gt-",
-			"sm-",
-			"nokia",
-			"fennec",
-			"maemo",
-			"meego",
-			"mobi",
-			"palm",
-			"windows phone",
+			'android',
+			'webos',
+			'iphone',
+			'ipad',
+			'ipod',
+			'blackberry',
+			'iemobile',
+			'opera mini',
+			'mobile',
+			'tablet',
+			'kindle',
+			'silk',
+			'gt-',
+			'sm-',
+			'nokia',
+			'fennec',
+			'maemo',
+			'meego',
+			'mobi',
+			'palm',
+			'windows phone',
 		];
 
 		// Check user agent for mobile keywords
 		const hasMobileKeyword = mobileKeywords.some((keyword) => userAgent.includes(keyword));
 
 		// Check for touch capability and small screen
-		const isTouchDevice = "ontouchstart" in window || navigator.maxTouchPoints > 0;
+		const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 		const isSmallScreen = window.screen.width <= 768 || window.innerWidth <= 768;
 
 		// Additional mobile indicators
-		const hasOrientationAPI = "orientation" in window;
+		const hasOrientationAPI = 'orientation' in window;
 
 		return hasMobileKeyword || (isTouchDevice && isSmallScreen) || hasOrientationAPI;
 	}
 
 	enableDebugMode() {
 		if (!this.showMobileDebugUI) {
-			console.log("[FileUpload] Debug mode requested but mobile debug UI is disabled via flag");
+			console.log('[FileUpload] Debug mode requested but mobile debug UI is disabled via flag');
 			return;
 		}
 		this.debugEnabled = true;
 		this.createDebugOverlay();
-		this.debug("Debug mode manually enabled");
+		this.debug('Debug mode manually enabled');
 	}
 
 	debug(message, data = null) {
@@ -202,8 +202,8 @@ class FileUploadHandler {
 	createDebugOverlay() {
 		if (!this.debugEnabled || !this.showMobileDebugUI || this.debugOverlay) return;
 
-		this.debugOverlay = document.createElement("div");
-		this.debugOverlay.id = "mobile-debug-overlay";
+		this.debugOverlay = document.createElement('div');
+		this.debugOverlay.id = 'mobile-debug-overlay';
 		this.debugOverlay.innerHTML = `
 			<div style="
 				position: fixed;
@@ -232,22 +232,22 @@ class FileUploadHandler {
 		document.body.appendChild(this.debugOverlay);
 
 		// Close button functionality
-		document.getElementById("debug-close").addEventListener("click", () => {
+		document.getElementById('debug-close').addEventListener('click', () => {
 			this.debugOverlay.remove();
 			this.debugOverlay = null;
 		});
 
-		this.debug("Debug overlay initialized");
+		this.debug('Debug overlay initialized');
 	}
 
 	addDebugMessage(message, data) {
 		if (!this.debugOverlay) return;
 
-		const messagesContainer = this.debugOverlay.querySelector("#debug-messages");
+		const messagesContainer = this.debugOverlay.querySelector('#debug-messages');
 		const timestamp = new Date().toLocaleTimeString();
-		const logEntry = document.createElement("div");
-		logEntry.style.marginBottom = "2px";
-		logEntry.style.fontSize = "10px";
+		const logEntry = document.createElement('div');
+		logEntry.style.marginBottom = '2px';
+		logEntry.style.fontSize = '10px';
 
 		let displayMessage = `${timestamp}: ${message}`;
 		if (data) {
@@ -268,8 +268,8 @@ class FileUploadHandler {
 
 	setupFileInputClick() {
 		if (!this.uploadArea || !this.fileInput) {
-			this.debug("ERROR: Elements not found for file input click setup");
-			console.error("Elements not found for file input click setup");
+			this.debug('ERROR: Elements not found for file input click setup');
+			console.error('Elements not found for file input click setup');
 			return;
 		}
 
@@ -281,8 +281,8 @@ class FileUploadHandler {
 		// Detect mobile browsers for complete mobile experience
 		const isMobile = this.isMobileDevice();
 
-		this.debug("File upload setup", {
-			userAgent: navigator.userAgent.substring(0, 50) + "...",
+		this.debug('File upload setup', {
+			userAgent: navigator.userAgent.substring(0, 50) + '...',
 			isMobile,
 		});
 
@@ -293,166 +293,157 @@ class FileUploadHandler {
 		}
 
 		// Add file change handler - ensure this is always called
-		this.fileInput.addEventListener("change", (e) => {
-			this.debug("File input change event triggered", {
+		this.fileInput.addEventListener('change', (e) => {
+			this.debug('File input change event triggered', {
 				filesCount: e.target.files ? e.target.files.length : 0,
 			});
 			this.handleFileSelect(e);
 		});
 
-		this.debug("File upload setup completed", { isMobile });
+		this.debug('File upload setup completed', { isMobile });
 	}
 
 	setupMobileInterface() {
 		// Complete mobile interface replacement
-		this.debug("Setting up mobile interface");
+		this.debug('Setting up mobile interface');
 
 		// Store reference to file input before modifying DOM
 		const fileInput = this.fileInput;
 
 		// Hide existing upload content but preserve file input
-		const uploadContent = this.uploadArea.querySelector(".upload-content");
+		const uploadContent = this.uploadArea.querySelector('.upload-content');
 		if (uploadContent) {
-			uploadContent.style.display = "none";
+			uploadContent.style.display = 'none';
 		}
 
 		// Style upload area as button container
-		this.uploadArea.style.cursor = "pointer";
-		this.uploadArea.style.position = "relative";
-		this.uploadArea.style.minHeight = "120px";
-		this.uploadArea.style.height = "120px";
-		this.uploadArea.style.display = "flex";
-		this.uploadArea.style.alignItems = "center";
-		this.uploadArea.style.justifyContent = "center";
-		this.uploadArea.style.border = "2px solid var(--color-primary)";
-		this.uploadArea.style.borderRadius = "8px";
-		this.uploadArea.style.background = "var(--color-bg-1)";
+		this.uploadArea.style.cursor = 'pointer';
+		this.uploadArea.style.position = 'relative';
+		this.uploadArea.style.minHeight = '120px';
+		this.uploadArea.style.height = '120px';
+		this.uploadArea.style.display = 'flex';
+		this.uploadArea.style.alignItems = 'center';
+		this.uploadArea.style.justifyContent = 'center';
+		this.uploadArea.style.border = '2px solid var(--color-primary)';
+		this.uploadArea.style.borderRadius = '8px';
+		this.uploadArea.style.background = 'var(--color-bg-1)';
 
 		// Create mobile select button
-		const button = document.createElement("button");
-		button.textContent = "📁 Select Images";
-		button.className = "btn btn--primary mobile-select-btn";
-		button.style.fontSize = "16px";
-		button.style.padding = "12px 24px";
-		button.style.borderRadius = "8px";
-		button.style.border = "none";
-		button.style.backgroundColor = "#007bff";
-		button.style.color = "white";
-		button.style.fontWeight = "600";
-		button.style.cursor = "pointer";
-		button.style.boxShadow = "0 2px 8px rgba(0,123,255,0.3)";
-		button.style.minHeight = "44px";
-		button.style.minWidth = "140px";
-		button.style.zIndex = "10";
+		const button = document.createElement('button');
+		button.textContent = '📁 Select Images';
+		button.className = 'btn btn--primary mobile-select-btn';
+		button.style.fontSize = '16px';
+		button.style.padding = '12px 24px';
+		button.style.borderRadius = '8px';
+		button.style.border = 'none';
+		button.style.backgroundColor = '#007bff';
+		button.style.color = 'white';
+		button.style.fontWeight = '600';
+		button.style.cursor = 'pointer';
+		button.style.boxShadow = '0 2px 8px rgba(0,123,255,0.3)';
+		button.style.minHeight = '44px';
+		button.style.minWidth = '140px';
+		button.style.zIndex = '10';
 
 		// Handle button clicks
 		const handleButtonClick = (e) => {
 			e.preventDefault();
 			e.stopPropagation();
-			this.debug("Mobile select button clicked");
+			this.debug('Mobile select button clicked');
 
 			// Clear previous selection to ensure change event fires
-			this.fileInput.value = "";
+			this.fileInput.value = '';
 
 			// Trigger file input
 			this.fileInput.click();
 		};
 
-		button.addEventListener("click", handleButtonClick);
-		button.addEventListener("touchend", (e) => {
+		button.addEventListener('click', handleButtonClick);
+		button.addEventListener('touchend', (e) => {
 			e.preventDefault();
 			handleButtonClick(e);
 		});
 
 		// Hide the original file input but keep it in DOM
-		this.fileInput.style.display = "none";
-		this.fileInput.style.position = "absolute";
-		this.fileInput.style.top = "0";
-		this.fileInput.style.left = "0";
-		this.fileInput.style.width = "100%";
-		this.fileInput.style.height = "100%";
-		this.fileInput.style.opacity = "0";
-		this.fileInput.style.zIndex = "1";
+		this.fileInput.style.display = 'none';
+		this.fileInput.style.position = 'absolute';
+		this.fileInput.style.top = '0';
+		this.fileInput.style.left = '0';
+		this.fileInput.style.width = '100%';
+		this.fileInput.style.height = '100%';
+		this.fileInput.style.opacity = '0';
+		this.fileInput.style.zIndex = '1';
 
 		// Add button to upload area
 		this.uploadArea.appendChild(button);
 
-		this.debug("Mobile interface setup completed");
+		this.debug('Mobile interface setup completed');
 	}
 
 	setupDesktopFileInput() {
-		// Desktop: Ensure file input is properly positioned and accessible
-		this.fileInput.style.display = "block";
-		this.fileInput.style.position = "absolute";
-		this.fileInput.style.top = "0";
-		this.fileInput.style.left = "0";
-		this.fileInput.style.width = "100%";
-		this.fileInput.style.height = "100%";
-		this.fileInput.style.opacity = "0";
-		this.fileInput.style.cursor = "pointer";
-		this.fileInput.style.zIndex = "10";
+		// Desktop: Position file input over upload area for native click handling
+		this.fileInput.style.display = 'block';
+		this.fileInput.style.position = 'absolute';
+		this.fileInput.style.top = '0';
+		this.fileInput.style.left = '0';
+		this.fileInput.style.width = '100%';
+		this.fileInput.style.height = '100%';
+		this.fileInput.style.opacity = '0';
+		this.fileInput.style.cursor = 'pointer';
+		this.fileInput.style.zIndex = '10';
 
-		this.uploadArea.style.position = "relative";
-		this.uploadArea.style.cursor = "pointer";
+		this.uploadArea.style.position = 'relative';
+		this.uploadArea.style.cursor = 'pointer';
 
-		// Desktop: Use the click-through approach
-		this.uploadArea.addEventListener("click", (e) => {
-			// Prevent processing if already handling files
-			if (this.uploadArea.classList.contains("processing")) {
-				return;
-			}
+		// FIXED: Remove redundant click handler - file input handles clicks natively
+		// The file input is already positioned over the upload area with opacity: 0
+		// so clicks naturally go to the file input without needing a manual trigger
 
-			// Clear previous selection to ensure change event fires
-			this.fileInput.value = "";
-
-			// Direct click - works reliably on desktop browsers
-			try {
-				this.fileInput.click();
-			} catch (error) {
-				console.error("File input click failed:", error);
-			}
+		// Clear file input value before each selection to ensure change event fires
+		this.fileInput.addEventListener('click', () => {
+			this.fileInput.value = '';
 		});
 
-		this.debug("Desktop file input setup completed");
+		this.debug('Desktop file input setup completed');
 	}
 
 	handleFileSelect(e) {
 		const files = e.target.files;
-		this.debug("handleFileSelect called", {
+		this.debug('handleFileSelect called', {
 			filesCount: files ? files.length : 0,
 			eventType: e.type,
 		});
 
 		if (!files || files.length === 0) {
-			this.debug("No files selected");
+			this.debug('No files selected');
 			return;
 		}
 
 		// Prevent duplicate processing
 		if (this.isProcessing) {
-			this.debug("Already processing files, ignoring duplicate event");
+			this.debug('Already processing files, ignoring duplicate event');
 			return;
 		}
 
 		// Check if these are the same files we just processed
 		const fileNames = Array.from(files).map((f) => f.name + f.size);
-		const currentFilesSignature = fileNames.join("|");
+		const currentFilesSignature = fileNames.join('|');
 
 		if (this.lastProcessedFiles === currentFilesSignature) {
-			this.debug("Same files already processed, ignoring duplicate");
+			this.debug('Same files already processed, ignoring duplicate');
 			return;
 		}
 
-		this.debug("Files selected", { files: Array.from(files).map((f) => f.name) });
+		this.debug('Files selected', { files: Array.from(files).map((f) => f.name) });
 		this.lastProcessedFiles = currentFilesSignature;
 		this.processFiles(Array.from(files));
 	}
 
 	processFiles(files) {
-		this.debug("processFiles called", { count: files.length });
+		this.debug('processFiles called', { count: files.length });
 
 		if (!files || files.length === 0) {
-			this.showError("No files to process");
+			this.showError('No files to process');
 			return;
 		}
 
@@ -466,7 +457,7 @@ class FileUploadHandler {
 			const validation = this.validateFile(file);
 			this.debug(`File validation: ${file.name}`, {
 				valid: validation.isValid,
-				error: validation.error || "none",
+				error: validation.error || 'none',
 			});
 
 			if (validation.isValid) {
@@ -476,26 +467,26 @@ class FileUploadHandler {
 			}
 		});
 
-		this.debug("Validation complete", {
+		this.debug('Validation complete', {
 			validFiles: validFiles.length,
 			errors: errors.length,
 		});
 
 		if (errors.length > 0) {
-			this.showError(`File validation errors:\n${errors.join("\n")}`);
+			this.showError(`File validation errors:\n${errors.join('\n')}`);
 		}
 
 		if (validFiles.length > 0) {
 			this.showStatus(`Processing ${validFiles.length} valid files...`);
 			if (window.watermarkApp) {
-				this.debug("Calling watermarkApp.addFiles");
+				this.debug('Calling watermarkApp.addFiles');
 				window.watermarkApp.addFiles(validFiles);
 			} else {
-				this.debug("ERROR: watermarkApp not found");
-				this.showError("Application not ready. Please refresh the page.");
+				this.debug('ERROR: watermarkApp not found');
+				this.showError('Application not ready. Please refresh the page.');
 			}
 		} else {
-			this.debug("No valid files to process");
+			this.debug('No valid files to process');
 		}
 
 		// Reset processing flag after a short delay
@@ -505,7 +496,7 @@ class FileUploadHandler {
 	}
 
 	validateFile(file) {
-		if (!file) return { isValid: false, error: "Invalid file" };
+		if (!file) return { isValid: false, error: 'Invalid file' };
 
 		if (!this.supportedTypes.includes(file.type.toLowerCase())) {
 			return { isValid: false, error: `Unsupported type: ${file.type}` };
@@ -517,54 +508,54 @@ class FileUploadHandler {
 		}
 
 		if (file.size < 100) {
-			return { isValid: false, error: "File appears empty" };
+			return { isValid: false, error: 'File appears empty' };
 		}
 
 		return { isValid: true };
 	}
 
 	showStatus(message) {
-		const statusEl = document.getElementById("uploadStatus");
+		const statusEl = document.getElementById('uploadStatus');
 		if (statusEl) {
 			statusEl.textContent = message;
-			statusEl.className = "upload-status";
+			statusEl.className = 'upload-status';
 		}
 	}
 
 	showError(message) {
-		const errorContainer = document.getElementById("errorContainer");
-		const errorMessage = document.getElementById("errorMessage");
+		const errorContainer = document.getElementById('errorContainer');
+		const errorMessage = document.getElementById('errorMessage');
 
 		if (errorContainer && errorMessage) {
 			errorMessage.textContent = message;
-			errorContainer.classList.remove("hidden");
+			errorContainer.classList.remove('hidden');
 
 			setTimeout(() => {
-				errorContainer.classList.add("hidden");
+				errorContainer.classList.add('hidden');
 			}, 5000);
 		}
 
-		console.error("Error:", message);
+		console.error('Error:', message);
 	}
 
 	clearStatus() {
-		const statusEl = document.getElementById("uploadStatus");
+		const statusEl = document.getElementById('uploadStatus');
 		if (statusEl) {
-			statusEl.textContent = "";
+			statusEl.textContent = '';
 		}
 	}
 
 	init() {
 		// Wait for DOM to be fully loaded
-		if (document.readyState === "loading") {
-			document.addEventListener("DOMContentLoaded", () => this.setupElements());
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', () => this.setupElements());
 		} else {
 			this.setupElements();
 		}
 
 		// Global debug toggle (press Ctrl+Shift+D on desktop)
-		document.addEventListener("keydown", (e) => {
-			if (e.ctrlKey && e.shiftKey && e.key === "D") {
+		document.addEventListener('keydown', (e) => {
+			if (e.ctrlKey && e.shiftKey && e.key === 'D') {
 				e.preventDefault();
 				if (!this.debugEnabled) {
 					this.enableDebugMode();
@@ -581,23 +572,23 @@ class FileUploadHandler {
 	}
 
 	setupElements() {
-		this.uploadArea = document.getElementById("uploadArea");
-		this.fileInput = document.getElementById("fileInput");
+		this.uploadArea = document.getElementById('uploadArea');
+		this.fileInput = document.getElementById('fileInput');
 		if (!this.uploadArea || !this.fileInput) {
-			console.error("Required elements not found");
+			console.error('Required elements not found');
 			return;
 		}
 
 		// Ensure uploadArea is positioned for absolute children
-		if (getComputedStyle(this.uploadArea).position === "static") {
-			this.uploadArea.style.position = "relative";
+		if (getComputedStyle(this.uploadArea).position === 'static') {
+			this.uploadArea.style.position = 'relative';
 		}
 
 		this.setupFileInputClick();
 		this.setupDragAndDrop();
 
 		this.isInitialized = true;
-		this.showStatus("Ready to upload images - Click here or drag files");
+		this.showStatus('Ready to upload images - Click here or drag files');
 	}
 
 	/**
@@ -607,36 +598,36 @@ class FileUploadHandler {
 		if (!this.uploadArea) return;
 
 		// Prevent the browser from opening files when dropped outside the upload area
-		document.addEventListener("dragover", (e) => e.preventDefault());
-		document.addEventListener("drop", (e) => e.preventDefault());
+		document.addEventListener('dragover', (e) => e.preventDefault());
+		document.addEventListener('drop', (e) => e.preventDefault());
 
 		// Visual feedback on drag
-		this.uploadArea.addEventListener("dragenter", (e) => {
+		this.uploadArea.addEventListener('dragenter', (e) => {
 			e.preventDefault();
 			e.stopPropagation();
-			this.uploadArea.classList.add("drag-over");
+			this.uploadArea.classList.add('drag-over');
 		});
 
-		this.uploadArea.addEventListener("dragover", (e) => {
+		this.uploadArea.addEventListener('dragover', (e) => {
 			e.preventDefault();
 			e.stopPropagation();
 			// show visual state
-			this.uploadArea.classList.add("drag-over");
+			this.uploadArea.classList.add('drag-over');
 		});
 
-		this.uploadArea.addEventListener("dragleave", (e) => {
+		this.uploadArea.addEventListener('dragleave', (e) => {
 			e.preventDefault();
 			e.stopPropagation();
 			/* Only remove when leaving the upload area */
 			if (!e.relatedTarget || !this.uploadArea.contains(e.relatedTarget)) {
-				this.uploadArea.classList.remove("drag-over");
+				this.uploadArea.classList.remove('drag-over');
 			}
 		});
 
-		this.uploadArea.addEventListener("drop", (e) => {
+		this.uploadArea.addEventListener('drop', (e) => {
 			e.preventDefault();
 			e.stopPropagation();
-			this.uploadArea.classList.remove("drag-over");
+			this.uploadArea.classList.remove('drag-over');
 			const dt = e.dataTransfer;
 			if (!dt) return;
 			const files = dt.files;
@@ -656,45 +647,45 @@ class ProcessedImageModal {
 	}
 
 	init() {
-		this.modal = document.getElementById("galleryModal");
-		this.imageViewer = document.getElementById("imageViewer");
+		this.modal = document.getElementById('galleryModal');
+		this.imageViewer = document.getElementById('imageViewer');
 		this.bindEvents();
 	}
 
 	bindEvents() {
 		// Modal close events
-		const closeButtons = [document.getElementById("modalCloseBtn"), document.getElementById("modalOverlay")];
+		const closeButtons = [document.getElementById('modalCloseBtn'), document.getElementById('modalOverlay')];
 
 		closeButtons.forEach((btn) => {
 			if (btn) {
-				btn.addEventListener("click", () => this.closeModal());
+				btn.addEventListener('click', () => this.closeModal());
 			}
 		});
 
 		// Download all button in modal
-		const modalDownloadBtn = document.getElementById("modalDownloadAllBtn");
+		const modalDownloadBtn = document.getElementById('modalDownloadAllBtn');
 		if (modalDownloadBtn) {
-			modalDownloadBtn.addEventListener("click", () => this.downloadAllAsZip());
+			modalDownloadBtn.addEventListener('click', () => this.downloadAllAsZip());
 		}
 
 		// Image viewer close
 		const viewerCloseButtons = [
-			document.getElementById("imageViewerClose"),
-			document.getElementById("imageViewerOverlay"),
+			document.getElementById('imageViewerClose'),
+			document.getElementById('imageViewerOverlay'),
 		];
 
 		viewerCloseButtons.forEach((btn) => {
 			if (btn) {
-				btn.addEventListener("click", () => this.closeImageViewer());
+				btn.addEventListener('click', () => this.closeImageViewer());
 			}
 		});
 
 		// Keyboard navigation
-		document.addEventListener("keydown", (e) => {
-			if (e.key === "Escape") {
-				if (this.imageViewer && !this.imageViewer.classList.contains("hidden")) {
+		document.addEventListener('keydown', (e) => {
+			if (e.key === 'Escape') {
+				if (this.imageViewer && !this.imageViewer.classList.contains('hidden')) {
 					this.closeImageViewer();
-				} else if (this.modal && this.modal.classList.contains("show")) {
+				} else if (this.modal && this.modal.classList.contains('show')) {
 					this.closeModal();
 				}
 			}
@@ -707,11 +698,11 @@ class ProcessedImageModal {
 
 		if (this.modal) {
 			// Ensure modal is visible even if markup starts with a `hidden` helper class
-			this.modal.classList.remove("hidden");
-			this.modal.classList.add("show");
-			document.body.style.overflow = "hidden";
+			this.modal.classList.remove('hidden');
+			this.modal.classList.add('show');
+			document.body.style.overflow = 'hidden';
 
-			const countEl = document.getElementById("galleryCount");
+			const countEl = document.getElementById('galleryCount');
 			if (countEl) {
 				countEl.textContent = `${processedImages.length} images processed`;
 			}
@@ -719,7 +710,7 @@ class ProcessedImageModal {
 			// focus the modal for accessibility
 			try {
 				const firstFocusable = this.modal.querySelector(
-					'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+					'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
 				);
 				if (firstFocusable) firstFocusable.focus();
 			} catch (e) {
@@ -729,26 +720,26 @@ class ProcessedImageModal {
 	}
 
 	populateGallery() {
-		const galleryGrid = document.getElementById("galleryGrid");
+		const galleryGrid = document.getElementById('galleryGrid');
 		if (!galleryGrid) return;
 
 		// Clear previous content and any existing toolbar to avoid duplicates
-		const existingToolbar = galleryGrid.parentNode.querySelector(".gallery-toolbar");
+		const existingToolbar = galleryGrid.parentNode.querySelector('.gallery-toolbar');
 		if (existingToolbar) existingToolbar.remove();
-		galleryGrid.innerHTML = "";
+		galleryGrid.innerHTML = '';
 
 		if (!this.processedImages || this.processedImages.length === 0) {
 			// Show an empty state card
-			const empty = document.createElement("div");
-			empty.className = "empty-state";
+			const empty = document.createElement('div');
+			empty.className = 'empty-state';
 			empty.innerHTML = `<div style="padding:24px; text-align:center;"><h3>No processed images</h3><p>Click "Process All Images" to generate the gallery.</p></div>`;
 			galleryGrid.appendChild(empty);
 			return;
 		}
 
 		// Add a small toolbar with select-all checkbox and download selected
-		const toolbar = document.createElement("div");
-		toolbar.className = "gallery-toolbar";
+		const toolbar = document.createElement('div');
+		toolbar.className = 'gallery-toolbar';
 		toolbar.innerHTML = `
 				<label><input type="checkbox" id="selectAllImages" checked> Select All</label>
 				<button id="downloadSelectedBtn" class="btn btn--primary btn--sm">Download Selected</button>
@@ -756,8 +747,8 @@ class ProcessedImageModal {
 		galleryGrid.parentNode.insertBefore(toolbar, galleryGrid);
 
 		this.processedImages.forEach((imageData, index) => {
-			const galleryItem = document.createElement("div");
-			galleryItem.className = "gallery-item";
+			const galleryItem = document.createElement('div');
+			galleryItem.className = 'gallery-item';
 
 			galleryItem.innerHTML = `
 				<label class="gallery-select"><input type="checkbox" class="image-select" data-idx="${index}" checked></label>
@@ -769,15 +760,15 @@ class ProcessedImageModal {
 			`;
 
 			// Click to view full size
-			const img = galleryItem.querySelector("img");
+			const img = galleryItem.querySelector('img');
 			if (img) {
-				img.addEventListener("click", () => this.showImageViewer(imageData));
+				img.addEventListener('click', () => this.showImageViewer(imageData));
 			}
 
 			// Download individual image
-			const downloadBtn = galleryItem.querySelector(".download-btn");
+			const downloadBtn = galleryItem.querySelector('.download-btn');
 			if (downloadBtn) {
-				downloadBtn.addEventListener("click", (e) => {
+				downloadBtn.addEventListener('click', (e) => {
 					e.stopPropagation();
 					this.downloadImage(imageData);
 				});
@@ -787,28 +778,28 @@ class ProcessedImageModal {
 		});
 
 		// Wire toolbar controls
-		const selectAll = document.getElementById("selectAllImages");
-		const downloadSelectedBtn = document.getElementById("downloadSelectedBtn");
+		const selectAll = document.getElementById('selectAllImages');
+		const downloadSelectedBtn = document.getElementById('downloadSelectedBtn');
 
 		if (selectAll) {
-			selectAll.addEventListener("change", (e) => {
-				document.querySelectorAll(".image-select").forEach((cb) => {
+			selectAll.addEventListener('change', (e) => {
+				document.querySelectorAll('.image-select').forEach((cb) => {
 					cb.checked = selectAll.checked;
 				});
 			});
 		}
 
 		if (downloadSelectedBtn) {
-			downloadSelectedBtn.addEventListener("click", () => this.downloadSelectedAsZip());
+			downloadSelectedBtn.addEventListener('click', () => this.downloadSelectedAsZip());
 		}
 	}
 
 	showImageViewer(imageData) {
 		if (!this.imageViewer) return;
 
-		const img = document.getElementById("imageViewerImg");
-		const name = document.getElementById("imageViewerName");
-		const downloadBtn = document.getElementById("imageViewerDownload");
+		const img = document.getElementById('imageViewerImg');
+		const name = document.getElementById('imageViewerName');
+		const downloadBtn = document.getElementById('imageViewerDownload');
 
 		if (img) img.src = imageData.url;
 		if (name) name.textContent = imageData.name;
@@ -817,32 +808,32 @@ class ProcessedImageModal {
 			downloadBtn.onclick = () => this.downloadImage(imageData);
 		}
 
-		this.imageViewer.classList.remove("hidden");
-		this.imageViewer.classList.add("show");
+		this.imageViewer.classList.remove('hidden');
+		this.imageViewer.classList.add('show');
 	}
 
 	closeImageViewer() {
 		if (this.imageViewer) {
-			this.imageViewer.classList.remove("show");
+			this.imageViewer.classList.remove('show');
 			setTimeout(() => {
-				this.imageViewer.classList.add("hidden");
+				this.imageViewer.classList.add('hidden');
 			}, 300);
 		}
 	}
 
 	closeModal() {
 		if (this.modal) {
-			this.modal.classList.remove("show");
-			document.body.style.overflow = "";
+			this.modal.classList.remove('show');
+			document.body.style.overflow = '';
 			// After hide transition, hide from layout so `hidden` class keeps it non-interactive
 			setTimeout(() => {
-				if (this.modal) this.modal.classList.add("hidden");
+				if (this.modal) this.modal.classList.add('hidden');
 			}, 300);
 		}
 	}
 
 	downloadImage(imageData) {
-		const a = document.createElement("a");
+		const a = document.createElement('a');
 		a.href = imageData.url;
 		a.download = imageData.name;
 		document.body.appendChild(a);
@@ -852,7 +843,7 @@ class ProcessedImageModal {
 
 	async downloadAllAsZip() {
 		if (this.processedImages.length === 0) {
-			alert("No processed images to download.");
+			alert('No processed images to download.');
 			return;
 		}
 
@@ -863,26 +854,26 @@ class ProcessedImageModal {
 				zip.file(imageData.name, imageData.blob);
 			}
 
-			const zipBlob = await zip.generateAsync({ type: "blob" });
+			const zipBlob = await zip.generateAsync({ type: 'blob' });
 
 			const url = URL.createObjectURL(zipBlob);
-			const a = document.createElement("a");
+			const a = document.createElement('a');
 			a.href = url;
-			a.download = "watermarked_images.zip";
+			a.download = 'watermarked_images.zip';
 			document.body.appendChild(a);
 			a.click();
 			document.body.removeChild(a);
 			URL.revokeObjectURL(url);
 		} catch (error) {
-			console.error("Error creating ZIP file:", error);
-			alert("Error creating ZIP file.");
+			console.error('Error creating ZIP file:', error);
+			alert('Error creating ZIP file.');
 		}
 	}
 
 	async downloadSelectedAsZip() {
 		// collect selected indexes
 		const selected = [];
-		document.querySelectorAll(".image-select").forEach((cb) => {
+		document.querySelectorAll('.image-select').forEach((cb) => {
 			if (cb.checked) selected.push(Number(cb.dataset.idx));
 		});
 
@@ -892,7 +883,7 @@ class ProcessedImageModal {
 		}
 
 		if (!items || items.length === 0) {
-			alert("No images selected for download");
+			alert('No images selected for download');
 			return;
 		}
 
@@ -903,19 +894,19 @@ class ProcessedImageModal {
 				zip.file(imageData.name, imageData.blob);
 			}
 
-			const zipBlob = await zip.generateAsync({ type: "blob" });
+			const zipBlob = await zip.generateAsync({ type: 'blob' });
 
 			const url = URL.createObjectURL(zipBlob);
-			const a = document.createElement("a");
+			const a = document.createElement('a');
 			a.href = url;
-			a.download = "watermarked_images_selected.zip";
+			a.download = 'watermarked_images_selected.zip';
 			document.body.appendChild(a);
 			a.click();
 			document.body.removeChild(a);
 			URL.revokeObjectURL(url);
 		} catch (error) {
-			console.error("Error creating ZIP:", error);
-			alert("Error creating ZIP file.");
+			console.error('Error creating ZIP:', error);
+			alert('Error creating ZIP file.');
 		}
 	}
 }
@@ -947,18 +938,18 @@ class BulkWatermarkApp {
 		 */
 		this.watermarkSettings = {
 			// Core watermark properties
-			type: "text", // "text" | "logo" - determines rendering pipeline
-			patternMode: "single", // "single" | "diagonal" | "grid" - layout mode
+			type: 'text', // "text" | "logo" - determines rendering pipeline
+			patternMode: 'single', // "single" | "diagonal" | "grid" - layout mode
 
 			// Text watermark configuration
-			text: "© Your Watermark", // Displayed text content
+			text: '© Your Watermark', // Displayed text content
 			fontSize: 24, // Base font size (scaled by canvas)
-			fontFamily: "Arial", // Font family name
-			textColor: "#ffffff", // Text fill color (hex format)
+			fontFamily: 'Arial', // Font family name
+			textColor: '#ffffff', // Text fill color (hex format)
 
 			// Common properties
 			opacity: 70, // Transparency percentage (0-100)
-			position: "bottom-right", // Single mode position key
+			position: 'bottom-right', // Single mode position key
 			offsetX: 0, // Fine position adjustment (pixels)
 			offsetY: 0, // Fine position adjustment (pixels)
 			watermarkRotation: 0, // Individual watermark rotation (degrees)
@@ -980,26 +971,26 @@ class BulkWatermarkApp {
 			textEffects: {
 				// Shadow effect
 				shadow: false, // Enable/disable shadow
-				shadowColor: "#000000", // Shadow color
+				shadowColor: '#000000', // Shadow color
 				shadowBlur: 6, // Shadow blur radius
 				shadowOffsetX: 2, // Shadow horizontal offset
 				shadowOffsetY: 2, // Shadow vertical offset
 
 				// Text outline effect
 				outline: false, // Enable/disable outline
-				outlineColor: "#000000", // Outline stroke color
+				outlineColor: '#000000', // Outline stroke color
 				outlineThickness: 2, // Outline stroke width
 				outlineOpacity: 100, // Outline opacity (0-100)
 
 				// Glow effect
 				glow: false, // Enable/disable glow
-				glowColor: "#ffffff", // Glow color (usually matches text)
+				glowColor: '#ffffff', // Glow color (usually matches text)
 				glowSpread: 12, // Glow spread/blur radius (renamed from glowBlur)
 				glowIntensity: 100, // Glow intensity/transparency (0-100)
 			},
 
 			// Logo overlay effects
-			overlayEffect: "none", // "none" | "tint" - logo processing mode
+			overlayEffect: 'none', // "none" | "tint" - logo processing mode
 		};
 
 		/*
@@ -1015,15 +1006,15 @@ class BulkWatermarkApp {
 		 * Coordinates positioned for tight corner alignment without excessive padding.
 		 */
 		this.positionMap = {
-			"top-left": { x: 0.06, y: 0.06 }, // Near top-left corner
-			"top-center": { x: 0.5, y: 0.06 }, // Top edge, centered
-			"top-right": { x: 0.94, y: 0.06 }, // Near top-right corner
-			"middle-left": { x: 0.06, y: 0.5 }, // Left edge, centered
+			'top-left': { x: 0.06, y: 0.06 }, // Near top-left corner
+			'top-center': { x: 0.5, y: 0.06 }, // Top edge, centered
+			'top-right': { x: 0.94, y: 0.06 }, // Near top-right corner
+			'middle-left': { x: 0.06, y: 0.5 }, // Left edge, centered
 			center: { x: 0.5, y: 0.5 }, // Exact center
-			"middle-right": { x: 0.94, y: 0.5 }, // Right edge, centered
-			"bottom-left": { x: 0.06, y: 0.94 }, // Near bottom-left corner
-			"bottom-center": { x: 0.5, y: 0.94 }, // Bottom edge, centered
-			"bottom-right": { x: 0.94, y: 0.94 }, // Near bottom-right corner
+			'middle-right': { x: 0.94, y: 0.5 }, // Right edge, centered
+			'bottom-left': { x: 0.06, y: 0.94 }, // Near bottom-left corner
+			'bottom-center': { x: 0.5, y: 0.94 }, // Bottom edge, centered
+			'bottom-right': { x: 0.94, y: 0.94 }, // Near bottom-right corner
 		};
 
 		// Initialize application components and event bindings
@@ -1084,21 +1075,21 @@ class BulkWatermarkApp {
 		this.modal = new ProcessedImageModal();
 
 		/* Wait for DOM then bind events */
-		if (document.readyState === "loading") {
-			document.addEventListener("DOMContentLoaded", () => {
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', () => {
 				this.bindEvents();
 				this.initializeControls();
 				/* Ensure 'single' pattern is selected on load */
 				try {
-					this.watermarkSettings.patternMode = "single";
+					this.watermarkSettings.patternMode = 'single';
 					const radios = document.querySelectorAll('input[name="patternMode"]');
 					radios.forEach((r) => {
-						r.checked = r.value === "single";
+						r.checked = r.value === 'single';
 					});
 					this.updatePatternModeUI();
 					this.updatePreview();
 				} catch (err) {
-					console.warn("Failed to enforce single pattern mode on init", err);
+					console.warn('Failed to enforce single pattern mode on init', err);
 				}
 				this.updateUI();
 			});
@@ -1107,15 +1098,15 @@ class BulkWatermarkApp {
 			this.initializeControls();
 			/* Ensure 'single' pattern is selected on load */
 			try {
-				this.watermarkSettings.patternMode = "single";
+				this.watermarkSettings.patternMode = 'single';
 				const radios = document.querySelectorAll('input[name="patternMode"]');
 				radios.forEach((r) => {
-					r.checked = r.value === "single";
+					r.checked = r.value === 'single';
 				});
 				this.updatePatternModeUI();
 				this.updatePreview();
 			} catch (err) {
-				console.warn("Failed to enforce single pattern mode on init", err);
+				console.warn('Failed to enforce single pattern mode on init', err);
 			}
 			this.updateUI();
 		}
@@ -1173,7 +1164,7 @@ class BulkWatermarkApp {
 		};
 
 		reader.onerror = () => {
-			fileData.error = "Failed to load image";
+			fileData.error = 'Failed to load image';
 			this.renderImageGrid();
 			this.updateUI();
 		};
@@ -1183,26 +1174,26 @@ class BulkWatermarkApp {
 
 	bindEvents() {
 		/* Clear files */
-		const clearBtn = document.getElementById("clearFiles");
+		const clearBtn = document.getElementById('clearFiles');
 		if (clearBtn) {
-			clearBtn.addEventListener("click", () => this.clearAllFiles());
+			clearBtn.addEventListener('click', () => this.clearAllFiles());
 		}
 
 		/* Reset to defaults button */
-		const resetBtn = document.getElementById("resetDefaults");
+		const resetBtn = document.getElementById('resetDefaults');
 		if (resetBtn) {
-			resetBtn.addEventListener("click", () => this.resetToDefaults());
+			resetBtn.addEventListener('click', () => this.resetToDefaults());
 		}
 
 		// Watermark type toggles
-		const textToggle = document.getElementById("textToggle");
-		const logoToggle = document.getElementById("logoToggle");
-		if (textToggle) textToggle.addEventListener("click", () => this.setWatermarkType("text"));
-		if (logoToggle) logoToggle.addEventListener("click", () => this.setWatermarkType("logo"));
+		const textToggle = document.getElementById('textToggle');
+		const logoToggle = document.getElementById('logoToggle');
+		if (textToggle) textToggle.addEventListener('click', () => this.setWatermarkType('text'));
+		if (logoToggle) logoToggle.addEventListener('click', () => this.setWatermarkType('logo'));
 
 		// Pattern mode
 		document.querySelectorAll('input[name="patternMode"]').forEach((radio) => {
-			radio.addEventListener("change", (e) => {
+			radio.addEventListener('change', (e) => {
 				this.watermarkSettings.patternMode = e.target.value;
 				this.updatePatternModeUI();
 				this.updatePreview();
@@ -1226,26 +1217,26 @@ class BulkWatermarkApp {
 	}
 
 	bindTextControls() {
-		const textContent = document.getElementById("textContent");
-		const fontFamily = document.getElementById("fontFamily");
-		const textColor = document.getElementById("textColor");
+		const textContent = document.getElementById('textContent');
+		const fontFamily = document.getElementById('fontFamily');
+		const textColor = document.getElementById('textColor');
 
 		if (textContent) {
-			textContent.addEventListener("input", () => {
+			textContent.addEventListener('input', () => {
 				this.watermarkSettings.text = textContent.value;
 				this.updatePreview();
 			});
 		}
 
 		if (fontFamily) {
-			fontFamily.addEventListener("change", () => {
+			fontFamily.addEventListener('change', () => {
 				this.watermarkSettings.fontFamily = fontFamily.value;
 				this.updatePreview();
 			});
 		}
 
 		if (textColor) {
-			textColor.addEventListener("change", () => {
+			textColor.addEventListener('change', () => {
 				this.watermarkSettings.textColor = textColor.value;
 				this.updatePreview();
 			});
@@ -1253,9 +1244,9 @@ class BulkWatermarkApp {
 	}
 
 	bindLogoControls() {
-		const watermarkLogo = document.getElementById("watermarkLogo");
+		const watermarkLogo = document.getElementById('watermarkLogo');
 		if (watermarkLogo) {
-			watermarkLogo.addEventListener("change", (e) => {
+			watermarkLogo.addEventListener('change', (e) => {
 				const file = e.target.files[0];
 				if (file) {
 					const reader = new FileReader();
@@ -1265,25 +1256,25 @@ class BulkWatermarkApp {
 							this.watermarkSettings.watermarkLogo = img;
 							/* Switch to logo watermark mode */
 							try {
-								this.setWatermarkType("logo");
+								this.setWatermarkType('logo');
 							} catch (err) {
-								this.watermarkSettings.type = "logo";
+								this.watermarkSettings.type = 'logo';
 							}
 
 							/* Update logo control visibility now that logo is uploaded */
 							this.updateLogoControlsVisibility();
 
-							const previewImg = document.getElementById("watermarkPreviewImg");
-							const watermarkPreview = document.getElementById("watermarkPreview");
+							const previewImg = document.getElementById('watermarkPreviewImg');
+							const watermarkPreview = document.getElementById('watermarkPreview');
 
 							if (previewImg && watermarkPreview) {
 								previewImg.src = e.target.result;
-								watermarkPreview.classList.remove("hidden");
+								watermarkPreview.classList.remove('hidden');
 							}
 
 							/* Ensure logoScale setting is synced */
-							const logoScaleEl = document.getElementById("logoScale");
-							const logoScaleNum = document.getElementById("logoScaleNumber");
+							const logoScaleEl = document.getElementById('logoScale');
+							const logoScaleNum = document.getElementById('logoScaleNumber');
 							if (logoScaleEl)
 								this.watermarkSettings.logoScale =
 									Number(logoScaleEl.value) || this.watermarkSettings.logoScale;
@@ -1293,10 +1284,10 @@ class BulkWatermarkApp {
 
 							/* Prebuild watermark cache for immediate rendering */
 							try {
-								const tempCanvas = document.createElement("canvas");
+								const tempCanvas = document.createElement('canvas');
 								tempCanvas.width = Math.max(200, img.width);
 								tempCanvas.height = Math.max(200, img.height);
-								const tctx = tempCanvas.getContext("2d");
+								const tctx = tempCanvas.getContext('2d');
 								this.buildWatermarkCache(tctx, tempCanvas.width, tempCanvas.height);
 							} catch (err) {
 								/* fail silently */
@@ -1314,15 +1305,15 @@ class BulkWatermarkApp {
 	}
 
 	bindRangeControls() {
-		const controls = ["fontSize", "logoScale", "opacity", "patternAngle", "watermarkRotation"];
-		const logoControls = ["logoOpacity", "logoRotation", "logoPatternAngle"];
+		const controls = ['fontSize', 'logoScale', 'opacity', 'patternAngle', 'watermarkRotation'];
+		const logoControls = ['logoOpacity', 'logoRotation', 'logoPatternAngle'];
 
 		controls.forEach((controlId) => {
 			const rangeEl = document.getElementById(controlId);
-			const numberEl = document.getElementById(controlId + "Number");
+			const numberEl = document.getElementById(controlId + 'Number');
 
 			if (rangeEl) {
-				rangeEl.addEventListener("input", (e) => {
+				rangeEl.addEventListener('input', (e) => {
 					const value = parseInt(e.target.value);
 					this.watermarkSettings[controlId] = value;
 					this.syncControls(controlId, value);
@@ -1331,7 +1322,7 @@ class BulkWatermarkApp {
 			}
 
 			if (numberEl) {
-				numberEl.addEventListener("input", (e) => {
+				numberEl.addEventListener('input', (e) => {
 					const value = parseInt(e.target.value);
 					this.watermarkSettings[controlId] = value;
 					this.syncControls(controlId, value);
@@ -1343,24 +1334,24 @@ class BulkWatermarkApp {
 		// Logo-specific controls that map to the same settings
 		logoControls.forEach((controlId) => {
 			const rangeEl = document.getElementById(controlId);
-			const numberEl = document.getElementById(controlId + "Number");
+			const numberEl = document.getElementById(controlId + 'Number');
 			let settingsKey;
 
 			// Map logo control IDs to actual settings keys
 			switch (controlId) {
-				case "logoOpacity":
-					settingsKey = "opacity";
+				case 'logoOpacity':
+					settingsKey = 'opacity';
 					break;
-				case "logoRotation":
-					settingsKey = "watermarkRotation";
+				case 'logoRotation':
+					settingsKey = 'watermarkRotation';
 					break;
-				case "logoPatternAngle":
-					settingsKey = "patternAngle";
+				case 'logoPatternAngle':
+					settingsKey = 'patternAngle';
 					break;
 			}
 
 			if (rangeEl && settingsKey) {
-				rangeEl.addEventListener("input", (e) => {
+				rangeEl.addEventListener('input', (e) => {
 					const value = parseInt(e.target.value);
 					this.watermarkSettings[settingsKey] = value;
 					this.syncLogoControls(controlId, value);
@@ -1369,7 +1360,7 @@ class BulkWatermarkApp {
 			}
 
 			if (numberEl && settingsKey) {
-				numberEl.addEventListener("input", (e) => {
+				numberEl.addEventListener('input', (e) => {
 					const value = parseInt(e.target.value);
 					this.watermarkSettings[settingsKey] = value;
 					this.syncLogoControls(controlId, value);
@@ -1380,25 +1371,25 @@ class BulkWatermarkApp {
 
 		// Overlay effect
 		// Text-only effect controls (shadow, outline, glow)
-		const effectShadow = document.getElementById("effectShadow");
-		const effectShadowColor = document.getElementById("effectShadowColor");
-		const effectShadowBlur = document.getElementById("effectShadowBlur");
-		const effectShadowOffsetX = document.getElementById("effectShadowOffsetX");
-		const effectShadowOffsetY = document.getElementById("effectShadowOffsetY");
+		const effectShadow = document.getElementById('effectShadow');
+		const effectShadowColor = document.getElementById('effectShadowColor');
+		const effectShadowBlur = document.getElementById('effectShadowBlur');
+		const effectShadowOffsetX = document.getElementById('effectShadowOffsetX');
+		const effectShadowOffsetY = document.getElementById('effectShadowOffsetY');
 
-		const effectOutline = document.getElementById("effectOutline");
-		const effectOutlineColor = document.getElementById("effectOutlineColor");
-		const effectOutlineThickness = document.getElementById("effectOutlineThickness");
-		const effectOutlineOpacity = document.getElementById("effectOutlineOpacity");
+		const effectOutline = document.getElementById('effectOutline');
+		const effectOutlineColor = document.getElementById('effectOutlineColor');
+		const effectOutlineThickness = document.getElementById('effectOutlineThickness');
+		const effectOutlineOpacity = document.getElementById('effectOutlineOpacity');
 
-		const effectGlow = document.getElementById("effectGlow");
-		const effectGlowColor = document.getElementById("effectGlowColor");
-		const effectGlowSpread = document.getElementById("effectGlowSpread");
-		const effectGlowIntensity = document.getElementById("effectGlowIntensity");
+		const effectGlow = document.getElementById('effectGlow');
+		const effectGlowColor = document.getElementById('effectGlowColor');
+		const effectGlowSpread = document.getElementById('effectGlowSpread');
+		const effectGlowIntensity = document.getElementById('effectGlowIntensity');
 
 		const bindEffect = (el, setter) => {
 			if (!el) return;
-			el.addEventListener("input", () => {
+			el.addEventListener('input', () => {
 				setter();
 				this.updatePreview();
 			});
@@ -1416,15 +1407,15 @@ class BulkWatermarkApp {
 		bindEffect(effectShadowColor, () => (this.watermarkSettings.textEffects.shadowColor = effectShadowColor.value));
 		bindEffect(
 			effectShadowBlur,
-			() => (this.watermarkSettings.textEffects.shadowBlur = Number(effectShadowBlur.value))
+			() => (this.watermarkSettings.textEffects.shadowBlur = Number(effectShadowBlur.value)),
 		);
 		bindEffect(
 			effectShadowOffsetX,
-			() => (this.watermarkSettings.textEffects.shadowOffsetX = Number(effectShadowOffsetX.value))
+			() => (this.watermarkSettings.textEffects.shadowOffsetX = Number(effectShadowOffsetX.value)),
 		);
 		bindEffect(
 			effectShadowOffsetY,
-			() => (this.watermarkSettings.textEffects.shadowOffsetY = Number(effectShadowOffsetY.value))
+			() => (this.watermarkSettings.textEffects.shadowOffsetY = Number(effectShadowOffsetY.value)),
 		);
 
 		bindEffect(effectOutline, () => {
@@ -1439,15 +1430,15 @@ class BulkWatermarkApp {
 		});
 		bindEffect(
 			effectOutlineColor,
-			() => (this.watermarkSettings.textEffects.outlineColor = effectOutlineColor.value)
+			() => (this.watermarkSettings.textEffects.outlineColor = effectOutlineColor.value),
 		);
 		bindEffect(
 			effectOutlineThickness,
-			() => (this.watermarkSettings.textEffects.outlineThickness = Number(effectOutlineThickness.value))
+			() => (this.watermarkSettings.textEffects.outlineThickness = Number(effectOutlineThickness.value)),
 		);
 		bindEffect(
 			effectOutlineOpacity,
-			() => (this.watermarkSettings.textEffects.outlineOpacity = Number(effectOutlineOpacity.value))
+			() => (this.watermarkSettings.textEffects.outlineOpacity = Number(effectOutlineOpacity.value)),
 		);
 
 		bindEffect(effectGlow, () => {
@@ -1461,30 +1452,30 @@ class BulkWatermarkApp {
 		bindEffect(effectGlowColor, () => (this.watermarkSettings.textEffects.glowColor = effectGlowColor.value));
 		bindEffect(
 			effectGlowSpread,
-			() => (this.watermarkSettings.textEffects.glowSpread = Number(effectGlowSpread.value))
+			() => (this.watermarkSettings.textEffects.glowSpread = Number(effectGlowSpread.value)),
 		);
 		bindEffect(
 			effectGlowIntensity,
-			() => (this.watermarkSettings.textEffects.glowIntensity = Number(effectGlowIntensity.value))
+			() => (this.watermarkSettings.textEffects.glowIntensity = Number(effectGlowIntensity.value)),
 		);
 
 		// New compact horizontal/vertical spacing controls
-		const spX = document.getElementById("patternSpacingX");
-		const spY = document.getElementById("patternSpacingY");
-		const spXNum = document.getElementById("patternSpacingXNumber");
-		const spYNum = document.getElementById("patternSpacingYNumber");
+		const spX = document.getElementById('patternSpacingX');
+		const spY = document.getElementById('patternSpacingY');
+		const spXNum = document.getElementById('patternSpacingXNumber');
+		const spYNum = document.getElementById('patternSpacingYNumber');
 
 		// Logo pattern spacing controls
-		const logoSpX = document.getElementById("logoPatternSpacingX");
-		const logoSpY = document.getElementById("logoPatternSpacingY");
-		const logoSpXNum = document.getElementById("logoPatternSpacingXNumber");
-		const logoSpYNum = document.getElementById("logoPatternSpacingYNumber");
+		const logoSpX = document.getElementById('logoPatternSpacingX');
+		const logoSpY = document.getElementById('logoPatternSpacingY');
+		const logoSpXNum = document.getElementById('logoPatternSpacingXNumber');
+		const logoSpYNum = document.getElementById('logoPatternSpacingYNumber');
 
 		if (spX) {
-			spX.addEventListener("input", (e) => {
+			spX.addEventListener('input', (e) => {
 				const v = parseInt(e.target.value);
 				this.watermarkSettings.patternSpacingX = v;
-				const el = document.getElementById("patternSpacingXValue");
+				const el = document.getElementById('patternSpacingXValue');
 				if (el) el.textContent = v; // Show the actual UI value, not a pixel estimate
 				if (spXNum) spXNum.value = v;
 				this.updatePreview();
@@ -1492,10 +1483,10 @@ class BulkWatermarkApp {
 		}
 
 		if (spY) {
-			spY.addEventListener("input", (e) => {
+			spY.addEventListener('input', (e) => {
 				const v = parseInt(e.target.value);
 				this.watermarkSettings.patternSpacingY = v;
-				const el = document.getElementById("patternSpacingYValue");
+				const el = document.getElementById('patternSpacingYValue');
 				if (el) el.textContent = v; // Show the actual UI value, not a pixel estimate
 				if (spYNum) spYNum.value = v;
 				this.updatePreview();
@@ -1503,22 +1494,22 @@ class BulkWatermarkApp {
 		}
 
 		if (spXNum) {
-			spXNum.addEventListener("input", (e) => {
+			spXNum.addEventListener('input', (e) => {
 				const v = parseInt(e.target.value);
 				this.watermarkSettings.patternSpacingX = v;
 				if (spX) spX.value = v;
-				const el = document.getElementById("patternSpacingXValue");
+				const el = document.getElementById('patternSpacingXValue');
 				if (el) el.textContent = v;
 				this.updatePreview();
 			});
 		}
 
 		if (spYNum) {
-			spYNum.addEventListener("input", (e) => {
+			spYNum.addEventListener('input', (e) => {
 				const v = parseInt(e.target.value);
 				this.watermarkSettings.patternSpacingY = v;
 				if (spY) spY.value = v;
-				const el = document.getElementById("patternSpacingYValue");
+				const el = document.getElementById('patternSpacingYValue');
 				if (el) el.textContent = v;
 				this.updatePreview();
 			});
@@ -1526,10 +1517,10 @@ class BulkWatermarkApp {
 
 		// Logo pattern spacing controls
 		if (logoSpX) {
-			logoSpX.addEventListener("input", (e) => {
+			logoSpX.addEventListener('input', (e) => {
 				const v = parseInt(e.target.value);
 				this.watermarkSettings.patternSpacingX = v;
-				const el = document.getElementById("logoPatternSpacingXValue");
+				const el = document.getElementById('logoPatternSpacingXValue');
 				if (el) el.textContent = v; // Show the actual UI value, not a pixel estimate
 				if (logoSpXNum) logoSpXNum.value = v;
 				this.updatePreview();
@@ -1537,10 +1528,10 @@ class BulkWatermarkApp {
 		}
 
 		if (logoSpY) {
-			logoSpY.addEventListener("input", (e) => {
+			logoSpY.addEventListener('input', (e) => {
 				const v = parseInt(e.target.value);
 				this.watermarkSettings.patternSpacingY = v;
-				const el = document.getElementById("logoPatternSpacingYValue");
+				const el = document.getElementById('logoPatternSpacingYValue');
 				if (el) el.textContent = v; // Show the actual UI value, not a pixel estimate
 				if (logoSpYNum) logoSpYNum.value = v;
 				this.updatePreview();
@@ -1548,22 +1539,22 @@ class BulkWatermarkApp {
 		}
 
 		if (logoSpXNum) {
-			logoSpXNum.addEventListener("input", (e) => {
+			logoSpXNum.addEventListener('input', (e) => {
 				const v = parseInt(e.target.value);
 				this.watermarkSettings.patternSpacingX = v;
 				if (logoSpX) logoSpX.value = v;
-				const el = document.getElementById("logoPatternSpacingXValue");
+				const el = document.getElementById('logoPatternSpacingXValue');
 				if (el) el.textContent = v;
 				this.updatePreview();
 			});
 		}
 
 		if (logoSpYNum) {
-			logoSpYNum.addEventListener("input", (e) => {
+			logoSpYNum.addEventListener('input', (e) => {
 				const v = parseInt(e.target.value);
 				this.watermarkSettings.patternSpacingY = v;
 				if (logoSpY) logoSpY.value = v;
-				const el = document.getElementById("logoPatternSpacingYValue");
+				const el = document.getElementById('logoPatternSpacingYValue');
 				if (el) el.textContent = v;
 				this.updatePreview();
 			});
@@ -1572,60 +1563,60 @@ class BulkWatermarkApp {
 
 	bindPositionControls() {
 		// Text position controls
-		document.querySelectorAll("#positionGrid .position-btn").forEach((btn) => {
-			btn.addEventListener("click", () => {
+		document.querySelectorAll('#positionGrid .position-btn').forEach((btn) => {
+			btn.addEventListener('click', () => {
 				this.setPosition(btn.dataset.position);
 				this.updatePreview();
 			});
 		});
 
 		// Logo position controls
-		document.querySelectorAll("#logoPositionGrid .position-btn").forEach((btn) => {
-			btn.addEventListener("click", () => {
+		document.querySelectorAll('#logoPositionGrid .position-btn').forEach((btn) => {
+			btn.addEventListener('click', () => {
 				this.setPosition(btn.dataset.position);
 				this.updatePreview();
 			});
 		});
 
 		// Text offset controls
-		const offsetX = document.getElementById("offsetX");
-		const offsetY = document.getElementById("offsetY");
+		const offsetX = document.getElementById('offsetX');
+		const offsetY = document.getElementById('offsetY');
 
 		if (offsetX) {
-			offsetX.addEventListener("input", (e) => {
+			offsetX.addEventListener('input', (e) => {
 				this.watermarkSettings.offsetX = parseInt(e.target.value);
-				const valueEl = document.getElementById("offsetXValue");
+				const valueEl = document.getElementById('offsetXValue');
 				if (valueEl) valueEl.textContent = e.target.value;
 				this.updatePreview();
 			});
 		}
 
 		if (offsetY) {
-			offsetY.addEventListener("input", (e) => {
+			offsetY.addEventListener('input', (e) => {
 				this.watermarkSettings.offsetY = parseInt(e.target.value);
-				const valueEl = document.getElementById("offsetYValue");
+				const valueEl = document.getElementById('offsetYValue');
 				if (valueEl) valueEl.textContent = e.target.value;
 				this.updatePreview();
 			});
 		}
 
 		// Logo offset controls
-		const logoOffsetX = document.getElementById("logoOffsetX");
-		const logoOffsetY = document.getElementById("logoOffsetY");
+		const logoOffsetX = document.getElementById('logoOffsetX');
+		const logoOffsetY = document.getElementById('logoOffsetY');
 
 		if (logoOffsetX) {
-			logoOffsetX.addEventListener("input", (e) => {
+			logoOffsetX.addEventListener('input', (e) => {
 				this.watermarkSettings.offsetX = parseInt(e.target.value);
-				const valueEl = document.getElementById("logoOffsetXValue");
+				const valueEl = document.getElementById('logoOffsetXValue');
 				if (valueEl) valueEl.textContent = e.target.value;
 				this.updatePreview();
 			});
 		}
 
 		if (logoOffsetY) {
-			logoOffsetY.addEventListener("input", (e) => {
+			logoOffsetY.addEventListener('input', (e) => {
 				this.watermarkSettings.offsetY = parseInt(e.target.value);
-				const valueEl = document.getElementById("logoOffsetYValue");
+				const valueEl = document.getElementById('logoOffsetYValue');
 				if (valueEl) valueEl.textContent = e.target.value;
 				this.updatePreview();
 			});
@@ -1633,29 +1624,29 @@ class BulkWatermarkApp {
 	}
 
 	bindProcessingControls() {
-		const processBtn = document.getElementById("processBtn");
-		const downloadZipBtn = document.getElementById("downloadZip");
-		const showGalleryBtn = document.getElementById("showGalleryBtn");
+		const processBtn = document.getElementById('processBtn');
+		const downloadZipBtn = document.getElementById('downloadZip');
+		const showGalleryBtn = document.getElementById('showGalleryBtn');
 
 		if (processBtn) {
-			processBtn.addEventListener("click", () => this.processAllImages());
+			processBtn.addEventListener('click', () => this.processAllImages());
 		}
 
 		if (downloadZipBtn) {
-			downloadZipBtn.addEventListener("click", () => this.downloadZip());
+			downloadZipBtn.addEventListener('click', () => this.downloadZip());
 		}
 
 		if (showGalleryBtn) {
 			// Always open the gallery modal when clicked; the modal will show an empty-state if no images
-			showGalleryBtn.addEventListener("click", () => {
+			showGalleryBtn.addEventListener('click', () => {
 				try {
-					if (this.modal && typeof this.modal.showModal === "function") {
+					if (this.modal && typeof this.modal.showModal === 'function') {
 						this.modal.showModal(this.processedImages || []);
 					} else {
-						alert("Gallery is not available.");
+						alert('Gallery is not available.');
 					}
 				} catch (e) {
-					console.error("Failed to open gallery:", e);
+					console.error('Failed to open gallery:', e);
 				}
 			});
 		}
@@ -1663,8 +1654,8 @@ class BulkWatermarkApp {
 
 	syncControls(controlId, value) {
 		const rangeEl = document.getElementById(controlId);
-		const numberEl = document.getElementById(controlId + "Number");
-		const valueEl = document.getElementById(controlId + "Value");
+		const numberEl = document.getElementById(controlId + 'Number');
+		const valueEl = document.getElementById(controlId + 'Value');
 
 		if (rangeEl) rangeEl.value = value;
 		if (numberEl) numberEl.value = value;
@@ -1673,8 +1664,8 @@ class BulkWatermarkApp {
 
 	syncLogoControls(controlId, value) {
 		const rangeEl = document.getElementById(controlId);
-		const numberEl = document.getElementById(controlId + "Number");
-		const valueEl = document.getElementById(controlId + "Value");
+		const numberEl = document.getElementById(controlId + 'Number');
+		const valueEl = document.getElementById(controlId + 'Value');
 
 		if (rangeEl) rangeEl.value = value;
 		if (numberEl) numberEl.value = value;
@@ -1684,22 +1675,22 @@ class BulkWatermarkApp {
 	initializeControls() {
 		// Sync all initial values
 		Object.keys(this.watermarkSettings).forEach((key) => {
-			if (typeof this.watermarkSettings[key] === "number") {
+			if (typeof this.watermarkSettings[key] === 'number') {
 				this.syncControls(key, this.watermarkSettings[key]);
 			}
 		});
 
 		// Ensure the new spacing controls show 0 when defaulted to 0
-		const spx = document.getElementById("patternSpacingX");
-		const spy = document.getElementById("patternSpacingY");
-		const spxVal = document.getElementById("patternSpacingXValue");
-		const spyVal = document.getElementById("patternSpacingYValue");
+		const spx = document.getElementById('patternSpacingX');
+		const spy = document.getElementById('patternSpacingY');
+		const spxVal = document.getElementById('patternSpacingXValue');
+		const spyVal = document.getElementById('patternSpacingYValue');
 		if (spx) spx.value = Number(this.watermarkSettings.patternSpacingX || 0);
 		if (spy) spy.value = Number(this.watermarkSettings.patternSpacingY || 0);
 		if (spxVal) spxVal.textContent = this.watermarkSettings.patternSpacingX || 0;
 		if (spyVal) spyVal.textContent = this.watermarkSettings.patternSpacingY || 0;
 		// If preview canvas exists, show an estimated pixel value instead of raw slider unit
-		const previewCanvas = document.getElementById("previewCanvas");
+		const previewCanvas = document.getElementById('previewCanvas');
 		// Remove pixel display since we're now showing just numerical values
 		// The UI values (0-20) are displayed directly without conversion
 
@@ -1711,55 +1702,55 @@ class BulkWatermarkApp {
 	}
 
 	updatePatternModeUI() {
-		const patternControls = document.getElementById("patternControls");
-		const positionControls = document.getElementById("positionControls");
-		const offsetControls = document.getElementById("offsetControls");
-		const patternAngleGroup = document.getElementById("patternAngleGroup");
+		const patternControls = document.getElementById('patternControls');
+		const positionControls = document.getElementById('positionControls');
+		const offsetControls = document.getElementById('offsetControls');
+		const patternAngleGroup = document.getElementById('patternAngleGroup');
 
 		// Logo controls
-		const logoPatternControls = document.getElementById("logoPatternControls");
-		const logoPositionControls = document.getElementById("logoPositionControls");
-		const logoOffsetControls = document.getElementById("logoOffsetControls");
-		const logoPatternAngleGroup = document.getElementById("logoPatternAngleGroup");
+		const logoPatternControls = document.getElementById('logoPatternControls');
+		const logoPositionControls = document.getElementById('logoPositionControls');
+		const logoOffsetControls = document.getElementById('logoOffsetControls');
+		const logoPatternAngleGroup = document.getElementById('logoPatternAngleGroup');
 
 		const mode = this.watermarkSettings.patternMode;
 
-		if (mode === "single") {
+		if (mode === 'single') {
 			// Text controls
-			if (patternControls) patternControls.classList.add("hidden");
-			if (positionControls) positionControls.classList.remove("hidden");
-			if (offsetControls) offsetControls.classList.remove("hidden");
+			if (patternControls) patternControls.classList.add('hidden');
+			if (positionControls) positionControls.classList.remove('hidden');
+			if (offsetControls) offsetControls.classList.remove('hidden');
 
 			// Logo controls
-			if (logoPatternControls) logoPatternControls.classList.add("hidden");
-			if (logoPositionControls) logoPositionControls.classList.remove("hidden");
-			if (logoOffsetControls) logoOffsetControls.classList.remove("hidden");
+			if (logoPatternControls) logoPatternControls.classList.add('hidden');
+			if (logoPositionControls) logoPositionControls.classList.remove('hidden');
+			if (logoOffsetControls) logoOffsetControls.classList.remove('hidden');
 		} else {
 			// Text controls
-			if (patternControls) patternControls.classList.remove("hidden");
-			if (positionControls) positionControls.classList.add("hidden");
-			if (offsetControls) offsetControls.classList.add("hidden");
+			if (patternControls) patternControls.classList.remove('hidden');
+			if (positionControls) positionControls.classList.add('hidden');
+			if (offsetControls) offsetControls.classList.add('hidden');
 
 			// Logo controls
-			if (logoPatternControls) logoPatternControls.classList.remove("hidden");
-			if (logoPositionControls) logoPositionControls.classList.add("hidden");
-			if (logoOffsetControls) logoOffsetControls.classList.add("hidden");
+			if (logoPatternControls) logoPatternControls.classList.remove('hidden');
+			if (logoPositionControls) logoPositionControls.classList.add('hidden');
+			if (logoOffsetControls) logoOffsetControls.classList.add('hidden');
 
 			if (patternAngleGroup) {
 				// Show angle control only for tiled mode (angle controls diagonal orientation)
-				if (mode === "tiled") {
-					patternAngleGroup.classList.remove("hidden");
+				if (mode === 'tiled') {
+					patternAngleGroup.classList.remove('hidden');
 				} else {
-					patternAngleGroup.classList.add("hidden");
+					patternAngleGroup.classList.add('hidden');
 				}
 			}
 
 			if (logoPatternAngleGroup) {
 				// Show logo angle control only for tiled mode
-				if (mode === "tiled") {
-					logoPatternAngleGroup.classList.remove("hidden");
+				if (mode === 'tiled') {
+					logoPatternAngleGroup.classList.remove('hidden');
 				} else {
-					logoPatternAngleGroup.classList.add("hidden");
+					logoPatternAngleGroup.classList.add('hidden');
 				}
 			}
 		}
@@ -1772,23 +1763,23 @@ class BulkWatermarkApp {
 		this._watermarkCacheMap.clear();
 		this._watermarkCache = null;
 
-		document.querySelectorAll(".toggle-btn").forEach((btn) => btn.classList.remove("active"));
-		const toggleBtn = document.getElementById(type + "Toggle");
-		if (toggleBtn) toggleBtn.classList.add("active");
+		document.querySelectorAll('.toggle-btn').forEach((btn) => btn.classList.remove('active'));
+		const toggleBtn = document.getElementById(type + 'Toggle');
+		if (toggleBtn) toggleBtn.classList.add('active');
 
-		const textOptions = document.getElementById("textOptions");
-		const logoOptions = document.getElementById("logoOptions");
+		const textOptions = document.getElementById('textOptions');
+		const logoOptions = document.getElementById('logoOptions');
 
-		if (type === "text") {
-			if (textOptions) textOptions.classList.remove("hidden");
-			if (logoOptions) logoOptions.classList.add("hidden");
-			const te = document.getElementById("textEffectsControls");
-			if (te) te.classList.remove("hidden");
-		} else if (type === "logo") {
-			if (textOptions) textOptions.classList.add("hidden");
-			if (logoOptions) logoOptions.classList.remove("hidden");
-			const te = document.getElementById("textEffectsControls");
-			if (te) te.classList.add("hidden");
+		if (type === 'text') {
+			if (textOptions) textOptions.classList.remove('hidden');
+			if (logoOptions) logoOptions.classList.add('hidden');
+			const te = document.getElementById('textEffectsControls');
+			if (te) te.classList.remove('hidden');
+		} else if (type === 'logo') {
+			if (textOptions) textOptions.classList.add('hidden');
+			if (logoOptions) logoOptions.classList.remove('hidden');
+			const te = document.getElementById('textEffectsControls');
+			if (te) te.classList.add('hidden');
 
 			/* Update logo control visibility based on upload status */
 			this.updateLogoControlsVisibility();
@@ -1799,13 +1790,13 @@ class BulkWatermarkApp {
 
 	updateLogoControlsVisibility() {
 		const hasLogo = !!this.watermarkSettings.watermarkLogo;
-		const logoConfigContainer = document.getElementById("logoConfigContainer");
+		const logoConfigContainer = document.getElementById('logoConfigContainer');
 
 		if (logoConfigContainer) {
 			if (hasLogo) {
-				logoConfigContainer.classList.remove("hidden");
+				logoConfigContainer.classList.remove('hidden');
 			} else {
-				logoConfigContainer.classList.add("hidden");
+				logoConfigContainer.classList.add('hidden');
 			}
 		}
 	}
@@ -1814,17 +1805,17 @@ class BulkWatermarkApp {
 		this.watermarkSettings.position = position;
 
 		// Update both text and logo position grids
-		document.querySelectorAll("#positionGrid .position-btn").forEach((btn) => btn.classList.remove("active"));
-		document.querySelectorAll("#logoPositionGrid .position-btn").forEach((btn) => btn.classList.remove("active"));
+		document.querySelectorAll('#positionGrid .position-btn').forEach((btn) => btn.classList.remove('active'));
+		document.querySelectorAll('#logoPositionGrid .position-btn').forEach((btn) => btn.classList.remove('active'));
 
 		const textTargetBtn = document.querySelector(`#positionGrid [data-position="${position}"]`);
 		if (textTargetBtn) {
-			textTargetBtn.classList.add("active");
+			textTargetBtn.classList.add('active');
 		}
 
 		const logoTargetBtn = document.querySelector(`#logoPositionGrid [data-position="${position}"]`);
 		if (logoTargetBtn) {
-			logoTargetBtn.classList.add("active");
+			logoTargetBtn.classList.add('active');
 		}
 	}
 
@@ -1840,13 +1831,13 @@ class BulkWatermarkApp {
 		// Create default settings
 		const defaultSettings = {
 			type: currentType, // Preserve current type instead of forcing text
-			patternMode: "single",
-			text: "© Your Watermark",
+			patternMode: 'single',
+			text: '© Your Watermark',
 			fontSize: 24,
-			fontFamily: "Arial",
-			textColor: "#ffffff",
+			fontFamily: 'Arial',
+			textColor: '#ffffff',
 			opacity: 70,
-			position: "bottom-right",
+			position: 'bottom-right',
 			offsetX: 0,
 			offsetY: 0,
 			watermarkLogo: currentWatermarkLogo /* Preserve current watermark logo */,
@@ -1856,19 +1847,19 @@ class BulkWatermarkApp {
 			patternSpacingY: 7, // Higher default vertical spacing to prevent overlap (UI scale)
 			patternAngle: -45,
 			watermarkRotation: 0,
-			overlayEffect: "none",
+			overlayEffect: 'none',
 			textEffects: {
 				shadow: false,
-				shadowColor: "#000000",
+				shadowColor: '#000000',
 				shadowBlur: 6,
 				shadowOffsetX: 2,
 				shadowOffsetY: 2,
 				outline: false,
-				outlineColor: "#000000",
+				outlineColor: '#000000',
 				outlineThickness: 2,
 				outlineOpacity: 100,
 				glow: false,
-				glowColor: "#ffffff",
+				glowColor: '#ffffff',
 				glowSpread: 12,
 				glowIntensity: 100,
 			},
@@ -1884,7 +1875,7 @@ class BulkWatermarkApp {
 		this.updatePatternModeUI();
 
 		// Set default position (but don't change type)
-		this.setPosition("bottom-right");
+		this.setPosition('bottom-right');
 
 		// Update preview
 		this.updatePreview();
@@ -1892,110 +1883,110 @@ class BulkWatermarkApp {
 
 	updateFormControls() {
 		// Update text controls
-		const textContent = document.getElementById("textContent");
+		const textContent = document.getElementById('textContent');
 		if (textContent) textContent.value = this.watermarkSettings.text;
 
 		// Font size - range, number input, and display value
-		const fontSize = document.getElementById("fontSize");
+		const fontSize = document.getElementById('fontSize');
 		if (fontSize) fontSize.value = this.watermarkSettings.fontSize;
 
-		const fontSizeNumber = document.getElementById("fontSizeNumber");
+		const fontSizeNumber = document.getElementById('fontSizeNumber');
 		if (fontSizeNumber) fontSizeNumber.value = this.watermarkSettings.fontSize;
 
-		const fontSizeValue = document.getElementById("fontSizeValue");
+		const fontSizeValue = document.getElementById('fontSizeValue');
 		if (fontSizeValue) fontSizeValue.textContent = this.watermarkSettings.fontSize;
 
-		const fontFamily = document.getElementById("fontFamily");
+		const fontFamily = document.getElementById('fontFamily');
 		if (fontFamily) fontFamily.value = this.watermarkSettings.fontFamily;
 
-		const textColor = document.getElementById("textColor");
+		const textColor = document.getElementById('textColor');
 		if (textColor) textColor.value = this.watermarkSettings.textColor;
 
 		// Opacity - range, number input, and display value
-		const opacity = document.getElementById("opacity");
+		const opacity = document.getElementById('opacity');
 		if (opacity) opacity.value = this.watermarkSettings.opacity;
 
-		const opacityNumber = document.getElementById("opacityNumber");
+		const opacityNumber = document.getElementById('opacityNumber');
 		if (opacityNumber) opacityNumber.value = this.watermarkSettings.opacity;
 
-		const opacityValue = document.getElementById("opacityValue");
+		const opacityValue = document.getElementById('opacityValue');
 		if (opacityValue) opacityValue.textContent = this.watermarkSettings.opacity;
 
 		// Offset controls - range, number input, and display value
-		const offsetX = document.getElementById("offsetX");
+		const offsetX = document.getElementById('offsetX');
 		if (offsetX) offsetX.value = this.watermarkSettings.offsetX;
 
-		const offsetXNumber = document.getElementById("offsetXNumber");
+		const offsetXNumber = document.getElementById('offsetXNumber');
 		if (offsetXNumber) offsetXNumber.value = this.watermarkSettings.offsetX;
 
-		const offsetXValue = document.getElementById("offsetXValue");
+		const offsetXValue = document.getElementById('offsetXValue');
 		if (offsetXValue) offsetXValue.textContent = this.watermarkSettings.offsetX;
 
-		const offsetY = document.getElementById("offsetY");
+		const offsetY = document.getElementById('offsetY');
 		if (offsetY) offsetY.value = this.watermarkSettings.offsetY;
 
-		const offsetYNumber = document.getElementById("offsetYNumber");
+		const offsetYNumber = document.getElementById('offsetYNumber');
 		if (offsetYNumber) offsetYNumber.value = this.watermarkSettings.offsetY;
 
-		const offsetYValue = document.getElementById("offsetYValue");
+		const offsetYValue = document.getElementById('offsetYValue');
 		if (offsetYValue) offsetYValue.textContent = this.watermarkSettings.offsetY;
 
 		// Image scale - range, number input, and display value
-		const imageScale = document.getElementById("imageScale");
+		const imageScale = document.getElementById('imageScale');
 		if (imageScale) imageScale.value = this.watermarkSettings.imageScale;
 
-		const imageScaleNumber = document.getElementById("imageScaleNumber");
+		const imageScaleNumber = document.getElementById('imageScaleNumber');
 		if (imageScaleNumber) imageScaleNumber.value = this.watermarkSettings.imageScale;
 
-		const imageScaleValue = document.getElementById("imageScaleValue");
+		const imageScaleValue = document.getElementById('imageScaleValue');
 		if (imageScaleValue) imageScaleValue.textContent = this.watermarkSettings.imageScale;
 
 		// Watermark rotation - range, number input, and display value
-		const watermarkRotation = document.getElementById("watermarkRotation");
+		const watermarkRotation = document.getElementById('watermarkRotation');
 		if (watermarkRotation) watermarkRotation.value = this.watermarkSettings.watermarkRotation;
 
-		const watermarkRotationNumber = document.getElementById("watermarkRotationNumber");
+		const watermarkRotationNumber = document.getElementById('watermarkRotationNumber');
 		if (watermarkRotationNumber) watermarkRotationNumber.value = this.watermarkSettings.watermarkRotation;
 
-		const watermarkRotationValue = document.getElementById("watermarkRotationValue");
+		const watermarkRotationValue = document.getElementById('watermarkRotationValue');
 		if (watermarkRotationValue) watermarkRotationValue.textContent = this.watermarkSettings.watermarkRotation;
 
 		// Pattern spacing controls - range, number input, and display value
-		const patternSpacing = document.getElementById("patternSpacing");
+		const patternSpacing = document.getElementById('patternSpacing');
 		if (patternSpacing) patternSpacing.value = this.watermarkSettings.patternSpacing;
 
-		const patternSpacingNumber = document.getElementById("patternSpacingNumber");
+		const patternSpacingNumber = document.getElementById('patternSpacingNumber');
 		if (patternSpacingNumber) patternSpacingNumber.value = this.watermarkSettings.patternSpacing;
 
-		const patternSpacingValue = document.getElementById("patternSpacingValue");
+		const patternSpacingValue = document.getElementById('patternSpacingValue');
 		if (patternSpacingValue) patternSpacingValue.textContent = this.watermarkSettings.patternSpacing;
 
-		const patternSpacingX = document.getElementById("patternSpacingX");
+		const patternSpacingX = document.getElementById('patternSpacingX');
 		if (patternSpacingX) patternSpacingX.value = this.watermarkSettings.patternSpacingX;
 
-		const patternSpacingXNumber = document.getElementById("patternSpacingXNumber");
+		const patternSpacingXNumber = document.getElementById('patternSpacingXNumber');
 		if (patternSpacingXNumber) patternSpacingXNumber.value = this.watermarkSettings.patternSpacingX;
 
-		const patternSpacingXValue = document.getElementById("patternSpacingXValue");
+		const patternSpacingXValue = document.getElementById('patternSpacingXValue');
 		if (patternSpacingXValue) patternSpacingXValue.textContent = this.watermarkSettings.patternSpacingX;
 
-		const patternSpacingY = document.getElementById("patternSpacingY");
+		const patternSpacingY = document.getElementById('patternSpacingY');
 		if (patternSpacingY) patternSpacingY.value = this.watermarkSettings.patternSpacingY;
 
-		const patternSpacingYNumber = document.getElementById("patternSpacingYNumber");
+		const patternSpacingYNumber = document.getElementById('patternSpacingYNumber');
 		if (patternSpacingYNumber) patternSpacingYNumber.value = this.watermarkSettings.patternSpacingY;
 
-		const patternSpacingYValue = document.getElementById("patternSpacingYValue");
+		const patternSpacingYValue = document.getElementById('patternSpacingYValue');
 		if (patternSpacingYValue) patternSpacingYValue.textContent = this.watermarkSettings.patternSpacingY;
 
 		// Pattern angle - range, number input, and display value
-		const patternAngle = document.getElementById("patternAngle");
+		const patternAngle = document.getElementById('patternAngle');
 		if (patternAngle) patternAngle.value = this.watermarkSettings.patternAngle;
 
-		const patternAngleNumber = document.getElementById("patternAngleNumber");
+		const patternAngleNumber = document.getElementById('patternAngleNumber');
 		if (patternAngleNumber) patternAngleNumber.value = this.watermarkSettings.patternAngle;
 
-		const patternAngleValue = document.getElementById("patternAngleValue");
+		const patternAngleValue = document.getElementById('patternAngleValue');
 		if (patternAngleValue) patternAngleValue.textContent = this.watermarkSettings.patternAngle;
 
 		// Update pattern mode radio buttons
@@ -2005,113 +1996,113 @@ class BulkWatermarkApp {
 		});
 
 		// Update text effects - checkboxes, colors, and number inputs
-		const effectShadow = document.getElementById("effectShadow");
+		const effectShadow = document.getElementById('effectShadow');
 		if (effectShadow) effectShadow.checked = this.watermarkSettings.textEffects.shadow;
 
-		const effectShadowColor = document.getElementById("effectShadowColor");
+		const effectShadowColor = document.getElementById('effectShadowColor');
 		if (effectShadowColor) effectShadowColor.value = this.watermarkSettings.textEffects.shadowColor;
 
-		const effectShadowBlur = document.getElementById("effectShadowBlur");
+		const effectShadowBlur = document.getElementById('effectShadowBlur');
 		if (effectShadowBlur) effectShadowBlur.value = this.watermarkSettings.textEffects.shadowBlur;
 
-		const effectShadowOffsetX = document.getElementById("effectShadowOffsetX");
+		const effectShadowOffsetX = document.getElementById('effectShadowOffsetX');
 		if (effectShadowOffsetX) effectShadowOffsetX.value = this.watermarkSettings.textEffects.shadowOffsetX;
 
-		const effectShadowOffsetY = document.getElementById("effectShadowOffsetY");
+		const effectShadowOffsetY = document.getElementById('effectShadowOffsetY');
 		if (effectShadowOffsetY) effectShadowOffsetY.value = this.watermarkSettings.textEffects.shadowOffsetY;
 
-		const effectOutline = document.getElementById("effectOutline");
+		const effectOutline = document.getElementById('effectOutline');
 		if (effectOutline) effectOutline.checked = this.watermarkSettings.textEffects.outline;
 
-		const effectOutlineColor = document.getElementById("effectOutlineColor");
+		const effectOutlineColor = document.getElementById('effectOutlineColor');
 		if (effectOutlineColor) effectOutlineColor.value = this.watermarkSettings.textEffects.outlineColor;
 
-		const effectOutlineThickness = document.getElementById("effectOutlineThickness");
+		const effectOutlineThickness = document.getElementById('effectOutlineThickness');
 		if (effectOutlineThickness) effectOutlineThickness.value = this.watermarkSettings.textEffects.outlineThickness;
 
-		const effectOutlineOpacity = document.getElementById("effectOutlineOpacity");
+		const effectOutlineOpacity = document.getElementById('effectOutlineOpacity');
 		if (effectOutlineOpacity) effectOutlineOpacity.value = this.watermarkSettings.textEffects.outlineOpacity;
 
-		const effectGlow = document.getElementById("effectGlow");
+		const effectGlow = document.getElementById('effectGlow');
 		if (effectGlow) effectGlow.checked = this.watermarkSettings.textEffects.glow;
 
-		const effectGlowColor = document.getElementById("effectGlowColor");
+		const effectGlowColor = document.getElementById('effectGlowColor');
 		if (effectGlowColor) effectGlowColor.value = this.watermarkSettings.textEffects.glowColor;
 
-		const effectGlowSpread = document.getElementById("effectGlowSpread");
+		const effectGlowSpread = document.getElementById('effectGlowSpread');
 		if (effectGlowSpread) effectGlowSpread.value = this.watermarkSettings.textEffects.glowSpread;
 
-		const effectGlowIntensity = document.getElementById("effectGlowIntensity");
+		const effectGlowIntensity = document.getElementById('effectGlowIntensity');
 		if (effectGlowIntensity) effectGlowIntensity.value = this.watermarkSettings.textEffects.glowIntensity;
 
 		/* Only clear watermark logo input if there's no watermark logo in settings */
 		/* This preserves the uploaded logo when doing a mode-dependent reset */
-		const watermarkLogoInput = document.getElementById("watermarkLogo");
+		const watermarkLogoInput = document.getElementById('watermarkLogo');
 		if (watermarkLogoInput && !this.watermarkSettings.watermarkLogo) {
-			watermarkLogoInput.value = "";
+			watermarkLogoInput.value = '';
 		}
 
 		// Logo-specific controls that mirror the text controls
 		// Logo opacity controls
-		const logoOpacity = document.getElementById("logoOpacity");
+		const logoOpacity = document.getElementById('logoOpacity');
 		if (logoOpacity) logoOpacity.value = this.watermarkSettings.opacity;
 
-		const logoOpacityNumber = document.getElementById("logoOpacityNumber");
+		const logoOpacityNumber = document.getElementById('logoOpacityNumber');
 		if (logoOpacityNumber) logoOpacityNumber.value = this.watermarkSettings.opacity;
 
-		const logoOpacityValue = document.getElementById("logoOpacityValue");
+		const logoOpacityValue = document.getElementById('logoOpacityValue');
 		if (logoOpacityValue) logoOpacityValue.textContent = this.watermarkSettings.opacity;
 
 		// Logo rotation controls
-		const logoRotation = document.getElementById("logoRotation");
+		const logoRotation = document.getElementById('logoRotation');
 		if (logoRotation) logoRotation.value = this.watermarkSettings.watermarkRotation;
 
-		const logoRotationNumber = document.getElementById("logoRotationNumber");
+		const logoRotationNumber = document.getElementById('logoRotationNumber');
 		if (logoRotationNumber) logoRotationNumber.value = this.watermarkSettings.watermarkRotation;
 
-		const logoRotationValue = document.getElementById("logoRotationValue");
+		const logoRotationValue = document.getElementById('logoRotationValue');
 		if (logoRotationValue) logoRotationValue.textContent = this.watermarkSettings.watermarkRotation;
 
 		// Logo pattern spacing controls
-		const logoPatternSpacingX = document.getElementById("logoPatternSpacingX");
+		const logoPatternSpacingX = document.getElementById('logoPatternSpacingX');
 		if (logoPatternSpacingX) logoPatternSpacingX.value = this.watermarkSettings.patternSpacingX;
 
-		const logoPatternSpacingXNumber = document.getElementById("logoPatternSpacingXNumber");
+		const logoPatternSpacingXNumber = document.getElementById('logoPatternSpacingXNumber');
 		if (logoPatternSpacingXNumber) logoPatternSpacingXNumber.value = this.watermarkSettings.patternSpacingX;
 
-		const logoPatternSpacingXValue = document.getElementById("logoPatternSpacingXValue");
+		const logoPatternSpacingXValue = document.getElementById('logoPatternSpacingXValue');
 		if (logoPatternSpacingXValue) logoPatternSpacingXValue.textContent = this.watermarkSettings.patternSpacingX;
 
-		const logoPatternSpacingY = document.getElementById("logoPatternSpacingY");
+		const logoPatternSpacingY = document.getElementById('logoPatternSpacingY');
 		if (logoPatternSpacingY) logoPatternSpacingY.value = this.watermarkSettings.patternSpacingY;
 
-		const logoPatternSpacingYNumber = document.getElementById("logoPatternSpacingYNumber");
+		const logoPatternSpacingYNumber = document.getElementById('logoPatternSpacingYNumber');
 		if (logoPatternSpacingYNumber) logoPatternSpacingYNumber.value = this.watermarkSettings.patternSpacingY;
 
-		const logoPatternSpacingYValue = document.getElementById("logoPatternSpacingYValue");
+		const logoPatternSpacingYValue = document.getElementById('logoPatternSpacingYValue');
 		if (logoPatternSpacingYValue) logoPatternSpacingYValue.textContent = this.watermarkSettings.patternSpacingY;
 
 		// Logo pattern angle controls
-		const logoPatternAngle = document.getElementById("logoPatternAngle");
+		const logoPatternAngle = document.getElementById('logoPatternAngle');
 		if (logoPatternAngle) logoPatternAngle.value = this.watermarkSettings.patternAngle;
 
-		const logoPatternAngleNumber = document.getElementById("logoPatternAngleNumber");
+		const logoPatternAngleNumber = document.getElementById('logoPatternAngleNumber');
 		if (logoPatternAngleNumber) logoPatternAngleNumber.value = this.watermarkSettings.patternAngle;
 
-		const logoPatternAngleValue = document.getElementById("logoPatternAngleValue");
+		const logoPatternAngleValue = document.getElementById('logoPatternAngleValue');
 		if (logoPatternAngleValue) logoPatternAngleValue.textContent = this.watermarkSettings.patternAngle;
 
 		// Logo offset controls
-		const logoOffsetX = document.getElementById("logoOffsetX");
+		const logoOffsetX = document.getElementById('logoOffsetX');
 		if (logoOffsetX) logoOffsetX.value = this.watermarkSettings.offsetX;
 
-		const logoOffsetXValue = document.getElementById("logoOffsetXValue");
+		const logoOffsetXValue = document.getElementById('logoOffsetXValue');
 		if (logoOffsetXValue) logoOffsetXValue.textContent = this.watermarkSettings.offsetX;
 
-		const logoOffsetY = document.getElementById("logoOffsetY");
+		const logoOffsetY = document.getElementById('logoOffsetY');
 		if (logoOffsetY) logoOffsetY.value = this.watermarkSettings.offsetY;
 
-		const logoOffsetYValue = document.getElementById("logoOffsetYValue");
+		const logoOffsetYValue = document.getElementById('logoOffsetYValue');
 		if (logoOffsetYValue) logoOffsetYValue.textContent = this.watermarkSettings.offsetY;
 	}
 
@@ -2120,18 +2111,18 @@ class BulkWatermarkApp {
 	}
 
 	renderImageGrid() {
-		const imageGrid = document.getElementById("imageGrid");
+		const imageGrid = document.getElementById('imageGrid');
 		if (!imageGrid) return;
 
-		imageGrid.innerHTML = "";
+		imageGrid.innerHTML = '';
 
 		this.uploadedFiles.forEach((fileData) => {
-			const imageItem = document.createElement("div");
-			imageItem.className = "image-item";
+			const imageItem = document.createElement('div');
+			imageItem.className = 'image-item';
 
 			// Add selected class if this is the current preview file
 			if (this.currentPreviewFileId === fileData.id) {
-				imageItem.classList.add("selected");
+				imageItem.classList.add('selected');
 			}
 
 			if (fileData.preview) {
@@ -2147,13 +2138,13 @@ class BulkWatermarkApp {
                 `;
 
 				// Add click handler to select this image for preview
-				const imageContainer = imageItem.querySelector(".image-container");
+				const imageContainer = imageItem.querySelector('.image-container');
 				if (imageContainer) {
-					imageContainer.addEventListener("click", (e) => {
+					imageContainer.addEventListener('click', (e) => {
 						e.stopPropagation();
 						this.selectImageForPreview(fileData.id);
 					});
-					imageContainer.style.cursor = "pointer";
+					imageContainer.style.cursor = 'pointer';
 				}
 			} else if (fileData.error) {
 				imageItem.innerHTML = `
@@ -2172,9 +2163,9 @@ class BulkWatermarkApp {
                 `;
 			}
 
-			const removeBtn = imageItem.querySelector(".remove-btn");
+			const removeBtn = imageItem.querySelector('.remove-btn');
 			if (removeBtn) {
-				removeBtn.addEventListener("click", (e) => {
+				removeBtn.addEventListener('click', (e) => {
 					e.stopPropagation();
 					this.removeFile(fileData.id);
 				});
@@ -2269,12 +2260,12 @@ class BulkWatermarkApp {
 		this.clearPreview();
 
 		// Hide download section since no processed images exist
-		const downloadSection = document.getElementById("downloadSection");
-		if (downloadSection) downloadSection.classList.add("hidden");
+		const downloadSection = document.getElementById('downloadSection');
+		if (downloadSection) downloadSection.classList.add('hidden');
 
 		// Hide processing progress section
-		const progressSection = document.getElementById("processingProgress");
-		if (progressSection) progressSection.classList.add("hidden");
+		const progressSection = document.getElementById('processingProgress');
+		if (progressSection) progressSection.classList.add('hidden');
 
 		// Reset file upload handler status
 		if (this.fileUploadHandler) {
@@ -2283,9 +2274,9 @@ class BulkWatermarkApp {
 	}
 
 	clearPreview() {
-		const canvas = document.getElementById("previewCanvas");
+		const canvas = document.getElementById('previewCanvas');
 		if (canvas) {
-			const ctx = canvas.getContext("2d");
+			const ctx = canvas.getContext('2d');
 			ctx.clearRect(0, 0, canvas.width, canvas.height);
 		}
 	}
@@ -2301,15 +2292,15 @@ class BulkWatermarkApp {
 	 * - Update upload status message appropriately
 	 */
 	updateUI() {
-		const fileList = document.getElementById("fileList");
-		const configSection = document.getElementById("configSection");
-		const previewSection = document.getElementById("previewSection");
-		const processingSection = document.getElementById("processingSection");
-		const fileCount = document.getElementById("fileCount");
-		const processBtn = document.getElementById("processBtn");
-		const downloadZipBtn = document.getElementById("downloadZip");
-		const showGalleryBtn = document.getElementById("showGalleryBtn");
-		const uploadStatusEl = document.getElementById("uploadStatus");
+		const fileList = document.getElementById('fileList');
+		const configSection = document.getElementById('configSection');
+		const previewSection = document.getElementById('previewSection');
+		const processingSection = document.getElementById('processingSection');
+		const fileCount = document.getElementById('fileCount');
+		const processBtn = document.getElementById('processBtn');
+		const downloadZipBtn = document.getElementById('downloadZip');
+		const showGalleryBtn = document.getElementById('showGalleryBtn');
+		const uploadStatusEl = document.getElementById('uploadStatus');
 
 		const hasFiles = this.uploadedFiles.length > 0;
 		const loadedFiles = this.getLoadedFiles();
@@ -2317,10 +2308,10 @@ class BulkWatermarkApp {
 		const hasProcessedImages = this.processedImages && this.processedImages.length > 0;
 
 		// Show/hide main sections
-		if (fileList) fileList.classList.toggle("hidden", !hasFiles);
-		if (configSection) configSection.style.display = hasFiles ? "block" : "none";
-		if (previewSection) previewSection.style.display = hasFiles ? "block" : "none";
-		if (processingSection) processingSection.style.display = hasFiles ? "block" : "none";
+		if (fileList) fileList.classList.toggle('hidden', !hasFiles);
+		if (configSection) configSection.style.display = hasFiles ? 'block' : 'none';
+		if (previewSection) previewSection.style.display = hasFiles ? 'block' : 'none';
+		if (processingSection) processingSection.style.display = hasFiles ? 'block' : 'none';
 
 		// Update file count display
 		if (fileCount) fileCount.textContent = this.uploadedFiles.length;
@@ -2329,9 +2320,9 @@ class BulkWatermarkApp {
 		if (processBtn && !processBtn.disabled) {
 			if (hasLoadedFiles) {
 				const count = loadedFiles.length;
-				processBtn.textContent = count === 1 ? "Process 1 Image" : `Process ${count} Images`;
+				processBtn.textContent = count === 1 ? 'Process 1 Image' : `Process ${count} Images`;
 			} else {
-				processBtn.textContent = "Process All Images";
+				processBtn.textContent = 'Process All Images';
 			}
 		}
 
@@ -2341,9 +2332,9 @@ class BulkWatermarkApp {
 			if (hasProcessedImages) {
 				const count = this.processedImages.length;
 				downloadZipBtn.textContent =
-					count === 1 ? "Download 1 Image as ZIP" : `Download ${count} Images as ZIP`;
+					count === 1 ? 'Download 1 Image as ZIP' : `Download ${count} Images as ZIP`;
 			} else {
-				downloadZipBtn.textContent = "Download All as ZIP";
+				downloadZipBtn.textContent = 'Download All as ZIP';
 			}
 		}
 
@@ -2351,12 +2342,12 @@ class BulkWatermarkApp {
 			// Gallery button should always be available to show empty state or processed images
 			if (hasProcessedImages) {
 				const count = this.processedImages.length;
-				const icon = showGalleryBtn.querySelector(".btn-icon");
-				const iconText = icon ? icon.outerHTML : "🖼️";
-				showGalleryBtn.innerHTML = `${iconText} View Gallery (${count} ${count === 1 ? "image" : "images"})`;
+				const icon = showGalleryBtn.querySelector('.btn-icon');
+				const iconText = icon ? icon.outerHTML : '🖼️';
+				showGalleryBtn.innerHTML = `${iconText} View Gallery (${count} ${count === 1 ? 'image' : 'images'})`;
 			} else {
-				const icon = showGalleryBtn.querySelector(".btn-icon");
-				const iconText = icon ? icon.outerHTML : "🖼️";
+				const icon = showGalleryBtn.querySelector('.btn-icon');
+				const iconText = icon ? icon.outerHTML : '🖼️';
 				showGalleryBtn.innerHTML = `${iconText} View Gallery & Download`;
 			}
 		}
@@ -2369,10 +2360,10 @@ class BulkWatermarkApp {
 				if (loadedCount < count) {
 					uploadStatusEl.textContent = `Loading ${count} images... (${loadedCount} ready)`;
 				} else {
-					uploadStatusEl.textContent = `${count} ${count === 1 ? "image" : "images"} ready for processing`;
+					uploadStatusEl.textContent = `${count} ${count === 1 ? 'image' : 'images'} ready for processing`;
 				}
 			} else {
-				uploadStatusEl.textContent = "Ready to upload images - Click here or drag files";
+				uploadStatusEl.textContent = 'Ready to upload images - Click here or drag files';
 			}
 		}
 	}
@@ -2404,18 +2395,18 @@ class BulkWatermarkApp {
 	}
 
 	renderPreview(img) {
-		const canvas = document.getElementById("previewCanvas");
+		const canvas = document.getElementById('previewCanvas');
 		if (!canvas) return;
 
-		const ctx = canvas.getContext("2d");
+		const ctx = canvas.getContext('2d');
 
 		// Get the preview section and its card body to calculate available space
-		const previewSection = document.querySelector(".preview-section");
-		const configSection = document.querySelector(".config-section");
+		const previewSection = document.querySelector('.preview-section');
+		const configSection = document.querySelector('.config-section');
 		const container = canvas.parentElement;
 
 		if (!previewSection || !configSection || !container) {
-			console.warn("Layout elements not found, using fallback sizing");
+			console.warn('Layout elements not found, using fallback sizing');
 			canvas.width = 600;
 			canvas.height = 800;
 			ctx.clearRect(0, 0, 600, 800);
@@ -2484,8 +2475,8 @@ class BulkWatermarkApp {
 		canvas.height = finalHeight;
 
 		// Set CSS dimensions to match exactly
-		canvas.style.width = finalWidth + "px";
-		canvas.style.height = finalHeight + "px"; // Clear and draw image
+		canvas.style.width = finalWidth + 'px';
+		canvas.style.height = finalHeight + 'px'; // Clear and draw image
 		ctx.clearRect(0, 0, finalWidth, finalHeight);
 		ctx.drawImage(img, 0, 0, finalWidth, finalHeight);
 
@@ -2501,8 +2492,8 @@ class BulkWatermarkApp {
 
 	applyWatermarkWithScaling(ctx, originalWidth, originalHeight, scalingRatio) {
 		// Create a temporary context for calculations based on original image size
-		const tempCanvas = document.createElement("canvas");
-		const tempCtx = tempCanvas.getContext("2d");
+		const tempCanvas = document.createElement('canvas');
+		const tempCtx = tempCanvas.getContext('2d');
 		tempCanvas.width = originalWidth;
 		tempCanvas.height = originalHeight;
 
@@ -2517,7 +2508,7 @@ class BulkWatermarkApp {
 		ctx.scale(scalingRatio, scalingRatio);
 		ctx.globalAlpha = this.watermarkSettings.opacity / 100;
 
-		if (mode === "single") {
+		if (mode === 'single') {
 			this.applySingleWatermark(ctx, originalWidth, originalHeight);
 		} else {
 			// Treat diagonal and grid as a single tiled pattern implementation
@@ -2532,7 +2523,7 @@ class BulkWatermarkApp {
 	 * Calculate watermark size that appears the same physical proportion across all image resolutions.
 	 * Uses a simple percentage-based approach for true resolution independence.
 	 */
-	getResolutionIndependentSize(canvasWidth, canvasHeight, baseSize, sizeType = "text") {
+	getResolutionIndependentSize(canvasWidth, canvasHeight, baseSize, sizeType = 'text') {
 		// Use the smaller dimension to ensure watermarks fit in both portrait and landscape
 		const referenceSize = Math.min(canvasWidth, canvasHeight);
 
@@ -2540,7 +2531,7 @@ class BulkWatermarkApp {
 		// For text: base size 40 should be about 3.3% of a 1200px image
 		// For logos: base size 240 should be about 20% of a 1200px image
 		let sizePercentage;
-		if (sizeType === "text") {
+		if (sizeType === 'text') {
 			sizePercentage = baseSize / 1200; // Direct percentage relationship
 		} else {
 			sizePercentage = baseSize / 1200; // Same calculation for logos
@@ -2550,8 +2541,8 @@ class BulkWatermarkApp {
 		const scaledSize = referenceSize * sizePercentage;
 
 		// Apply reasonable bounds to prevent extreme sizes
-		const minSize = sizeType === "text" ? 8 : 10;
-		const maxSize = sizeType === "text" ? referenceSize * 0.15 : referenceSize * 0.5;
+		const minSize = sizeType === 'text' ? 8 : 10;
+		const maxSize = sizeType === 'text' ? referenceSize * 0.15 : referenceSize * 0.5;
 
 		return Math.max(minSize, Math.min(maxSize, scaledSize));
 	}
@@ -2562,7 +2553,7 @@ class BulkWatermarkApp {
 		ctx.save();
 		ctx.globalAlpha = this.watermarkSettings.opacity / 100;
 
-		if (mode === "single") {
+		if (mode === 'single') {
 			this.applySingleWatermark(ctx, canvasWidth, canvasHeight);
 		} else {
 			// Treat diagonal and grid as a single tiled pattern implementation
@@ -2578,7 +2569,7 @@ class BulkWatermarkApp {
 		const angle = this.watermarkSettings.watermarkRotation || 0;
 
 		// If corner placement requested in single mode, place watermark center so it is flush to the edge.
-		const singleMode = this.watermarkSettings.patternMode === "single";
+		const singleMode = this.watermarkSettings.patternMode === 'single';
 		const isCorner = position.x <= 0.2 || position.x >= 0.8 || position.y <= 0.2 || position.y >= 0.8;
 
 		if (singleMode && isCorner) {
@@ -2586,21 +2577,21 @@ class BulkWatermarkApp {
 			let w = 0;
 			let h = 0;
 
-			if (this.watermarkSettings.type === "text") {
+			if (this.watermarkSettings.type === 'text') {
 				// FIXED: Use resolution-independent scaling for single text watermark positioning
 				const fontSize = this.getResolutionIndependentSize(
 					canvasWidth,
 					canvasHeight,
 					this.watermarkSettings.fontSize,
-					"text"
+					'text',
 				);
 				ctx.font = `${fontSize}px ${this.watermarkSettings.fontFamily}`;
-				const metrics = ctx.measureText(this.watermarkSettings.text || "Watermark");
+				const metrics = ctx.measureText(this.watermarkSettings.text || 'Watermark');
 				w =
 					metrics.width ||
 					fontSize * (this.watermarkSettings.text ? this.watermarkSettings.text.length * 0.6 : 4);
 				h = fontSize;
-			} else if (this.watermarkSettings.type === "logo" && this.watermarkSettings.watermarkLogo) {
+			} else if (this.watermarkSettings.type === 'logo' && this.watermarkSettings.watermarkLogo) {
 				const img = this.watermarkSettings.watermarkLogo;
 				const scale = this.getLogoScaleFraction();
 				// FIXED: Use resolution-independent scaling for single logo watermark positioning
@@ -2609,7 +2600,7 @@ class BulkWatermarkApp {
 					canvasWidth,
 					canvasHeight,
 					baseLogoSize * scale,
-					"logo"
+					'logo',
 				);
 				let ratio = Math.min(maxSize / img.width, maxSize / img.height);
 				ratio = Math.max(ratio, 0.02); // Ensure minimum visibility
@@ -2662,9 +2653,9 @@ class BulkWatermarkApp {
 		}
 
 		/* Non-corner single placements use the regular drawing paths */
-		if (this.watermarkSettings.type === "text") {
+		if (this.watermarkSettings.type === 'text') {
 			this.drawTextWatermark(ctx, canvasWidth, canvasHeight, position);
-		} else if (this.watermarkSettings.type === "logo" && this.watermarkSettings.watermarkLogo) {
+		} else if (this.watermarkSettings.type === 'logo' && this.watermarkSettings.watermarkLogo) {
 			this.drawLogoWatermark(ctx, canvasWidth, canvasHeight, position);
 		}
 	}
@@ -2789,41 +2780,41 @@ class BulkWatermarkApp {
 		 * Text watermarks: measure font metrics scaled to canvas
 		 * Logo watermarks: scale image dimensions by user setting
 		 */
-		if (this.watermarkSettings.type === "text") {
+		if (this.watermarkSettings.type === 'text') {
 			// FIXED: Use resolution-independent scaling for consistent text size across all image resolutions
 			const fontSize = this.getResolutionIndependentSize(
 				canvasWidth,
 				canvasHeight,
 				this.watermarkSettings.fontSize,
-				"text"
+				'text',
 			);
 			ctx.font = `${fontSize}px ${this.watermarkSettings.fontFamily}`;
 
 			// Measure actual text dimensions, with fallback for empty/invalid text
-			const metrics = ctx.measureText(this.watermarkSettings.text || "Watermark");
+			const metrics = ctx.measureText(this.watermarkSettings.text || 'Watermark');
 			estWidth =
 				metrics.width ||
 				fontSize * (this.watermarkSettings.text ? this.watermarkSettings.text.length * 0.6 : 4);
 			estHeight = fontSize * 1.1; // Add 10% padding for text height
-		} else if (this.watermarkSettings.type === "logo" && this.watermarkSettings.watermarkLogo) {
-			// FIXED: Use resolution-independent scaling for consistent logo size across all image resolutions
+		} else if (this.watermarkSettings.type === 'logo' && this.watermarkSettings.watermarkLogo) {
+			// FIXED: Calculate logo size as percentage of the smaller canvas dimension (per picture)
 			const img = this.watermarkSettings.watermarkLogo;
 			const scale = this.getLogoScaleFraction();
 
 			/*
-			 * CONSISTENT LOGO SIZING: Use resolution-independent scaling for true consistency.
-			 * This makes watermarks appear proportionally identical across different image resolutions.
+			 * CONSISTENT LOGO SIZING: Calculate based on actual canvas dimensions.
+			 * This makes watermarks scale proportionally to each image's size.
 			 */
-			const baseLogoSize = 240; // Base logo size at reference resolution
-			const maxSize = this.getResolutionIndependentSize(canvasWidth, canvasHeight, baseLogoSize * scale, "logo");
-			let imgRatio = Math.min(maxSize / Math.max(1, img.width), maxSize / Math.max(1, img.height));
-			imgRatio = Math.max(imgRatio, 0.02); // Minimum 2% scale to prevent invisibility
+			const smallerDimension = Math.min(canvasWidth, canvasHeight);
+			const targetLogoSize = smallerDimension * scale;
+			let imgRatio = Math.min(targetLogoSize / Math.max(1, img.width), targetLogoSize / Math.max(1, img.height));
+			imgRatio = Math.max(imgRatio, 0.001); // Minimum scale to prevent invisibility
 
 			estWidth = Math.ceil(img.width * imgRatio);
 			estHeight = Math.ceil(img.height * imgRatio);
 
 			// Ensure minimum visible size
-			const MIN_VISIBLE_PX = 6;
+			const MIN_VISIBLE_PX = 10;
 			if (estWidth < MIN_VISIBLE_PX) estWidth = MIN_VISIBLE_PX;
 			if (estHeight < MIN_VISIBLE_PX) estHeight = MIN_VISIBLE_PX;
 		}
@@ -2889,8 +2880,8 @@ class BulkWatermarkApp {
 		 * Sets appropriate min/max/step values for consistent user experience.
 		 */
 		try {
-			const sx = document.getElementById("patternSpacingX");
-			const sy = document.getElementById("patternSpacingY");
+			const sx = document.getElementById('patternSpacingX');
+			const sy = document.getElementById('patternSpacingY');
 
 			if (sx) {
 				// UI scale is fixed 0-20 for intuitive control
@@ -2898,18 +2889,18 @@ class BulkWatermarkApp {
 				sx.max = 20; // 20 = maximum spacing
 				sx.step = 1; // Integer steps only
 				// Only update value if slider not currently being dragged
-				if (!sx.matches(":active")) sx.value = uiSpacingX;
+				if (!sx.matches(':active')) sx.value = uiSpacingX;
 			}
 
 			if (sy) {
 				sy.min = 0;
 				sy.max = 20;
 				sy.step = 1;
-				if (!sy.matches(":active")) sy.value = uiSpacingY;
+				if (!sy.matches(':active')) sy.value = uiSpacingY;
 			}
 		} catch (err) {
 			// Graceful fallback if UI elements are missing
-			if (console && console.warn) console.warn("Failed to sync patternSpacing X/Y sliders:", err);
+			if (console && console.warn) console.warn('Failed to sync patternSpacing X/Y sliders:', err);
 		}
 
 		return { x: spacingX, y: spacingY };
@@ -2922,10 +2913,10 @@ class BulkWatermarkApp {
 			canvasWidth,
 			canvasHeight,
 			this.watermarkSettings.fontSize,
-			"text"
+			'text',
 		);
 		ctx.font = `${fontSize}px ${this.watermarkSettings.fontFamily}`;
-		ctx.textBaseline = "middle";
+		ctx.textBaseline = 'middle';
 
 		// base coordinates
 		let x = canvasWidth * position.x;
@@ -2939,13 +2930,13 @@ class BulkWatermarkApp {
 
 		// Padding: use consistent padding for all modes
 		const padding = 10;
-		const singleMode = this.watermarkSettings.patternMode === "single";
+		const singleMode = this.watermarkSettings.patternMode === 'single';
 		const isCorner = position.x <= 0.2 || position.x >= 0.8 || position.y <= 0.2 || position.y >= 0.8;
 
 		// Simplified positioning for better center alignment
 		if (position.x === 0.5 && position.y === 0.5) {
 			// Perfect center positioning - no complex bounds checking
-			ctx.textAlign = "center";
+			ctx.textAlign = 'center';
 			x = canvasWidth / 2;
 			y = canvasHeight / 2;
 		} else {
@@ -2953,18 +2944,18 @@ class BulkWatermarkApp {
 			if (position.x <= 0.2) {
 				// Left alignment
 				x = Math.max(padding, x);
-				ctx.textAlign = "start";
+				ctx.textAlign = 'start';
 				// Ensure text doesn't go beyond right edge
 				x = Math.min(x, canvasWidth - textWidth - padding);
 			} else if (position.x >= 0.8) {
 				// Right alignment
 				x = Math.min(canvasWidth - padding, x);
-				ctx.textAlign = "end";
+				ctx.textAlign = 'end';
 				// Ensure text doesn't go beyond left edge
 				x = Math.max(x, textWidth + padding);
 			} else {
 				// Center alignment
-				ctx.textAlign = "center";
+				ctx.textAlign = 'center';
 				// Ensure centered text stays within bounds
 				x = Math.max(textWidth / 2 + padding, Math.min(canvasWidth - textWidth / 2 - padding, x));
 			}
@@ -2990,9 +2981,9 @@ class BulkWatermarkApp {
 
 		// Final bounds check after applying offsets (skip for perfect center)
 		if (!(position.x === 0.5 && position.y === 0.5)) {
-			if (ctx.textAlign === "start") {
+			if (ctx.textAlign === 'start') {
 				x = Math.max(padding, Math.min(canvasWidth - textWidth - padding, x));
-			} else if (ctx.textAlign === "end") {
+			} else if (ctx.textAlign === 'end') {
 				x = Math.max(textWidth + padding, Math.min(canvasWidth - padding, x));
 			} else {
 				x = Math.max(textWidth / 2 + padding, Math.min(canvasWidth - textWidth / 2 - padding, x));
@@ -3078,12 +3069,12 @@ class BulkWatermarkApp {
 		 * Should be rare since cache is built during pattern initialization.
 		 * Provides compatibility when cache building fails.
 		 */
-		if (this.watermarkSettings.type === "text") {
+		if (this.watermarkSettings.type === 'text') {
 			// FIXED: Use resolution-independent scaling for rotated text rendering fallback
-			const fontSize = this.getResolutionIndependentSize(600, 600, this.watermarkSettings.fontSize, "text");
+			const fontSize = this.getResolutionIndependentSize(600, 600, this.watermarkSettings.fontSize, 'text');
 			ctx.font = `${fontSize}px ${this.watermarkSettings.fontFamily}`;
-			ctx.textBaseline = "middle";
-			ctx.textAlign = "center";
+			ctx.textBaseline = 'middle';
+			ctx.textAlign = 'center';
 
 			ctx.save();
 			ctx.translate(x, y);
@@ -3092,13 +3083,15 @@ class BulkWatermarkApp {
 			// Use new text rendering function that includes outline support
 			this.renderTextWithEffects(ctx, this.watermarkSettings.text, 0, 0);
 			ctx.restore();
-		} else if (this.watermarkSettings.type === "logo" && this.watermarkSettings.watermarkLogo) {
-			// FIXED: Use resolution-independent scaling for rotated logo rendering fallback
+		} else if (this.watermarkSettings.type === 'logo' && this.watermarkSettings.watermarkLogo) {
+			// FIXED: Calculate logo size based on pattern context (smaller for tiled patterns)
 			const img = this.watermarkSettings.watermarkLogo;
 			const scale = this.getLogoScaleFraction();
-			const baseLogoSize = 240; // Base logo size at reference resolution
-			const maxSize = this.getResolutionIndependentSize(600, 600, baseLogoSize * scale * 0.3, "logo"); // Reduced size for patterns
-			const ratio = Math.min(maxSize / img.width, maxSize / img.height);
+
+			// Use a reference dimension for pattern sizing (600x600 is typical pattern viewport)
+			const patternRefDimension = Math.min(600, 600);
+			const targetLogoSize = patternRefDimension * scale * 0.3; // 30% of reference for patterns
+			const ratio = Math.min(targetLogoSize / img.width, targetLogoSize / img.height);
 			const width = img.width * ratio;
 			const height = img.height * ratio;
 
@@ -3169,7 +3162,7 @@ class BulkWatermarkApp {
 							glowColor: this.watermarkSettings.textEffects.glowColor,
 							glowSpread: this.watermarkSettings.textEffects.glowSpread,
 							glowIntensity: this.watermarkSettings.textEffects.glowIntensity,
-					  }
+						}
 					: null,
 				qW, // Quantized width
 				qH, // Quantized height
@@ -3181,7 +3174,7 @@ class BulkWatermarkApp {
 			 * LOGO-SPECIFIC CACHE KEYS: Include logo dimensions to prevent
 			 * cache reuse between different logo images.
 			 */
-			if (this.watermarkSettings.type === "logo" && this.watermarkSettings.watermarkLogo) {
+			if (this.watermarkSettings.type === 'logo' && this.watermarkSettings.watermarkLogo) {
 				try {
 					const logoImg = this.watermarkSettings.watermarkLogo;
 					keyObj.logoW = logoImg.width || 0;
@@ -3214,24 +3207,24 @@ class BulkWatermarkApp {
 			let estW = 100; // Default text width estimate
 			let estH = 40; // Default text height estimate
 
-			if (this.watermarkSettings.type === "text") {
+			if (this.watermarkSettings.type === 'text') {
 				// FIXED: Use resolution-independent scaling for cached text dimension calculation
 				const fontSize = this.getResolutionIndependentSize(
 					canvasWidth,
 					canvasHeight,
 					this.watermarkSettings.fontSize,
-					"text"
+					'text',
 				);
 				const tmpFont = `${fontSize}px ${this.watermarkSettings.fontFamily}`;
 				ctx.font = tmpFont;
-				const metrics = ctx.measureText(this.watermarkSettings.text || "Watermark");
+				const metrics = ctx.measureText(this.watermarkSettings.text || 'Watermark');
 
 				// Use measured width or fallback estimation
 				estW =
 					metrics.width ||
 					fontSize * (this.watermarkSettings.text ? this.watermarkSettings.text.length * 0.6 : 4);
 				estH = Math.ceil(fontSize * 1.1); // Line height approximation
-			} else if (this.watermarkSettings.type === "logo" && this.watermarkSettings.watermarkLogo) {
+			} else if (this.watermarkSettings.type === 'logo' && this.watermarkSettings.watermarkLogo) {
 				// FIXED: Use resolution-independent scaling for cached logo dimension calculation
 				const img = this.watermarkSettings.watermarkLogo;
 				const scale = this.getLogoScaleFraction();
@@ -3245,7 +3238,7 @@ class BulkWatermarkApp {
 					canvasWidth,
 					canvasHeight,
 					baseLogoSize * scale,
-					"logo"
+					'logo',
 				);
 				let imgRatio = Math.min(maxSize / Math.max(1, img.width), maxSize / Math.max(1, img.height));
 				imgRatio = Math.max(imgRatio, 0.02); // Minimum 2% scale to prevent invisibility
@@ -3259,25 +3252,25 @@ class BulkWatermarkApp {
 
 			// Add a small padding for shadow/glow effects
 			const pad = Math.ceil(Math.max(estW, estH) * 0.15) + 4;
-			const c = document.createElement("canvas");
+			const c = document.createElement('canvas');
 			c.width = Math.ceil(estW + pad * 2);
 			c.height = Math.ceil(estH + pad * 2);
-			const cctx = c.getContext("2d");
+			const cctx = c.getContext('2d');
 			cctx.clearRect(0, 0, c.width, c.height);
 
-			if (this.watermarkSettings.type === "text") {
+			if (this.watermarkSettings.type === 'text') {
 				// FIXED: Use resolution-independent scaling for cached text rendering
 				const fontSize = this.getResolutionIndependentSize(
 					canvasWidth,
 					canvasHeight,
 					this.watermarkSettings.fontSize,
-					"text"
+					'text',
 				);
 				cctx.font = `${fontSize}px ${this.watermarkSettings.fontFamily}`;
-				cctx.textBaseline = "middle";
-				cctx.textAlign = "center";
+				cctx.textBaseline = 'middle';
+				cctx.textAlign = 'center';
 				this.renderTextWithEffects(cctx, this.watermarkSettings.text, c.width / 2, c.height / 2);
-			} else if (this.watermarkSettings.type === "logo" && this.watermarkSettings.watermarkLogo) {
+			} else if (this.watermarkSettings.type === 'logo' && this.watermarkSettings.watermarkLogo) {
 				const img = this.watermarkSettings.watermarkLogo;
 				const scale = this.getLogoScaleFraction();
 				// FIXED: Use resolution-independent scaling for cached logo rendering
@@ -3286,7 +3279,7 @@ class BulkWatermarkApp {
 					canvasWidth,
 					canvasHeight,
 					baseLogoSize * scale,
-					"logo"
+					'logo',
 				);
 				let ratio = Math.min(maxSize / img.width, maxSize / img.height);
 				ratio = Math.max(ratio, 0.05);
@@ -3294,13 +3287,13 @@ class BulkWatermarkApp {
 				const h = img.height * ratio;
 				this.applyTextEffects(cctx);
 				/* For logo watermarks, tint/gradient effects are handled by composite operations if chosen. */
-				if (this.watermarkSettings.overlayEffect === "tint") {
-					cctx.globalCompositeOperation = "source-atop";
+				if (this.watermarkSettings.overlayEffect === 'tint') {
+					cctx.globalCompositeOperation = 'source-atop';
 					cctx.fillStyle = this.getEffectFillStyle(cctx);
 					cctx.drawImage(img, (c.width - w) / 2, (c.height - h) / 2, w, h);
 					cctx.fillRect((c.width - w) / 2, (c.height - h) / 2, w, h);
 					// reset composite
-					cctx.globalCompositeOperation = "source-over";
+					cctx.globalCompositeOperation = 'source-over';
 				} else {
 					cctx.drawImage(img, (c.width - w) / 2, (c.height - h) / 2, w, h);
 				}
@@ -3320,7 +3313,7 @@ class BulkWatermarkApp {
 			this._watermarkCacheMap.set(cacheKey, cacheEntry);
 			this._watermarkCache = cacheEntry; /* quick reference */
 		} catch (err) {
-			console.warn("Failed to build watermark cache", err);
+			console.warn('Failed to build watermark cache', err);
 		}
 	}
 
@@ -3354,26 +3347,31 @@ class BulkWatermarkApp {
 	drawLogoWatermark(ctx, canvasWidth, canvasHeight, position) {
 		const img = this.watermarkSettings.watermarkLogo;
 		const scale = this.getLogoScaleFraction();
-		// FIXED: Use resolution-independent scaling for logo watermark drawing
-		const baseLogoSize = 240; // Base logo size at reference resolution
-		const maxSize = this.getResolutionIndependentSize(canvasWidth, canvasHeight, baseLogoSize * scale, "logo");
-		let ratio = Math.min(maxSize / img.width, maxSize / img.height);
-		/* Ensure ratio is not zero; clamp to tiny epsilon to keep logo visible */
-		ratio = Math.max(ratio, 0.02);
+
+		// FIXED: Calculate logo size as percentage of the smaller canvas dimension (per picture)
+		// This ensures logos scale proportionally to each image's size
+		const smallerDimension = Math.min(canvasWidth, canvasHeight);
+		const targetLogoSize = smallerDimension * scale;
+
+		// Calculate ratio to fit logo within target size while maintaining aspect ratio
+		let ratio = Math.min(targetLogoSize / img.width, targetLogoSize / img.height);
+
+		// Ensure ratio is not zero; clamp to tiny epsilon to keep logo visible
+		ratio = Math.max(ratio, 0.001);
 
 		let logoWidth = img.width * ratio;
 		let logoHeight = img.height * ratio;
 
-		/* Enforce a sensible minimum visible size (in px) to avoid invisible preview */
-		const MIN_VISIBLE_PX = 6;
+		// Enforce a sensible minimum visible size (in px) to avoid invisible logos
+		const MIN_VISIBLE_PX = 10;
 		if (logoWidth < MIN_VISIBLE_PX || logoHeight < MIN_VISIBLE_PX) {
 			const scaleUp = MIN_VISIBLE_PX / Math.max(1, Math.max(logoWidth, logoHeight));
 			logoWidth = Math.max(MIN_VISIBLE_PX, Math.round(logoWidth * scaleUp));
 			logoHeight = Math.max(MIN_VISIBLE_PX, Math.round(logoHeight * scaleUp));
 		}
 
-		// Use consistent padding for all modes
-		const padding = 10;
+		// FIXED: Use adaptive padding that scales with canvas size to prevent cropping
+		const padding = Math.max(10, Math.min(canvasWidth, canvasHeight) * 0.02);
 
 		// Calculate initial position
 		let x = canvasWidth * position.x;
@@ -3391,12 +3389,12 @@ class BulkWatermarkApp {
 				x = Math.max(padding, x);
 			} else if (position.x >= 0.8) {
 				// Right alignment
-				x = Math.min(canvasWidth - logoWidth - padding, x);
+				x = Math.max(padding, Math.min(canvasWidth - logoWidth - padding, x));
 			} else {
 				// Center alignment
 				x = Math.max(
 					logoWidth / 2 + padding,
-					Math.min(canvasWidth - logoWidth / 2 - padding, x - logoWidth / 2)
+					Math.min(canvasWidth - logoWidth / 2 - padding, x - logoWidth / 2),
 				);
 			}
 
@@ -3405,12 +3403,12 @@ class BulkWatermarkApp {
 				y = Math.max(padding, y);
 			} else if (position.y >= 0.8) {
 				// Bottom alignment
-				y = Math.min(canvasHeight - logoHeight - padding, y);
+				y = Math.max(padding, Math.min(canvasHeight - logoHeight - padding, y));
 			} else {
 				// Center alignment
 				y = Math.max(
 					logoHeight / 2 + padding,
-					Math.min(canvasHeight - logoHeight / 2 - padding, y - logoHeight / 2)
+					Math.min(canvasHeight - logoHeight / 2 - padding, y - logoHeight / 2),
 				);
 			}
 		}
@@ -3421,10 +3419,13 @@ class BulkWatermarkApp {
 		x += (this.watermarkSettings.offsetX * canvasWidth) / REFERENCE_WIDTH;
 		y += (this.watermarkSettings.offsetY * canvasHeight) / REFERENCE_HEIGHT;
 
-		/* Final bounds check after applying offsets (skip for perfect center) */
+		/* FIXED: Ensure logo stays within bounds but allow full size without forced cropping */
+		// Only apply bounds check if logo would go completely outside canvas
 		if (!(position.x === 0.5 && position.y === 0.5)) {
-			x = Math.max(padding, Math.min(canvasWidth - logoWidth - padding, x));
-			y = Math.max(padding, Math.min(canvasHeight - logoHeight - padding, y));
+			// Allow logo to extend slightly beyond edges if needed, but keep at least 50% visible
+			const minVisibleRatio = 0.5;
+			x = Math.max(-logoWidth * (1 - minVisibleRatio), Math.min(canvasWidth - logoWidth * minVisibleRatio, x));
+			y = Math.max(-logoHeight * (1 - minVisibleRatio), Math.min(canvasHeight - logoHeight * minVisibleRatio, y));
 		}
 
 		/* Apply rotation */
@@ -3442,18 +3443,18 @@ class BulkWatermarkApp {
 
 	applyTextEffects(ctx) {
 		// Only apply these canvas-level effects for text watermarks
-		if (this.watermarkSettings.type !== "text") return;
+		if (this.watermarkSettings.type !== 'text') return;
 
 		const te = this.watermarkSettings.textEffects || {};
 
 		// Helper: convert #rrggbb or #rgb to rgba string with alpha
 		const hexToRgba = (hex, alpha = 1) => {
-			let h = hex.replace("#", "");
+			let h = hex.replace('#', '');
 			if (h.length === 3) {
 				h = h
-					.split("")
+					.split('')
 					.map((c) => c + c)
-					.join("");
+					.join('');
 			}
 			const bigint = parseInt(h, 16);
 			const r = (bigint >> 16) & 255;
@@ -3463,15 +3464,15 @@ class BulkWatermarkApp {
 		};
 
 		// Reset common shadow/composite values first to known defaults
-		ctx.shadowColor = "transparent";
+		ctx.shadowColor = 'transparent';
 		ctx.shadowBlur = 0;
 		ctx.shadowOffsetX = 0;
 		ctx.shadowOffsetY = 0;
-		ctx.globalCompositeOperation = "source-over";
+		ctx.globalCompositeOperation = 'source-over';
 
 		// Shadow - fix 0-value issue by checking explicitly and using actual values
 		if (te.shadow) {
-			ctx.shadowColor = te.shadowColor || "rgba(0,0,0,0.5)";
+			ctx.shadowColor = te.shadowColor || 'rgba(0,0,0,0.5)';
 			// Use explicit check for 0 instead of fallback to prevent spacing-like issues
 			ctx.shadowBlur = te.shadowBlur !== undefined ? Number(te.shadowBlur) : 6;
 			ctx.shadowOffsetX = te.shadowOffsetX !== undefined ? Number(te.shadowOffsetX) : 2;
@@ -3510,13 +3511,13 @@ class BulkWatermarkApp {
 
 			ctx.save();
 			// Clear shadow effects for outline
-			ctx.shadowColor = "transparent";
+			ctx.shadowColor = 'transparent';
 			ctx.shadowBlur = 0;
 			ctx.shadowOffsetX = 0;
 			ctx.shadowOffsetY = 0;
 
 			// Set outline properties
-			ctx.strokeStyle = te.outlineColor || "#000000";
+			ctx.strokeStyle = te.outlineColor || '#000000';
 			ctx.lineWidth = thickness;
 			ctx.globalAlpha = opacity;
 			ctx.strokeText(text, x, y);
@@ -3555,7 +3556,7 @@ class BulkWatermarkApp {
 		// Validate that we have images to process
 		const loadedFiles = this.getLoadedFiles();
 		if (loadedFiles.length === 0) {
-			alert("No images loaded to process.");
+			alert('No images loaded to process.');
 			return;
 		}
 
@@ -3563,19 +3564,19 @@ class BulkWatermarkApp {
 		 * UI SETUP: Prepare progress interface and disable controls.
 		 * Prevents user interference during processing.
 		 */
-		const processBtn = document.getElementById("processBtn");
-		const progressSection = document.getElementById("processingProgress");
-		const progressFill = document.getElementById("progressFill");
-		const progressText = document.getElementById("progressText");
+		const processBtn = document.getElementById('processBtn');
+		const progressSection = document.getElementById('processingProgress');
+		const progressFill = document.getElementById('progressFill');
+		const progressText = document.getElementById('progressText');
 
 		// Disable process button to prevent multiple concurrent operations
 		if (processBtn) {
 			processBtn.disabled = true;
-			processBtn.textContent = "Processing...";
+			processBtn.textContent = 'Processing...';
 		}
 
 		// Show progress section for user feedback
-		if (progressSection) progressSection.classList.remove("hidden");
+		if (progressSection) progressSection.classList.remove('hidden');
 
 		// Clear any previous processed images
 		this.processedImages = [];
@@ -3589,7 +3590,7 @@ class BulkWatermarkApp {
 
 			// Calculate and display progress percentage
 			const progress = ((i + 1) / loadedFiles.length) * 100;
-			if (progressFill) progressFill.style.width = progress + "%";
+			if (progressFill) progressFill.style.width = progress + '%';
 			if (progressText) progressText.textContent = `Processing ${i + 1} of ${loadedFiles.length} images...`;
 
 			try {
@@ -3606,10 +3607,10 @@ class BulkWatermarkApp {
 			await new Promise((resolve) => setTimeout(resolve, 100));
 		}
 
-		if (progressText) progressText.textContent = "Processing complete!";
+		if (progressText) progressText.textContent = 'Processing complete!';
 
-		const downloadSection = document.getElementById("downloadSection");
-		if (downloadSection) downloadSection.classList.remove("hidden");
+		const downloadSection = document.getElementById('downloadSection');
+		if (downloadSection) downloadSection.classList.remove('hidden');
 
 		if (processBtn) {
 			processBtn.disabled = false;
@@ -3622,30 +3623,30 @@ class BulkWatermarkApp {
 		// AUTO-SHOW MODAL
 		setTimeout(() => {
 			try {
-				if (this.modal && typeof this.modal.showModal === "function") {
+				if (this.modal && typeof this.modal.showModal === 'function') {
 					this.modal.showModal(this.processedImages);
 				} else {
-					console.warn("Modal instance missing or showModal not a function - creating fallback overlay");
+					console.warn('Modal instance missing or showModal not a function - creating fallback overlay');
 					// create a simple fallback modal element
-					const fallback = document.createElement("div");
-					fallback.style.position = "fixed";
-					fallback.style.top = "0";
-					fallback.style.left = "0";
-					fallback.style.width = "100%";
-					fallback.style.height = "100%";
-					fallback.style.background = "rgba(0,0,0,0.8)";
-					fallback.style.display = "flex";
-					fallback.style.alignItems = "center";
-					fallback.style.justifyContent = "center";
+					const fallback = document.createElement('div');
+					fallback.style.position = 'fixed';
+					fallback.style.top = '0';
+					fallback.style.left = '0';
+					fallback.style.width = '100%';
+					fallback.style.height = '100%';
+					fallback.style.background = 'rgba(0,0,0,0.8)';
+					fallback.style.display = 'flex';
+					fallback.style.alignItems = 'center';
+					fallback.style.justifyContent = 'center';
 					fallback.style.zIndex = 9999;
 					fallback.innerHTML = `<div style='background:var(--color-surface); padding:24px; border-radius:8px; max-width:90vw; max-height:80vh; overflow:auto;'><h3>Processed Images</h3><p>${this.processedImages.length} images processed</p><button id='__fallbackClose'>Close</button></div>`;
 					document.body.appendChild(fallback);
 					document
-						.getElementById("__fallbackClose")
-						.addEventListener("click", () => document.body.removeChild(fallback));
+						.getElementById('__fallbackClose')
+						.addEventListener('click', () => document.body.removeChild(fallback));
 				}
 			} catch (e) {
-				console.error("Failed to show modal:", e);
+				console.error('Failed to show modal:', e);
 			}
 		}, 1000);
 	}
@@ -3654,8 +3655,8 @@ class BulkWatermarkApp {
 		return new Promise((resolve) => {
 			const img = new Image();
 			img.onload = () => {
-				const canvas = document.createElement("canvas");
-				const ctx = canvas.getContext("2d");
+				const canvas = document.createElement('canvas');
+				const ctx = canvas.getContext('2d');
 
 				canvas.width = img.width;
 				canvas.height = img.height;
@@ -3666,9 +3667,31 @@ class BulkWatermarkApp {
 				const spacing = this.computePatternSpacing(ctx, canvas.width, canvas.height);
 				this.applyWatermark(ctx, canvas.width, canvas.height);
 
+				// FIXED: Detect original image format and save with maximum quality
+				// Preserve PNG format for lossless quality, use maximum quality for JPEG/WebP
+				const originalFormat = fileData.name.toLowerCase();
+				let mimeType = 'image/jpeg';
+				let quality = 1.0; // Maximum quality for lossy formats
+
+				if (originalFormat.endsWith('.png')) {
+					mimeType = 'image/png';
+					quality = undefined; // PNG is always lossless, quality parameter ignored
+				} else if (originalFormat.endsWith('.webp')) {
+					mimeType = 'image/webp';
+					quality = 1.0; // Maximum quality
+				} else if (originalFormat.endsWith('.jpg') || originalFormat.endsWith('.jpeg')) {
+					mimeType = 'image/jpeg';
+					quality = 1.0; // Maximum quality
+				}
+
 				canvas.toBlob(
 					(blob) => {
-						const processedName = `watermarked_${fileData.name}`;
+						// Preserve original extension or use appropriate one
+						let extension = 'jpg';
+						if (mimeType === 'image/png') extension = 'png';
+						else if (mimeType === 'image/webp') extension = 'webp';
+
+						const processedName = `watermarked_${fileData.name.replace(/\.[^/.]+$/, '')}.${extension}`;
 						resolve({
 							name: processedName,
 							originalName: fileData.name,
@@ -3676,8 +3699,8 @@ class BulkWatermarkApp {
 							url: URL.createObjectURL(blob),
 						});
 					},
-					"image/jpeg",
-					0.9
+					mimeType,
+					quality,
 				);
 			};
 			img.src = fileData.preview;
@@ -3686,7 +3709,7 @@ class BulkWatermarkApp {
 
 	async downloadZip() {
 		if (this.processedImages.length === 0) {
-			alert("No processed images to download.");
+			alert('No processed images to download.');
 			return;
 		}
 
@@ -3697,26 +3720,26 @@ class BulkWatermarkApp {
 				zip.file(imageData.name, imageData.blob);
 			}
 
-			const zipBlob = await zip.generateAsync({ type: "blob" });
+			const zipBlob = await zip.generateAsync({ type: 'blob' });
 
 			const url = URL.createObjectURL(zipBlob);
-			const a = document.createElement("a");
+			const a = document.createElement('a');
 			a.href = url;
-			a.download = "watermarked_images.zip";
+			a.download = 'watermarked_images.zip';
 			document.body.appendChild(a);
 			a.click();
 			document.body.removeChild(a);
 			URL.revokeObjectURL(url);
 		} catch (error) {
-			console.error("Error creating ZIP:", error);
-			alert("Error creating ZIP file.");
+			console.error('Error creating ZIP:', error);
+			alert('Error creating ZIP file.');
 		}
 	}
 }
 
 /* Initialize when DOM is ready */
-if (document.readyState === "loading") {
-	document.addEventListener("DOMContentLoaded", () => {
+if (document.readyState === 'loading') {
+	document.addEventListener('DOMContentLoaded', () => {
 		new BulkWatermarkApp();
 	});
 } else {

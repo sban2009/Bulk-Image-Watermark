@@ -1,61 +1,41 @@
 # Changelog
 
-All notable changes to the Bulk Image Watermark Tool will be documented in this file.
+## 2026-04-07
 
-## [Latest] - 2025-08-28
+### Logo Sizing & Image Quality
 
-### Interactive Preview Selection
+- Logo size now scales per image (based on smaller dimension)
+- Adaptive padding prevents logo cropping
+- Lossless PNG output, maximum quality JPEG/WebP (1.0)
+- Output filenames preserve original format extensions
 
-- **Click to Preview**: Click any image in the file list to make it the live preview
-- **Smart Preview Management**: First image is automatically selected as default preview
-- **Visual Selection Indicator**: Selected image shows clear visual distinction with border and elevation
-- **Hover Overlay**: "Set as Preview" text appears on hover over non-selected images
-- **Real-time Watermark Updates**: All watermark calculations update instantly when switching preview images
+## 2025-08-28
 
-### Text Effects System
+### Interactive Preview & Text Effects
 
-- **Advanced Text Effects**: Comprehensive shadow, outline, and glow effects for text watermarks
-- **Shadow Controls**: Blur, offset X/Y, and color customization with 0-value support
-- **Outline Effects**: Thickness, opacity, and color controls for text outlines
-- **Glow Effects**: Spread, intensity, and color controls for text glow
-- **Effect Combinations**: Multiple effects can be applied simultaneously
-- **Side-by-Side Controls**: OffsetX and OffsetY inputs now appear on the same row for better UX
+- Click any uploaded image to set as live preview
+- Advanced text effects: shadow, outline, glow with full customization
+- Mobile upload improvements with camera integration
 
-### Mobile Upload Enhancement
+## 2025-08-27
 
-- **Mobile Compatibility**: Improved file upload functionality for iPhone and Android devices
-- **Touch Optimization**: Enhanced touch event handling for better mobile interaction
-- **Camera Integration**: Direct camera access on mobile devices with capture attribute
-- **Fallback Support**: Multiple upload methods ensure compatibility across all mobile browsers
+### UI Reorganization
 
-## [Previous Updates] - 2025-08-27
+- Separate control sections for text and logo modes
+- Cleaner interface with context-relevant controls
 
-### Major UI Reorganization
+## 2025-08-26
 
-- **Separate Controls**: Text and logo now have their own control sections
-- **Cleaner Interface**: Controls only appear when relevant to your current mode
-- **Less Confusion**: No more wondering which controls affect which watermark type
-- **Better Experience**: More intuitive workflow for both text and logo watermarks
+### Performance & Polish
 
-## [Previous Updates] - 2025-08-26
+- Automatic dark/light mode detection
+- Improved drag-and-drop with click fallback
+- Optimized rendering with intelligent caching
 
-### Documentation & Polish
+## 2025-08-25
 
-- **Theme Support**: Better automatic dark/light mode detection
-- **Upload Enhancement**: Better drag-and-drop functionality with click fallback
-- **Performance**: Optimized rendering pipeline with intelligent caching
+### Gallery & Core Features
 
-## [Earlier Updates] - 2025-08-25
-
-### Gallery & Selection Features
-
-- **Gallery Modal**: Checkbox selection for downloading specific images
-- **Bulk Operations**: "Select All" functionality for batch operations
-- **Selective Export**: Download only chosen images from gallery
-
-### Core Features
-
-- **Pattern System**: Advanced tiled watermark pattern
-- **Smart Spacing**: Automatic spacing calculations with manual override
-- **Multi-format Support**: JPEG, PNG, GIF, and WebP compatibility
-- **High Quality Output**: Maintains original image resolution and quality
+- Gallery modal with checkbox selection
+- Tiled watermark patterns with smart spacing
+- Multi-format support (JPEG, PNG, GIF, WebP)
