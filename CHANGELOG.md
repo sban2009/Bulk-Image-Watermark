@@ -1,6 +1,12 @@
 # Changelog
 
-## 2026-04-07
+## 2026-04-08
+
+### HEIC Image Format Support
+
+- Added HEIC/HEIF format support with automatic JPEG conversion (90% quality)
+- Browser-based conversion using heic2any library
+- Error handling for conversion failures
 
 ### Logo Sizing & Image Quality
 

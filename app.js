@@ -123,7 +123,15 @@ class FileUploadHandler {
 		this.showMobileDebugUI = false; // Set to false to disable mobile debug overlay
 
 		// Supported image formats for validation
-		this.supportedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+		this.supportedTypes = [
+			'image/jpeg',
+			'image/jpg',
+			'image/png',
+			'image/gif',
+			'image/webp',
+			'image/heic',
+			'image/heif',
+		];
 		this.maxFileSize = 10485760; /* 10MB */
 		this.uploadArea = null;
 		this.fileInput = null;
@@ -1143,17 +1151,45 @@ class BulkWatermarkApp {
 	 *
 	 * @param {Object} fileData - File data object with metadata
 	 */
-	loadImagePreview(fileData) {
+	async loadImagePreview(fileData) {
+		const fileName = fileData.file.name.toLowerCase();
+		const isHEIC =
+			fileData.file.type === 'image/heic' ||
+			fileData.file.type === 'image/heif' ||
+			fileName.endsWith('.heic') ||
+			fileName.endsWith('.heif');
+
+		let fileToRead = fileData.file;
+
+		if (isHEIC) {
+			try {
+				if (typeof heic2any === 'undefined') {
+					throw new Error('HEIC converter not loaded');
+				}
+
+				const convertedBlob = await heic2any({
+					blob: fileData.file,
+					toType: 'image/jpeg',
+					quality: 0.9,
+				});
+
+				fileToRead = Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob;
+			} catch (error) {
+				console.error('HEIC conversion failed:', error);
+				fileData.error = 'Failed to convert HEIC image';
+				this.renderImageGrid();
+				this.updateUI();
+				return;
+			}
+		}
+
 		const reader = new FileReader();
 
 		reader.onload = (e) => {
 			fileData.preview = e.target.result;
 			fileData.loaded = true;
-
-			// Update UI to reflect new loaded file count and status
 			this.updateUI();
 
-			// Update preview if this is the first loaded file
 			if (this.getLoadedFiles().length === 1) {
 				this.currentPreviewFileId = fileData.id;
 				setTimeout(() => this.updatePreview(), 500);
@@ -1169,7 +1205,7 @@ class BulkWatermarkApp {
 			this.updateUI();
 		};
 
-		reader.readAsDataURL(fileData.file);
+		reader.readAsDataURL(fileToRead);
 	}
 
 	bindEvents() {

@@ -37,10 +37,11 @@
                                     d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                             </svg>
                             <h3>Drop image(s) here or click to browse</h3>
-                            <p>Support for JPEG, PNG, GIF, WebP (max 10MB per file)</p>
+                            <p>Support for JPEG, PNG, GIF, WebP, HEIC (max 10MB per file)</p>
                             <div class="upload-status" id="uploadStatus"></div>
                         </div>
-                        <input type="file" id="fileInput" multiple accept="image/*" class="file-input-clickable" />
+                        <input type="file" id="fileInput" multiple accept="image/*,.heic,.heif"
+                            class="file-input-clickable" />
                     </div>
 
                     <div id="fileList" class="file-list hidden">
@@ -549,6 +550,7 @@
             </div>
         </footer>
 
+        <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
         <script src="app.js"></script>
     </body>
 
