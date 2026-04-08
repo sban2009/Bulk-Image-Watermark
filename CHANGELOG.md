@@ -23,22 +23,16 @@
 - Advanced text effects: shadow, outline, glow with full customization
 - Mobile upload improvements with camera integration
 
-## 2025-08-27
-
 ### UI Reorganization
 
 - Separate control sections for text and logo modes
 - Cleaner interface with context-relevant controls
-
-## 2025-08-26
 
 ### Performance & Polish
 
 - Automatic dark/light mode detection
 - Improved drag-and-drop with click fallback
 - Optimized rendering with intelligent caching
-
-## 2025-08-25
 
 ### Gallery & Core Features
 
