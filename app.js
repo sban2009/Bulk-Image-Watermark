@@ -2639,7 +2639,7 @@ class BulkWatermarkApp {
 					'logo',
 				);
 				let ratio = Math.min(maxSize / img.width, maxSize / img.height);
-				ratio = Math.max(ratio, 0.02); // Ensure minimum visibility
+				ratio = Math.max(ratio, 0.001); // Ensure minimum visibility
 				w = img.width * ratio;
 				h = img.height * ratio;
 
@@ -2833,17 +2833,18 @@ class BulkWatermarkApp {
 				fontSize * (this.watermarkSettings.text ? this.watermarkSettings.text.length * 0.6 : 4);
 			estHeight = fontSize * 1.1; // Add 10% padding for text height
 		} else if (this.watermarkSettings.type === 'logo' && this.watermarkSettings.watermarkLogo) {
-			// FIXED: Calculate logo size as percentage of the smaller canvas dimension (per picture)
 			const img = this.watermarkSettings.watermarkLogo;
 			const scale = this.getLogoScaleFraction();
 
-			/*
-			 * CONSISTENT LOGO SIZING: Calculate based on actual canvas dimensions.
-			 * This makes watermarks scale proportionally to each image's size.
-			 */
-			const smallerDimension = Math.min(canvasWidth, canvasHeight);
-			const targetLogoSize = smallerDimension * scale;
-			let imgRatio = Math.min(targetLogoSize / Math.max(1, img.width), targetLogoSize / Math.max(1, img.height));
+			// FIXED: Use resolution-independent scaling for consistent logo caching
+			const baseLogoSize = 240; // Base logo size at reference resolution
+			const maxSize = this.getResolutionIndependentSize(
+				canvasWidth,
+				canvasHeight,
+				baseLogoSize * scale,
+				'logo'
+			);
+			let imgRatio = Math.min(maxSize / Math.max(1, img.width), maxSize / Math.max(1, img.height));
 			imgRatio = Math.max(imgRatio, 0.001); // Minimum scale to prevent invisibility
 
 			estWidth = Math.ceil(img.width * imgRatio);
@@ -3120,14 +3121,19 @@ class BulkWatermarkApp {
 			this.renderTextWithEffects(ctx, this.watermarkSettings.text, 0, 0);
 			ctx.restore();
 		} else if (this.watermarkSettings.type === 'logo' && this.watermarkSettings.watermarkLogo) {
-			// FIXED: Calculate logo size based on pattern context (smaller for tiled patterns)
 			const img = this.watermarkSettings.watermarkLogo;
 			const scale = this.getLogoScaleFraction();
 
-			// Use a reference dimension for pattern sizing (600x600 is typical pattern viewport)
-			const patternRefDimension = Math.min(600, 600);
-			const targetLogoSize = patternRefDimension * scale * 0.3; // 30% of reference for patterns
-			const ratio = Math.min(targetLogoSize / img.width, targetLogoSize / img.height);
+			// FIXED: Use resolution-independent scaling for consistent logo rendering
+			const baseLogoSize = 240; // Base logo size at reference resolution
+			const maxSize = this.getResolutionIndependentSize(
+				600,
+				600,
+				baseLogoSize * scale,
+				'logo'
+			);
+			let ratio = Math.min(maxSize / img.width, maxSize / img.height);
+			ratio = Math.max(ratio, 0.001);
 			const width = img.width * ratio;
 			const height = img.height * ratio;
 
@@ -3277,7 +3283,7 @@ class BulkWatermarkApp {
 					'logo',
 				);
 				let imgRatio = Math.min(maxSize / Math.max(1, img.width), maxSize / Math.max(1, img.height));
-				imgRatio = Math.max(imgRatio, 0.02); // Minimum 2% scale to prevent invisibility
+				imgRatio = Math.max(imgRatio, 0.001); // Minimum scale to prevent invisibility
 				estW = Math.ceil(img.width * imgRatio);
 				estH = Math.ceil(img.height * imgRatio);
 				/* Ensure estimated cache footprint is at least a few pixels to avoid zero-sized caches */
@@ -3318,7 +3324,7 @@ class BulkWatermarkApp {
 					'logo',
 				);
 				let ratio = Math.min(maxSize / img.width, maxSize / img.height);
-				ratio = Math.max(ratio, 0.05);
+				ratio = Math.max(ratio, 0.001);
 				const w = img.width * ratio;
 				const h = img.height * ratio;
 				this.applyTextEffects(cctx);
@@ -3384,13 +3390,17 @@ class BulkWatermarkApp {
 		const img = this.watermarkSettings.watermarkLogo;
 		const scale = this.getLogoScaleFraction();
 
-		// FIXED: Calculate logo size as percentage of the smaller canvas dimension (per picture)
-		// This ensures logos scale proportionally to each image's size
-		const smallerDimension = Math.min(canvasWidth, canvasHeight);
-		const targetLogoSize = smallerDimension * scale;
+		// FIXED: Use resolution-independent scaling for consistent logo rendering
+		const baseLogoSize = 240; // Base logo size at reference resolution
+		const maxSize = this.getResolutionIndependentSize(
+			canvasWidth,
+			canvasHeight,
+			baseLogoSize * scale,
+			'logo'
+		);
 
 		// Calculate ratio to fit logo within target size while maintaining aspect ratio
-		let ratio = Math.min(targetLogoSize / img.width, targetLogoSize / img.height);
+		let ratio = Math.min(maxSize / img.width, maxSize / img.height);
 
 		// Ensure ratio is not zero; clamp to tiny epsilon to keep logo visible
 		ratio = Math.max(ratio, 0.001);
